@@ -1,0 +1,35 @@
+.user-info{
+    width: 360px;
+    padding: 40px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    border: 2px solid #D3D3D3;
+    border-radius: 15px;
+    box-shadow: 2px 2px 2px 2px;
+    color: #D3D3D3;
+}
+
+.user-info input[type= "password"],.user-info input[type= "email"]{
+    border: 0;
+    background: #E8F5FF;
+    display: block;
+    margin: 20px auto;
+    text-align: center;
+    border: 2px solid #D3D3D3;
+    padding: 14px 10px;
+    width: 200px;
+    outline: none;
+    transition: 0.25s;
+}
+
+.user-info input[type= "password"]:focus,.user-info input[type= "email"]:focus{
+    width: 280px;
+    border-color: #1eb2a6;
+}
+
+.text{
+    color: black;
+}

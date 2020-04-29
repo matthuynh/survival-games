@@ -1,0 +1,48 @@
+.delete-user{
+    width: 360px;
+    padding: 40px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    border: 2px solid #D3D3D3;
+    border-radius: 15px;
+    box-shadow: 2px 2px 2px 2px;
+    color: #D3D3D3;
+}
+
+.delete-user > p{
+    color: black;
+}
+
+.delete-user input[type= "password"]{
+    border: 0;
+    background: #E8F5FF;
+    display: block;
+    margin: 20px auto;
+    text-align: center;
+    border: 2px solid #D3D3D3;
+    padding: 14px 10px;
+    width: 200px;
+    outline: none;
+    transition: 0.25s;
+}
+
+.delete-user input[type= "password"]:focus{
+    width: 280px;
+    border-color: #1eb2a6;
+}
+
+.delete-button{
+    border: 0;
+    background: none;
+    display: block;
+    margin: 5px auto;
+    text-align: center;
+    padding: 14px 40px;
+    width: 200px;
+    outline: none;
+    transition: 0.25s;
+    cursor: pointer;
+}
