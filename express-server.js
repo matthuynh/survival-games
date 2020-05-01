@@ -29,8 +29,9 @@ const db = new sqlite3.Database("db/database.db", err => {
 
 // When the client connects to this server, they receive all the client files from the static_files directory they will need to run the application on the client-side
 // app.use("/", express.static("static_files"));
+// TODO: See if we should still have the static_files part here
 app.use("/", express.static("static_files"), function (req, res, next) {
-	res.header("Access-Control-Allow-Origin", "http://142.1.200.148:3000");
+	res.header("Access-Control-Allow-Origin", "http://localhost:3000");
 	res.header("Access-Control-Allow-Credentials", true);
 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");

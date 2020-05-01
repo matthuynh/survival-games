@@ -1,6 +1,6 @@
 Steps to Run:
 - Install server dependencies:
-    - `cd server && npm install`
+    - `npm install`
 
 - Setup database
     - `cd db`
