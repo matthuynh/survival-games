@@ -32,6 +32,8 @@ Steps to Run:
 - Improve directory structure of back-end (eg. use config/.env, separate route JS files)
 - Add a bash script for re-installing everything
 
+- In game-engine, remove unnecessary imports and extra functions (left them in for now for development purposes)
+
 ** Known Bugs and Issues
 - Recreate: on the same browser, have two tabs on the log-in page. Login to User A on one tab, and then to User B on another tab. This shows as User B being logged-in. This should not happen, and User B shouldn't be alloewd to login
 
