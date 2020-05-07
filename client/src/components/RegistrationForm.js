@@ -1,6 +1,7 @@
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import axios from 'axios';
 import '../css/RegisterForm.css';
 
 
@@ -63,41 +64,33 @@ class RegistrationForm extends React.Component {
                 email: this.state.email
             };
 
+            //api call to register user
             const that = this;
-            //what url do we put??
-            fetch('http://localhost:10421/ftd/api/users', {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(postData)
-            })
-                .then(function (response) {
-                    if (response.status === 403) {
+            axios.post('http://localhost:10421/ftd/api/users', postData)
+                .then(response => {
+                    that.setState({
+                        error: "Account Created! Please go Home and log in",
+                        alert: true
+                    });
+                })
+                .catch(error => {
+                    //error check
+                    if (error.response.status === 403) {
                         that.setState({
                             error: "That username or email already exists",
                             alert: true
                         });
-                    } else if (response.status === 400) {
+                    } else if (error.response.status === 400) {
                         that.setState({
                             error: "Your password and username must be between 6 to 50 (inclusive) characters long",
                             alert: true
                         });
-                    } else if (response.status === 500) {
+                    } else if (error.response.status === 500) {
                         that.setState({
                             error: "Oops! Internal server error",
                             alert: true
                         });
-                    } else {
-                        that.setState({
-                            error: "Account Created! Please go Home and log in",
-                            alert: true
-                        });
                     }
-                })
-                .catch(function (error) {
-                    console.log('Request failed', error);
                 })
         }
     }

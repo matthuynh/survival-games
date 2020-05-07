@@ -2,6 +2,7 @@ import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import '../css/DeleteUser.css';
+import Axios from 'axios';
 
 
 class DeleteUser extends React.Component {
@@ -29,7 +30,6 @@ class DeleteUser extends React.Component {
 
     handleDeleteUser() {
         //fetch code goes here
-        //getting jwtToken
         const cookie = document.cookie;
         const splitCookie = cookie.split("=");
         const token = splitCookie[1];
@@ -38,38 +38,33 @@ class DeleteUser extends React.Component {
             password: this.state.password,
         };
 
+        //api call to delete user
         const that = this;
-        //what url do we put??
-        //fetch call for logging in user
-        fetch('http://localhost:10421/ftd/api/users', {
-            method: 'DELETE',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(postData)
+        Axios({
+            method: 'delete',
+            withCredentials: true,
+            url: 'http://localhost:10421/ftd/api/users',
+            data: postData
         })
-            .then(function (response) {
-                //error checking status codes
-                if (response.status === 401) {
+            .then(response => {
+                //change state if user is deleted
+                that.props.handleDeleteUser();
+            })
+            .catch(error => {
+                //error checking api call
+                if (error.response.status === 401) {
                     that.setState({
                         error: "Your current password is incorrect",
                         alert: true
                     });
-                } else if (response.status === 500) {
+                } else if (error.response.status == 500) {
                     that.setState({
                         error: "Oops! Internal server error",
                         alert: true
                     });
-                } else {
-                    that.props.handleDeleteUser();
-                    return response.json();
                 }
             })
-            .catch(function (error) {
-                console.log('Request failed', error);
-            })
+
     }
 
     render() {

@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
+import axios from 'axios';
 import '../css/Dashboard.css';
 
 class Dashboard extends React.Component {
@@ -17,29 +18,21 @@ class Dashboard extends React.Component {
         let postData = {};
 
         const that = this;
-        //what url do we put??
-        //fetch call for logging in user
-        fetch('http://localhost:10421/ftd/api/logout', {
+        axios({
             method: 'post',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(postData)
+            withCredentials: true,
+            url: 'http://localhost:10421/ftd/api/logout',
+            data: postData
         })
-            .then(function (response) {
-                //error checking status codes
-                return response.json();
-            }).then(function (data) {
-                if (data.loggedOut == "LoggedOut") {
+            .then(response => {
+                //logout user
+                if (response.data.loggedOut == "LoggedOut") {
                     that.props.handleLoggedOut();
                 }
             })
-            .catch(function (error) {
+            .catch(error => {
                 console.log('Request failed', error);
             })
-
     }
 
     render() {

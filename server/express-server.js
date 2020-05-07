@@ -96,6 +96,8 @@ app.post("/ftd/api/login", async (req, res) => {
 	try {
 		let result = {};
 		let username = req.body.username.toLowerCase();
+		console.log('Ha');
+		console.log(username);
 		let plaintextPassword = req.body.password;
 
 		// Input validation for password and username
