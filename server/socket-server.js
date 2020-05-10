@@ -1,24 +1,35 @@
 const wssport = 10000;
 const WebSocketServer = require("ws").Server;
 const wss = new WebSocketServer({ port: wssport });
+console.log(`WebSocket server listening on port ${wssport}`);
+
+// The ws server keeps track of connected clients and game lobbies
 let connectedClients = [];
 let allLobbies = [];
-console.log(`WebSocket server listening on port ${wssport}`);
 
 wss.on("close", function() {
 	console.log("Server disconnected");
 });
 
-// Sends a game model state update to all connected clients
+// Send an update to all connected clients -- used for lobbies
 wss.broadcast = function(serverUpdate) {
-	// Send the update to each connected client
 	this.clients.forEach((clientSocket) => {
 		clientSocket.send(serverUpdate);
 	});
 };
 
-// If the update is a stage-update or stage-initialization, only broadcast to all clients in that lobby
+// Send an update to all clients in a specific lobby -- used for stage-update or stage-initialization
 wss.broadcastToLobby = function(serverUpdate, lobbyId) {
+	// allLobbies[lobbyId].lobbyPlayers.forEach((player) => {
+	// 	console.log(connectedClients);
+	// 	console.log("-----------------------");
+	// 	console.log(connectedClients[player.PID]);
+	// 	console.log("-----------------------");
+	// 	console.log(player);
+	// 	connectedClients[player.PID].socket.send(serverUpdate);
+	// });
+
+	// FIXME: Have players in lobbies store their socket connection as well, use that here to make this more efficient ... it is not really an improvement over broadcast to all since we still need to check each client
 	connectedClients.forEach((connectedClient) => {
 		if (connectedClient.lobbyID == lobbyId) {
 			connectedClient.socket.send(serverUpdate);	
@@ -34,8 +45,9 @@ wss.on("connection", function(ws) {
 		PID: null,
 		lobbyID: null
 	});
-	// console.log("Client connected");
-	// console.log(`There are now ${connectedClients.length} number of connected clients`);
+	// FIXME: For some reason, two client sockets connect (instead of one)
+	console.log("Client connected");
+	console.log(`There are now ${connectedClients.length} number of connected clients`);
     
     // Send a list of lobbies to the user
     let lobbyList = JSON.stringify({
@@ -100,13 +112,6 @@ wss.on("connection", function(ws) {
                 lobby.updateGameState(clientUpdate);
             }
 		} 
-		// Heal the player with the specified player id in the specified lobby
-		else if (clientUpdate && clientUpdate.type == "heal-player") {
-			let lobby = serverInstance.getLobby(clientUpdate.lobbyId);
-			if (lobby && lobby.isPlayerInLobby(clientUpdate.pid) && lobby.isGameInProgress()) {
-				lobby.updateGameState(clientUpdate);
-			}
-		}
         // Client creates lobby
         else if (clientUpdate && clientUpdate.type == "create-lobby") {
             // The given user id creates and joins the lobby
@@ -371,7 +376,7 @@ wss.on("connection", function(ws) {
 	});
 });
 
-// Import the Stage
+// Import the Stage (this allows the server access to the game)
 const Stage = require("./game-engine/Stage.js");
 
 // This server instance keeps track of lobbies and multiplayer games
@@ -631,9 +636,7 @@ class MultiplayerGame {
                 player.setFiringDirection(update.x, update.y);
             } else if (update.type == "cursor") {
                 player.setCursorDirection(update.x, update.y);
-            } else if (update.type == "heal-player") {
-				player.increaseHP(0.0005, true);
-			}
+            }
         }
     }
 
@@ -668,9 +671,6 @@ class MultiplayerGame {
 		this.stage.removePlayer(playerID);
 	}
 }
-
-// --- SERVER INTERVAL CODE Q: ---------------------------------------------
-
 
 let globalInterval = null;
 let serverInstance = new ServerInstance();
