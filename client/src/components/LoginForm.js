@@ -120,7 +120,7 @@ class LoginForm extends React.Component {
             }).then(function (data) {
                 //set jwt token
                 document.cookie = "jwt=" + data.jwt;
-                console.log(document.cookie);
+                // console.log(document.cookie);
                 that.props.getUser();
                 that.props.handleLoggedIn();
 
