@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
+import axios from 'axios';
 import '../css/UserInfo.css';
 
 class UserInfo extends React.Component {
@@ -37,43 +38,31 @@ class UserInfo extends React.Component {
         };
 
         const that = this;
-        //what url do we put??
-        //fetch call for logging in user
-        fetch('http://localhost:10421/ftd/api/getUserInfo', {
-            method: 'post',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(postData)
-        })
-            .then(function (response) {
-                //error checking status codes
-                if (response.status === 401) {
+        axios.post('http://localhost:10421/ftd/api/getUserInfo', postData)
+            .then(response => {
+                //setting state
+                that.setState({ email: response.data.email });
+            })
+            .catch(error => {
+                //error catching
+                if (error.response.status === 401) {
                     that.setState({
                         error: "Please log in. You are currently unauthenticated",
                         alert: true
                     });
-                } else if (response.status === 403) {
+                } else if (error.response.status === 403) {
                     that.setState({
                         error: "Oops! We could not find your username in the database. Try logging out and logging in again.",
                         alert: true
                     });
-                } else if (response.status === 500) {
+                } else if (error.response.status === 500) {
                     that.setState({
                         error: "Oops! Internal server error",
                         alert: true
                     });
-                } else {
-                    return response.json();
                 }
-            }).then(function (data) {
-                //setting state
-                that.setState({ email: data.email });
             })
-            .catch(function (error) {
-                console.log('Request failed', error);
-            })
+
     }
 
     //handler for email input
@@ -114,44 +103,34 @@ class UserInfo extends React.Component {
             confirmPassword: this.state.confirmPassword
         };
 
+        //api call to change usr info
         const that = this;
-        //what url do we put??
-        //fetch call for logging in user
-        fetch('http://localhost:10421/ftd/api/users', {
-            method: 'PUT',
-            headers: {
-                'Content-type': 'application/json; charset=UTF-8',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(postData)
-        })
-            .then(function (response) {
-                //error checking status codes
-                if (response.status === 400) {
+        axios.put('http://localhost:10421/ftd/api/users', postData)
+            .then(response => {
+                that.setState({
+                    success: "information modified",
+                    alert: true
+                });
+            })
+            .catch(error => {
+                if (error.response.status === 400) {
                     that.setState({
                         error: "Your passwords must match and be between 6 to 50 (inclusive) characters long. Your email must be valid",
                         alert: true
                     });
-                } else if (response.status === 401) {
+                } else if (error.response.status === 401) {
                     that.setState({
                         error: "Your current password is incorrect",
                         alert: true
                     });
-                } else if (response.status === 500) {
+                } else if (error.response.status === 500) {
                     that.setState({
                         error: "Oops! Internal server error",
                         alert: true
                     });
-                } else {
-                    that.setState({
-                        success: "information modified",
-                        alert: true
-                    });
                 }
             })
-            .catch(function (error) {
-                console.log('Request failed', error);
-            })
+
     }
 
     render() {

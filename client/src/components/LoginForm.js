@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import '../css/LoginForm.css';
@@ -18,7 +19,6 @@ class LoginForm extends React.Component {
         this.handleAlertClick = this.handleAlertClick.bind(this);
     }
 
-    //figure out how to do this
     componentDidMount() {
         //fetch to verify
         //if verified
@@ -32,34 +32,24 @@ class LoginForm extends React.Component {
             };
 
             const that = this;
-            //what url do we put??
             //fetch call for logging in user
-            fetch('http://localhost:10421/ftd/api/verify', {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(postData)
-            })
-                .then(function (response) {
-                    //error checking status codes
-                    if (response.status === 401) {
-                        that.setState({
-                            error: "Not authorized",
-                            alert: true
-                        });
-                    } else {
-                        return response.json();
-                    }
-                }).then(function (data) {
-                    //set jwt token
-                    if (data.verified == "Verified") {
+            axios.post('http://localhost:10421/ftd/api/verify', postData)
+                .then(response => {
+                    //checking if logged in user is verified
+                    if (response.data.verified == "Verified") {
                         that.props.handleLoggedIn();
                     }
                 })
-                .catch(function (error) {
-                    console.log('Request failed', error);
+                .catch(error => {
+                    if (error.response) {
+                        //error is user is not verified
+                        if (error.response.status === 401) {
+                            that.setState({
+                                error: "Not authorized",
+                                alert: true
+                            });
+                        }
+                    }
                 })
         }
     }
@@ -87,46 +77,33 @@ class LoginForm extends React.Component {
         };
 
         const that = this;
-        //what url do we put??
-        //fetch call for logging in user
-        fetch('http://localhost:10421/ftd/api/login', {
-            method: 'post',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(postData)
-        })
-            .then(function (response) {
-                //error checking status codes
-                if (response.status === 401) {
-                    that.setState({
-                        error: "Either that username does not exist, or your password is incorrect (we won't specify which one for security!)",
-                        alert: true
-                    });
-                } else if (response.status === 400) {
-                    that.setState({
-                        error: "Your password and username must be between 6 to 50 (inclusive) characters long",
-                        alert: true
-                    });
-                } else if (response.status === 500) {
-                    that.setState({
-                        error: "Oops! Internal server error",
-                        alert: true
-                    });
-                } else {
-                    return response.json();
-                }
-            }).then(function (data) {
-                //set jwt token
-                document.cookie = "jwt=" + data.jwt;
-                // console.log(document.cookie);
+        axios.post('http://localhost:10421/ftd/api/login', postData)
+            .then(response => {
+                //set jwt token for logged in user
+                document.cookie = "jwt=" + response.data.jwt;
                 that.props.getUser();
                 that.props.handleLoggedIn();
-
             })
-            .catch(function (error) {
-                console.log('Request failed', error);
+            .catch(error => {
+                //error status
+                if (error.response) {
+                    if (error.response.status === 400) {
+                        that.setState({
+                            error: "Your password and username must be between 6 to 50 (inclusive) characters long",
+                            alert: true
+                        });
+                    } else if (error.response.status === 401) {
+                        that.setState({
+                            error: "Either that username does not exist, or your password is incorrect (we won't specify which one for security!)",
+                            alert: true
+                        });
+                    } else if (error.response.state === 500) {
+                        that.setState({
+                            error: "Oops! Internal server error",
+                            alert: true
+                        });
+                    }
+                }
             })
     }
 
