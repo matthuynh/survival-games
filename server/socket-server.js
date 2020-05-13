@@ -6,6 +6,28 @@ console.log(`WebSocket server listening on port ${wssport}`);
 // The ws server keeps track of connected clients and game lobbies
 let connectedClients = [];
 
+// The client joins the lobby
+const associateClientLobby = (clientPID, lobbyNumber) => {
+	for (let i = 0; i < connectedClients.length; i++) {
+		if (connectedClients[i].PID === clientPID) {
+			// console.log(`associating client ${clientPID} with a lobby`);
+			connectedClients[i].lobbyID = lobbyNumber;
+			break;
+		}
+	}
+};
+
+// The client leaves the lobby
+const disassociateClientLobby = (clientPID) => {
+	for (let i = 0; i < connectedClients.length; i++) {
+		if (connectedClients[i].PID === clientPID) {
+			// console.log(`disassociating client ${clientPID} with its lobby`);
+			connectedClients[i].lobbyID = null;
+			break;
+		}
+	}
+}
+
 wss.on("close", function () {
 	console.log("Server disconnected");
 });
@@ -22,7 +44,7 @@ wss.broadcastToLobby = function (serverUpdate, lobbyId) {
 	let lobbySockets = serverInstance.getLobby(lobbyId).getPlayersSockets();
 	lobbySockets.forEach((socket) => {
 		socket.send(serverUpdate);
-	});;
+	});
 };
 
 // Client connects to the web socket server
@@ -92,7 +114,7 @@ wss.on("connection", function connection(ws, req) {
 		);
 	});
 
-	// When we receive an update from the client
+	// When we receive an update from the client, take the appropriate action
 	ws.on("message", function (clientUpdate) {
 		clientUpdate = JSON.parse(clientUpdate);
 
@@ -119,17 +141,8 @@ wss.on("connection", function connection(ws, req) {
 					clientUpdate.pid,
 					connectedClient.socket
 				);
+				associateClientLobby(clientUpdate.pid, createdLobby.getLobbyId());
 				
-				// TODO: Turn this into a helper?
-				// Associate that client socket with the newly-created lobby
-				for (let i = 0; i < connectedClients.length; i++) {
-					if (connectedClients[i].PID === clientUpdate.pid) {
-						// console.log("associating client with a lobby");
-						connectedClients[i].lobbyID = createdLobby.getLobbyId();
-						break;
-					}
-				}
-
 				// Send information back to client
 				ws.send(
 					JSON.stringify({
@@ -160,15 +173,7 @@ wss.on("connection", function connection(ws, req) {
 				if (lobby) {
 					let successfulJoin = lobby.joinLobby(clientUpdate.pid, connectedClient.socket);
 					if (successfulJoin) {
-						// Associate that client socket with this lobby
-						for (let i = 0; i < connectedClients.length; i++) {
-							if (connectedClients[i].PID === clientUpdate.pid) {
-								connectedClients[
-									i
-								].lobbyID = lobby.getLobbyId();
-								break;
-							}
-						}
+						associateClientLobby(clientUpdate.pid, lobby.getLobbyId());
 
 						// Send update to client
 						let joinedLobbyInformation = JSON.stringify({
@@ -254,14 +259,7 @@ wss.on("connection", function connection(ws, req) {
 					// Check if the player owns the lobby
 					if (lobby.getLobbyOwnerId() == clientUpdate.pid) {
 						serverInstance.deleteLobby(clientUpdate.lobbyId);
-
-						// Disassociate that client socket with this lobby
-						for (let i = 0; i < connectedClients.length; i++) {
-							if (connectedClients[i].PID === clientUpdate.pid) {
-								connectedClients[i].lobbyID = null;
-								break;
-							}
-						}
+						disassociateClientLobby(clientUpdate.pid);
 
 						// Send status to user who deleted lobby
 						let newLobbyState = JSON.stringify({
@@ -292,6 +290,7 @@ wss.on("connection", function connection(ws, req) {
 						// console.log("The given client is in the lobby, removing them");
 
 						lobby.leaveLobby(clientUpdate.pid);
+						disassociateClientLobby(clientUpdate.pid);
 						// If the lobby is empty, delete the lobby
 						if (lobby.getPlayers().length == 0) {
 							serverInstance.deleteLobby(clientUpdate.lobbyId);
@@ -303,14 +302,6 @@ wss.on("connection", function connection(ws, req) {
 							status: "success",
 						});
 						ws.send(newLobbyState);
-
-						// Disassociate that client socket with this lobby
-						for (let i = 0; i < connectedClients.length; i++) {
-							if (connectedClients[i].PID === clientUpdate.pid) {
-								connectedClients[i].lobbyID = null;
-								break;
-							}
-						}
 
 						// Send updated state of lobbies to all clients
 						let lobbyList = JSON.stringify({
@@ -581,13 +572,16 @@ class Lobby {
 	}
 }
 
+// TODO: Move this class into its own file after finishing with the features
 // A multiplayer game has multiplayer players in it
 class MultiplayerGame {
+	// TODO: Make this constructor take more game parameters
 	constructor(gameId, gamePlayers) {
 		this.gameId = gameId; // a game has the same ID as its lobby
 		this.players = gamePlayers;
 		const numPlayers = gamePlayers.length;
 
+		// TODO: Investigate more into these values of mapWidth and mapHeight -- do they relate to logical map size, or the dimensions of the GUI displayed to the user?
 		// These values are equivalent to the canvas width and height from A2
 		// The stage still needs to know the map size
 		this.mapWidth = 1200;

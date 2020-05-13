@@ -5,6 +5,9 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import "../css/LobbiesPage.css";
 
+import LobbyList from "./lobby_components/LobbyList";
+import Lobby from "./lobby_components/Lobby";
+
 const localIPAddress = "localhost";
 const wssServerURL = `ws://${localIPAddress}:10000`;
 
@@ -110,7 +113,7 @@ class LobbiesPage extends React.Component {
 						if (this._isMounted) {
 							this.setState({showGameView: true });
 						}
-						// console.log("Starting client stage model");
+						console.log("Starting client stage model");
 			
 						// Initialize state of the client model
 						window.setupStageModel(
@@ -148,13 +151,14 @@ class LobbiesPage extends React.Component {
 						if (this._isMounted) {
 							this.setState({ 
 								lobbies: serverUpdate.lobbies,
-								joinedLobbyId: serverUpdate.newLobbyId,
+								joinedLobbyId: serverUpdate.newLobbyId
 							});
 						}
 						break;
 
 					// User joined a lobby successfully
 					case "joined-lobby":
+						console.log("joined-lobby");
 						// console.log("Setting state of lobbies");
 						if (this._isMounted) {
 							this.setState({ 
@@ -222,6 +226,7 @@ class LobbiesPage extends React.Component {
 
     // A player can leave the lobby they are in
 	handleLeaveLobby(playerId, lobbyNumber) {
+		console.log("Inside handleLeaveLobby()");
         // console.log("Client tries to leave lobby with id " + lobbyNumber);
 
         let clientUpdate = JSON.stringify({
@@ -243,6 +248,7 @@ class LobbiesPage extends React.Component {
 
 	// A player deletes the lobby he is in 
 	handleDeleteLobby(playerId, lobbyId) {
+		console.log("Inside handleDeleteLobby()");
 		let clientUpdate = JSON.stringify({
             type: "delete-lobby",
             pid: playerId,
@@ -253,6 +259,10 @@ class LobbiesPage extends React.Component {
 
 	// A lobby owner attempts to starts a game on a lobby on the server
 	handleStartGame(ownerId, lobbyId) {
+		console.log("Inside handleStartGame()");
+		console.log(ownerId);
+		console.log(lobbyId);
+
 		 // Note that only the owner of a valid lobby may start a game
         let clientUpdate = JSON.stringify({
             pid: ownerId,
@@ -444,66 +454,12 @@ class LobbiesPage extends React.Component {
 		// Render the main lobby view
 		if (this.state.joinedLobbyId === null) {
 			return (
-				<div className="lobby-page">
-					<h1>LOBBIES</h1>
-					<p> To play a game, join a pre-existing lobby by clicking "Join Lobby", or create your own lobby below. Note that if you Create a Lobby and start a game by yourself, you will automatically win. The game will then end shortly, so you won't be able to control your player (as the canvas is disabled). You will need to start a game with at least two players in the lobby.</p>
-					<hr />
-					<Table striped bordered hover size="sm">
-						<thead>
-							<tr>
-								<th> Lobby ID </th>
-								<th> Players </th>
-								<th> Status </th>
-							</tr>
-						</thead>
-						<tbody>
-							{/* Render each lobby */}
-							{this.state.lobbies.map((lobby, index) => {
-								return (
-									<tr key={index}>
-										<td>{lobby.id}</td>
-										<td>{lobby.numPlayers}</td>
-										<td>
-											{lobby.gameInProgress === true ? (
-												<p>
-													Ongoing Game
-												</p>
-											) : (
-												<p>
-													<Button
-														variant="outline-success"
-                                                        block
-                                                        onClick={() => {this.handleJoinLobby(lobby.id)}}
-													>
-														Join Lobby
-													</Button>
-												</p>
-											)}
-										</td>
-									</tr>
-								);
-							})}
-						</tbody>
-					</Table>
-					{this.state.lobbies.length < 1 && (
-						<p> No lobbies, click below to make one </p>
-					)}
-
-					<Button
-						variant="success"
-						block
-						onClick={this.handleCreateLobby}
-					>
-						Create Lobby
-					</Button>
-					<Button
-						variant="primary"
-						block
-						onClick={this.returnToDashboard}
-					>
-						Go back to Dashboard
-					</Button>
-				</div>
+				<LobbyList 
+					lobbies = {this.state.lobbies} 
+					joinLobby = {this.handleJoinLobby} 
+					createLobby = {this.handleCreateLobby} 
+					returnToDashboard = {this.returnToDashboard} 
+				/>
 			);
 		}
 
@@ -555,39 +511,15 @@ class LobbiesPage extends React.Component {
 					}
 				}
 				return (
-					<div className="lobby-page">
-						<h1>You are in Lobby {this.state.joinedLobbyId}</h1>
-						{(isLobbyOwner) ? 
-							<p>
-								You are lobby owner (only you can start the game)
-								Note that if you start a game by yourself, you will automatically win. The game will then end shortly, so you won't be able to control your player (as the canvas is disabled). You will need to start a game with at least two players in the lobby.
-								<Button
-									variant="success"
-									block
-									onClick={() => {this.handleStartGame(this.state.playerId, this.state.joinedLobbyId)}}
-								>
-									Start Game
-								</Button>
-								<Button
-									variant="danger"
-									block
-									onClick={() => {this.handleDeleteLobby(this.state.playerId, this.state.joinedLobbyId)}}
-								>
-									Delete Lobby
-								</Button>
-							</p>
-						:
-							<p> Welcome. Please wait for lobby owner to start game. Your game will automatically load once the lobby owner starts the game
-								<Button
-									variant="danger"
-									block
-									onClick={() => {this.handleLeaveLobby(this.state.playerId, this.state.joinedLobbyId)}}
-								>
-									Leave Lobby
-								</Button>
-							</p>
-						}
-					</div>
+					<Lobby 
+						lobbies = {this.state.lobbies}
+						joinedLobbyId = {this.state.joinedLobbyId}
+						isLobbyOwner = {isLobbyOwner}
+						playerId = {this.state.playerId}
+						handleStartGame = {this.handleStartGame}
+						handleDeleteLobby = {this.handleDeleteLobby}
+						handleLeaveLobby = {this.handleLeaveLobby}
+					/>
 				);
 			}
 		}
