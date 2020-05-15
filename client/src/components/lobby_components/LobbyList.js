@@ -14,7 +14,11 @@ class LobbyList extends React.Component {
 		this.state = {
 			lobbies: [],
         };
-    }
+	}
+	
+	componentDidMount() {
+		this.setState({ lobbies: this.props.lobbies });
+	}
     
     // Update lobbies passed down from parent LobbiesPage
     componentDidUpdate(prevProps) {
@@ -48,11 +52,13 @@ class LobbyList extends React.Component {
 					</thead>
 					<tbody>
 						{/* Render each lobby */}
-						{this.state.lobbies.map((lobby, index) => {
+						{this.state.lobbies.length > 0 && this.state.lobbies.map((lobby, index) => {
 							return (
 								<tr key={index}>
 									<td>{lobby.id}</td>
-									<td>{lobby.numPlayers}</td>
+									{/* // TODO: Make this max player setting customizable */}
+									<td>{lobby.numPlayers} / 4 </td>
+									{/* TODO: Add a "Full" status */}
 									<td>
 										{lobby.gameInProgress === true ? (
 											<p>Ongoing Game</p>
@@ -75,12 +81,15 @@ class LobbyList extends React.Component {
 								</tr>
 							);
 						})}
+						{/* No lobbies to render */}
+						{this.state.lobbies.length < 1 && (
+							<tr key="no-lobby">
+								<td colSpan="3">No lobbies, click below to make one</td>
+							</tr>
+						)}
 					</tbody>
 				</Table>
-				{this.state.lobbies.length < 1 && (
-					<p> No lobbies, click below to make one </p>
-				)}
-
+			
 				<Button
 					variant="success"
 					block

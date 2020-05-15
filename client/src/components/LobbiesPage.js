@@ -7,6 +7,7 @@ import "../css/LobbiesPage.css";
 
 import LobbyList from "./lobby_components/LobbyList";
 import Lobby from "./lobby_components/Lobby";
+import CloseLobby from "./lobby_components/CloseLobby";
 
 const localIPAddress = "localhost";
 const wssServerURL = `ws://${localIPAddress}:10000`;
@@ -22,6 +23,7 @@ class LobbiesPage extends React.Component {
 			userWon: false,
 			joinedLobbyId: null,
 			lobbies: [],
+			lobbyClosed: false,
 
 			// Player movement code
 			movingUp: false,
@@ -50,13 +52,21 @@ class LobbiesPage extends React.Component {
 		this.handleDeleteLobby = this.handleDeleteLobby.bind(this);
 		this.handleStartGame = this.handleStartGame.bind(this);
 		this.handleLeaveGame = this.handleLeaveGame.bind(this);
+		this.handleCloseLobbyDialog = this.handleCloseLobbyDialog.bind(this);
 
 		// Keyboard/mouse listener functions
 		this.handleKeyPress = this.handleKeyPress.bind(this);
 		this.handleKeyRelease = this.handleKeyRelease.bind(this);
 		this.handleMouseMove = this.handleMouseMove.bind(this);
 		this.handleMouseDown = this.handleMouseDown.bind(this);
-    }
+	}
+	
+	// Return to lobby view after lobby owner closed lobby
+	handleCloseLobbyDialog() {
+		this.setState({
+			lobbyClosed: false
+		})
+	}
     
     // Return to dashboard, close sockets, and reset state
     returnToDashboard() {
@@ -138,8 +148,9 @@ class LobbiesPage extends React.Component {
 
 					// Receive list of updated lobbies state from socket server
 					case "view-lobbies":
-						// console.log("Updating lobby view");
+						console.log("Updating lobby view");
 						if (this._isMounted) {
+							// console.log(serverUpdate.lobbies);
 							this.setState({ 
 								lobbies: serverUpdate.lobbies
 							});
@@ -158,12 +169,15 @@ class LobbiesPage extends React.Component {
 
 					// User joined a lobby successfully
 					case "joined-lobby":
-						console.log("joined-lobby");
+						// console.log("joined-lobby");
 						// console.log("Setting state of lobbies");
 						if (this._isMounted) {
+							// console.log("Reached");
 							this.setState({ 
+								lobbies: serverUpdate.lobbies,
 								joinedLobbyId: serverUpdate.lobbyId
 							});
+							// console.log(serverUpdate.lobbies);
 						}
 						break;
 
@@ -204,6 +218,15 @@ class LobbiesPage extends React.Component {
 							}
 						}
 						break;
+
+					// The lobby owner (not this user) closed the lobby
+					case "kicked-lobby":
+						this.setState({
+							lobbyClosed: true,
+							joinedLobbyId: null
+						})
+						break;
+
 
 					default:
 						console.log("Received unknown update from socket server");
@@ -451,8 +474,17 @@ class LobbiesPage extends React.Component {
 
 	render() {
         // console.log("State of joined lobby id is " + this.state.joinedLobbyId);
+		// "Lobby closed" screen
+		if (this.state.lobbyClosed) {
+			return (	
+				<CloseLobby
+				handleCloseLobbyDialog = {this.handleCloseLobbyDialog}
+				/>
+				);
+			} 
+			
 		// Render the main lobby view
-		if (this.state.joinedLobbyId === null) {
+		else if (this.state.joinedLobbyId === null) {
 			return (
 				<LobbyList 
 					lobbies = {this.state.lobbies} 
@@ -500,21 +532,13 @@ class LobbiesPage extends React.Component {
 					</div>
 				)
 			} 
-			// Render the lobby view
+
+			// Lobby view
 			else {
-				// Check to see if user is owner of lobby
-				let isLobbyOwner = false;
-				for (let i = 0; i < this.state.lobbies.length; i++) {
-					if (this.state.lobbies[i].lobbyOwner == this.state.playerId) {
-						isLobbyOwner = true;
-						break;
-					}
-				}
 				return (
 					<Lobby 
 						lobbies = {this.state.lobbies}
-						joinedLobbyId = {this.state.joinedLobbyId}
-						isLobbyOwner = {isLobbyOwner}
+						lobbyId = {this.state.joinedLobbyId}
 						playerId = {this.state.playerId}
 						handleStartGame = {this.handleStartGame}
 						handleDeleteLobby = {this.handleDeleteLobby}
