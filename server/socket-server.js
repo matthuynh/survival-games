@@ -261,7 +261,7 @@ wss.on("connection", function connection(ws, req) {
 
 				// The given user id attempts to join the lobby
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
-				if (lobby) {
+				if (lobby && !lobby.isFull()) {
 					let successfulJoin = lobby.joinLobby(clientUpdate.pid, connectedClient.socket);
 					if (successfulJoin) {
 						associateClientLobby(clientUpdate.pid, lobby.getLobbyId());
@@ -292,11 +292,11 @@ wss.on("connection", function connection(ws, req) {
 						ws.send(errorMessage);
 					}
 				} else {
-					// console.log("Could not join lobby. Make sure the lobby ID exists.");
+					// console.log("Could not join lobby. Make sure the lobby ID exists and the lobby is not full");
 					let errorMessage = JSON.stringify({
 						type: "error",
 						message:
-							"Could not join lobby. Make sure the lobby ID exists.",
+							"Could not join lobby. Make sure the lobby ID exists and the lobby is not full",
 					});
 					ws.send(errorMessage);
 				}
@@ -432,6 +432,9 @@ class Lobby {
 		this.lobbyOwnerId = lobbyOwnerId;
 		this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws }];
 
+		// NOTE: This is currently non-customizable by the user
+		this.maxLobbySize = 4;
+
 		this.gameInProgress = false;
 		this.gameHasEnded = false;
 
@@ -452,6 +455,7 @@ class Lobby {
 			lobbyPlayers: this.lobbyPlayers.map(player => player.pid),
 			gameInProgress: this.gameInProgress,
 			numPlayers: this.lobbyPlayers.length,
+			maxLobbySize: this.maxLobbySize
 		};
 	}
 
@@ -578,6 +582,11 @@ class Lobby {
 	// Return the winner of the game
 	getLobbyWinner() {
 		return this.gameWinner;
+	}
+
+	// Return true if the lobby is full
+	isFull() {
+		return this.lobbyPlayers.length >= this.maxLobbySize;
 	}
 
 	// When a game finishes, the lobby is "reinitialized"

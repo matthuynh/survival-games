@@ -1,8 +1,6 @@
 import React from "react";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
 import "../../css/Lobby.css";
 
 // TODO: Improve styling, add more functionality to this page
@@ -13,19 +11,19 @@ class LobbyList extends React.Component {
 		super(props);
 		this.state = {
 			lobbies: [],
-        };
+		};
 	}
-	
+
 	componentDidMount() {
 		this.setState({ lobbies: this.props.lobbies });
 	}
-    
-    // Update lobbies passed down from parent LobbiesPage
-    componentDidUpdate(prevProps) {
-        if (prevProps.lobbies !== this.props.lobbies) {
-            this.setState({ lobbies: this.props.lobbies })
-        }
-    }
+
+	// Update lobbies passed down from parent LobbiesPage
+	componentDidUpdate(prevProps) {
+		if (prevProps.lobbies !== this.props.lobbies) {
+			this.setState({ lobbies: this.props.lobbies });
+		}
+	}
 
 	render() {
 		return (
@@ -52,18 +50,29 @@ class LobbyList extends React.Component {
 					</thead>
 					<tbody>
 						{/* Render each lobby */}
-						{this.state.lobbies.length > 0 && this.state.lobbies.map((lobby, index) => {
-							return (
-								<tr key={index}>
-									<td>{lobby.id}</td>
-									{/* // TODO: Make this max player setting customizable */}
-									<td>{lobby.numPlayers} / 4 </td>
-									{/* TODO: Add a "Full" status */}
-									<td>
-										{lobby.gameInProgress === true ? (
-											<p>Ongoing Game</p>
-										) : (
-											<p>
+						{this.state.lobbies.length > 0 &&
+							this.state.lobbies.map((lobby, index) => {
+								return (
+									<tr key={index}>
+										<td>{lobby.id}</td>
+										<td>
+											{lobby.numPlayers} /{" "}
+											{lobby.maxLobbySize}{" "}
+										</td>
+										<td>
+											{lobby.gameInProgress === true ? (
+												<p>Ongoing Game</p>
+											) : lobby.numPlayers >=
+											  lobby.maxLobbySize ? (
+												<Button
+													variant="danger"
+													disabled
+													block
+													className="disable-cursor"
+												>
+													Lobby Full
+												</Button>
+											) : (
 												<Button
 													variant="outline-success"
 													block
@@ -75,21 +84,22 @@ class LobbyList extends React.Component {
 												>
 													Join Lobby
 												</Button>
-											</p>
-										)}
-									</td>
-								</tr>
-							);
-						})}
+											)}
+										</td>
+									</tr>
+								);
+							})}
 						{/* No lobbies to render */}
 						{this.state.lobbies.length < 1 && (
 							<tr key="no-lobby">
-								<td colSpan="3">No lobbies, click below to make one</td>
+								<td colSpan="3">
+									No lobbies, click below to make one
+								</td>
 							</tr>
 						)}
 					</tbody>
 				</Table>
-			
+
 				<Button
 					variant="success"
 					block

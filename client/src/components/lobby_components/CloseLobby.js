@@ -6,21 +6,12 @@ import "../../css/CloseLobby.css";
 class CloseLobby extends React.Component {
 	constructor(props) {
 		super(props);
-		// this.state = {
-        //     lobbyId: null,
-        // };
     }
-
-    // componentDidMount() {
-    //     this.setState({ 
-    //         lobbyId: this.props.lobbyId,
-    //     });
-    // }
     
 	render() {
 		return (
             <div className="lobby-page">
-                <h1>Lobby Closed!</h1>
+                <h1> Lobby Closed! </h1>
                 <h4> The lobby owner closed this lobby. </h4>
         
                 <Button
