@@ -523,7 +523,7 @@ module.exports = class Stage {
 
 		// Check if any player actors died
 		for (let i = 0; i < this.playerActors.length; i++) {
-
+			// TODO: Implement this a bit better
             // Dead players get removed from the player actors list
 			if (this.playerActors[i].isDead()) {
                 this.removeActor(this.playerActors[i]);

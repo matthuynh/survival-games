@@ -292,11 +292,11 @@ wss.on("connection", function connection(ws, req) {
 						ws.send(errorMessage);
 					}
 				} else {
-					// console.log("Could not join lobby. Make sure the lobby ID exists and the lobby is not full");
+					// console.log("Could not join lobby. Make sure the lobby ID exists and the lobby is not ful.");
 					let errorMessage = JSON.stringify({
 						type: "error",
 						message:
-							"Could not join lobby. Make sure the lobby ID exists and the lobby is not full",
+							"Could not join lobby. Make sure the lobby ID exists and the lobby is not full.",
 					});
 					ws.send(errorMessage);
 				}
@@ -352,6 +352,56 @@ wss.on("connection", function connection(ws, req) {
 					ws.send(errorMessage);
 				}
 				break;
+
+			// All players in a lobby may choose to leave a game (but stay in the lobby)
+			case "leave-game":
+				console.log("Client tries to leave game on lobby on server");
+				// Check to see if the lobby exists
+				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
+				if (lobby) {
+					// Check to see if the user is in the lobby, if so, remove them from game
+					if (lobby.isPlayerInLobby(clientUpdate.pid) && lobby.isGameInProgress()) {
+						// console.log("The given client is in the lobby, removing them from game");
+
+						lobby.leaveGame(clientUpdate.pid);
+
+						// Successfully left lobby, alert user
+						let newGameState = JSON.stringify({
+							type: "left-game",
+							status: "success",
+						});
+						ws.send(newGameState);
+
+						// // Send updated state of lobbies to all clients
+						// let lobbyList = JSON.stringify({
+						// 	type: "view-lobbies",
+						// 	lobbies: serverInstance.getLobbiesJSON(),
+						// });
+						// wss.broadcast(lobbyList);
+					} 
+					// Could not leave lobby, send message to that player
+					else {
+						// console.log("The given client is NOT in the lobby");
+						let errorMessage = JSON.stringify({
+							type: "left-lobby",
+							status: "failure",
+							message: "The given client is NOT in the lobby",
+						});
+						ws.send(errorMessage);
+					}
+				} else {
+					// console.log("That lobby ID does not exist");
+					let errorMessage = JSON.stringify({
+						type: "left-game",
+						status: "failure",
+						message: "That lobby ID does not exist",
+					});
+					ws.send(errorMessage);
+				}
+
+
+				break;
+
 
 			default:
 				console.log("Server received unrecognized command from client");
@@ -430,7 +480,7 @@ class Lobby {
 	constructor(lobbyId, lobbyOwnerId, ws) {
 		this.lobbyId = lobbyId;
 		this.lobbyOwnerId = lobbyOwnerId;
-		this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws }];
+		this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws, isAlive: false }];
 
 		// NOTE: This is currently non-customizable by the user
 		this.maxLobbySize = 4;
@@ -521,14 +571,22 @@ class Lobby {
 		return false;
 	}
 
+	setPlayerDead(pid) {
+		console.log(pid);
+	}
+
 	// Begins the multiplayer game in this lobby, returns the initial game state
 	initializeGame(wss) {
 		this.wss = wss;
 		this.gameInProgress = true;
+		this.lobbyPlayers.forEach((player) => {
+			player.isAlive = true;
+		})
 
 		this.multiplayerGame = new MultiplayerGame(
 			this.lobbyId,
-			this.lobbyPlayers.map(player => player.pid)
+			this.lobbyPlayers.map(player => player.pid),
+			this.setPlayerDead
 		);
 
 		try {
@@ -552,6 +610,7 @@ class Lobby {
 		// console.log(initialState);
 		return initialState;
 	}
+	
 
 	// Send updates to a server from a client's controller
 	updateGameState(clientUpdate) {
@@ -608,16 +667,36 @@ class Lobby {
 		this.gameWinner = null;
 		wss.broadcastToLobby(updatedState, this.lobbyId);
 	}
+
+	// A player leaves the currently ongoing game in the lobby
+	leaveGame(playerId) {
+		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId);
+
+		// Player is in lobby; remove them
+		if (playerIndex > -1) {
+			this.lobbyPlayers.splice(playerIndex, 1);
+			// console.log("Successfully removed player from lobby, at index " + playerIndex);
+
+			// If there is an ongoing game, remove them from the game as well
+			if (this.gameInProgress) {
+				
+			}
+			return true;
+		}
+		return false;
+	}
 }
 
 // TODO: Move this class into its own file after finishing with the features
 // A multiplayer game has multiplayer players in it
 class MultiplayerGame {
 	// TODO: Make this constructor take more game parameters
-	constructor(gameId, gamePlayers) {
+	constructor(gameId, gamePlayers, setPlayerDead) {
 		this.gameId = gameId; // a game has the same ID as its lobby
 		this.players = gamePlayers;
 		const numPlayers = gamePlayers.length;
+
+		this.setPlayerDead = setPlayerDead;
 
 		// TODO: Investigate more into these values of mapWidth and mapHeight -- do they relate to logical map size, or the dimensions of the GUI displayed to the user?
 		// These values are equivalent to the canvas width and height from A2

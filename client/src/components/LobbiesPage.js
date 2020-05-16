@@ -21,6 +21,7 @@ class LobbiesPage extends React.Component {
 			showGameView: false,
 			playerId: props.playerId,
 			userWon: false,
+			userLoss: false, // TODO: use this
 			joinedLobbyId: null,
 			lobbies: [],
 			lobbyClosed: false,
@@ -228,6 +229,11 @@ class LobbiesPage extends React.Component {
 						break;
 
 
+					// TODO: Add this
+					case "left-game":
+						break;
+
+
 					default:
 						console.log("Received unknown update from socket server");
 				}
@@ -283,8 +289,8 @@ class LobbiesPage extends React.Component {
 	// A lobby owner attempts to starts a game on a lobby on the server
 	handleStartGame(ownerId, lobbyId) {
 		console.log("Inside handleStartGame()");
-		console.log(ownerId);
-		console.log(lobbyId);
+		// console.log(ownerId);
+		// console.log(lobbyId);
 
 		 // Note that only the owner of a valid lobby may start a game
         let clientUpdate = JSON.stringify({
@@ -297,23 +303,25 @@ class LobbiesPage extends React.Component {
 
 	// User leaves game
 	handleLeaveGame(playerId, lobbyId) {
+		console.log("Inside handleLeaveGame()");
 		// Note that leaving a game also causes you to leave the lobby
 		let clientUpdate = JSON.stringify({
-			type: "leave-lobby",
+			type: "leave-game",
 			pid: playerId,
 			lobbyId: lobbyId,
 		});
 		this.clientSocket.send(clientUpdate);
-
+		
 		window.stopStageGame();
-
+		
 		// Unhook keyboard and mouse listeners
 		document.removeEventListener("keydown", this.handleKeyPress);
 		document.removeEventListener("keyup", this.handleKeyRelease);
 		document.removeEventListener("mousemove", this.handleMouseMove);
 		document.removeEventListener("mousedown", this.handleMouseDown);
-		
-		this.returnToDashboard();
+
+		// Bring user back to lobby view
+		this.setState({showGameView: false });
 	}
 
 	// Sends this player's movement to server
@@ -515,19 +523,23 @@ class LobbiesPage extends React.Component {
 							</Row>
 							<Row>
 								<Button
-									variant="danger"
+									variant="warning"
 									onClick={() => {this.handleLeaveGame(this.state.playerId, this.state.joinedLobbyId)}}
 									className="leaveGameButton"
 									block
-									>
-									Quit game and lobby
+								>
+									Leave game
 								</Button>
 							</Row>
 							{this.state.userWon && 
 							<Row>
-								<h1> You won! To play another game, click on the button above</h1>
+								<h1> You won! </h1>
 							</Row>
 							}
+							{this.state.userLost &&
+							<Row>
+								<h1> You lost! </h1>	
+							</Row>}
 						</Container>
 					</div>
 				)

@@ -14,7 +14,7 @@ class Stage {
 		this.canvas = canvas;
 		this.numPlayers = numPlayers;
 		this.numAlive = numAlive;
-		this.gameHasEnded = false;
+		this.gameHasEnded = false; // TODO: Not using this right now?
 		this.clientDied = false;
 
 		// The logical width and height of the stage
@@ -62,7 +62,7 @@ class Stage {
 		this.bulletActors = bulletActors;
 		this.environmentActors = environmentActors;
 		this.numAlive = numAlive;
-		this.hasEnded = hasEnded;
+		this.hasEnded = hasEnded; // TODO: Not using this right now?
 
 		// Each client's stage should know which player belongs to that client
 		let playerStillAlive = false;

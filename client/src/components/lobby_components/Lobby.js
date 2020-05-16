@@ -22,8 +22,13 @@ class Lobby extends React.Component {
 
     // Calculate the lobby players and lobby owner for this lobby
     determineLobbyInfo() {
+        console.log("Inside");
+        console.log(this.state.lobbies);
         if (this.state.lobbies) {
+            console.log("Inside2");
             for (let i = 0; i < this.state.lobbies.length; i++) {
+                console.log(this.state.lobbies[i].id);
+                console.log(this.state.lobbyId);
                 if (this.state.lobbies[i].id == this.state.lobbyId) {
                     console.log("Updating lobby players");
                     this.setState({ 
@@ -42,11 +47,14 @@ class Lobby extends React.Component {
     }
 
     componentDidMount() {
+        console.log(this.props);
         this.setState({ 
             lobbies: this.props.lobbies,
             lobbyId: this.props.lobbyId,
             playerId: this.props.playerId
-        }, this.determineLobbyInfo());
+        }, () => {
+            this.determineLobbyInfo()
+        });
     }
     
     // Update this child component's state depending on parent state changes
@@ -56,7 +64,7 @@ class Lobby extends React.Component {
             // Note: setState is async, so we assign it a callback determineLobbyInfo()
             // Q: This call to determineLobbyInfo() only works properly if it is put in an arrow function... why?
             // It doesn't work if it is not placed in a function
-            this.setState({ lobbies: this.props.lobbies }, ()=>{
+            this.setState({ lobbies: this.props.lobbies }, () =>{
                 // console.log(this.state.lobbies);
                 this.determineLobbyInfo();
             });
@@ -92,6 +100,7 @@ class Lobby extends React.Component {
 						<tr>
 							<th> Players </th>
 							<th> Lobby Owner </th>
+                            <th> In Game? </th>
 						</tr>
 					</thead>
 					<tbody>
