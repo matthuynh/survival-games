@@ -480,7 +480,7 @@ class Lobby {
 	constructor(lobbyId, lobbyOwnerId, ws) {
 		this.lobbyId = lobbyId;
 		this.lobbyOwnerId = lobbyOwnerId;
-		this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws, isAlive: false }];
+		this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws, status: "In Lobby" }];
 
 		// NOTE: This is currently non-customizable by the user
 		this.maxLobbySize = 4;
@@ -502,7 +502,8 @@ class Lobby {
 		return {
 			id: this.lobbyId,
 			lobbyOwner: this.lobbyOwnerId,
-			lobbyPlayers: this.lobbyPlayers.map(player => player.pid),
+			// TODO: Maybe, need to pass player objects here, instead of just usernames
+			lobbyPlayers: this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status })),
 			gameInProgress: this.gameInProgress,
 			numPlayers: this.lobbyPlayers.length,
 			maxLobbySize: this.maxLobbySize
@@ -547,7 +548,7 @@ class Lobby {
 
 		// Player is not in lobby yet; add them
 		if (playerIndex == -1) {
-			this.lobbyPlayers.push({ pid: playerId, socket: playerSocket });
+			this.lobbyPlayers.push({ pid: playerId, socket: playerSocket, status: "In Lobby" });
 			return true;
 		}
 		return false;
@@ -572,7 +573,7 @@ class Lobby {
 	}
 
 	setPlayerDead(pid) {
-		console.log(pid);
+		console.log(`${pid} has died or left the lobby`);
 	}
 
 	// Begins the multiplayer game in this lobby, returns the initial game state
@@ -580,7 +581,7 @@ class Lobby {
 		this.wss = wss;
 		this.gameInProgress = true;
 		this.lobbyPlayers.forEach((player) => {
-			player.isAlive = true;
+			player.status = "In game";
 		})
 
 		this.multiplayerGame = new MultiplayerGame(
@@ -674,12 +675,11 @@ class Lobby {
 
 		// Player is in lobby; remove them
 		if (playerIndex > -1) {
-			this.lobbyPlayers.splice(playerIndex, 1);
-			// console.log("Successfully removed player from lobby, at index " + playerIndex);
-
 			// If there is an ongoing game, remove them from the game as well
 			if (this.gameInProgress) {
-				
+				this.lobbyPlayers[playerIndex].status = "In Lobby";
+				// TODO: Should this be called here?
+				// this.multiplayerGame.setPlayerDead(this.playerActors[i].getPlayerID());
 			}
 			return true;
 		}
@@ -693,7 +693,7 @@ class MultiplayerGame {
 	// TODO: Make this constructor take more game parameters
 	constructor(gameId, gamePlayers, setPlayerDead) {
 		this.gameId = gameId; // a game has the same ID as its lobby
-		this.players = gamePlayers;
+		this.players = gamePlayers; // TODO: Will need to take more player information
 		const numPlayers = gamePlayers.length;
 
 		this.setPlayerDead = setPlayerDead;
@@ -717,13 +717,15 @@ class MultiplayerGame {
 		};
 
 		// Initialize the server-side stage
+		// TODO: Set generation settings here
 		this.stage = new Stage(
 			this.gameId,
 			this.players,
 			this.mapWidth,
 			this.mapHeight,
 			generationSettings,
-			numPlayers
+			numPlayers,
+			this.setPlayerDead
 		);
 	}
 

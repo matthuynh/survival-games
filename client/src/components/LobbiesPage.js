@@ -73,13 +73,14 @@ class LobbiesPage extends React.Component {
     returnToDashboard() {
 		this.clientSocket.close();
 		
-        this.props.handleDash();
+        this.props.handleDash(); // TODO: Is this getting called?
         this.setState({
             showGameView: false,
 			joinedLobbyId: null,
 			userWon: false,
             lobbies: []
-        });
+		});
+		// TODO: Set more things to reset
 	}
 	
 	// Runs when the page unloads (eg. a game finishes)

@@ -41,13 +41,14 @@ function getRandomColor() {
 
 // A Stage stores all actors (all environment objects). It is also responsible for calculating game logic (eg. collisions)
 module.exports = class Stage {
-	constructor(gameId, playerIDList, canvasWidth, canvasHeight, generationSettings, numPlayers) {
+	constructor(gameId, playerIDList, canvasWidth, canvasHeight, generationSettings, numPlayers, setPlayerDead) {
         this.gameId = gameId;
         this.playerIDList = playerIDList;
         this.numPlayers = numPlayers;
         this.numAlive = numPlayers;
         this.gameHasEnded = false;
-        this.winningPID = null;
+		this.winningPID = null;
+		this.setPlayerDead = setPlayerDead;
 
 		// Each actor is stored in different arrays to handle collisions differently
 		this.playerActors = []; // includes all Players
@@ -526,7 +527,9 @@ module.exports = class Stage {
 			// TODO: Implement this a bit better
             // Dead players get removed from the player actors list
 			if (this.playerActors[i].isDead()) {
-                this.removeActor(this.playerActors[i]);
+				this.setPlayerDead(this.playerActors[i].getPlayerID());
+				// TODO: Change up removeActor()
+				this.removeActor(this.playerActors[i]);
                 this.numAlive -= 1;
             }
             
