@@ -1,4 +1,3 @@
-// TODO: See if we need to import Stages
 const Bullet = require("./Bullet.js");
 
 // A Gun object. A Player has a Gun object, and uses it to shoot Bullet objects. Gun objects create Bullets. A Gun knows who owns it

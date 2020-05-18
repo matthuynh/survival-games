@@ -21,7 +21,7 @@ class LobbiesPage extends React.Component {
 			showGameView: false,
 			playerId: props.playerId,
 			userWon: false,
-			userLoss: false, // TODO: use this
+			userLost: false,
 			joinedLobbyId: null,
 			lobbies: [],
 			lobbyClosed: false,
@@ -73,14 +73,21 @@ class LobbiesPage extends React.Component {
     returnToDashboard() {
 		this.clientSocket.close();
 		
-        this.props.handleDash(); // TODO: Is this getting called?
+        this.props.handleDash();
         this.setState({
-            showGameView: false,
-			joinedLobbyId: null,
+			showGameView: false,
 			userWon: false,
-            lobbies: []
+			userLost: false,
+			joinedLobbyId: null,
+			lobbies: [],
+			lobbyClosed: false,
+			movingUp: false,
+			movingLeft: false,
+			movingDown: false,
+			movingRight: false,
+			horizontalDirection: 0,
+			verticalDirection: 0
 		});
-		// TODO: Set more things to reset
 	}
 	
 	// Runs when the page unloads (eg. a game finishes)
@@ -106,8 +113,7 @@ class LobbiesPage extends React.Component {
 		this.clientSocket.onmessage = (event) => {
 			let serverUpdate = JSON.parse(event.data);
 			// console.log(serverUpdate);
-			// TODO: Check if this._isMounted can be put as a check here
-			if (serverUpdate) {
+			if (serverUpdate && this._isMounted) {
 				switch(serverUpdate.type) {
 					// Update the client's game model state
 					case "stage-update":
@@ -122,9 +128,7 @@ class LobbiesPage extends React.Component {
 
 					// Initialize client game model state by receiving initial model state from server
 					case "stage-initialization":
-						if (this._isMounted) {
-							this.setState({showGameView: true });
-						}
+						this.setState({showGameView: true });
 						console.log("Starting client stage model");
 			
 						// Initialize state of the client model
@@ -151,41 +155,35 @@ class LobbiesPage extends React.Component {
 					// Receive list of updated lobbies state from socket server
 					case "view-lobbies":
 						console.log("Updating lobby view");
-						if (this._isMounted) {
-							// console.log(serverUpdate.lobbies);
-							this.setState({ 
-								lobbies: serverUpdate.lobbies
-							});
-						}
+						// console.log(serverUpdate.lobbies);
+						this.setState({ 
+							lobbies: serverUpdate.lobbies
+						});
 						break;
 
 					// Created a lobby, receive the lobby id
 					case "new-lobby":
-						if (this._isMounted) {
-							this.setState({ 
-								lobbies: serverUpdate.lobbies,
-								joinedLobbyId: serverUpdate.newLobbyId
-							});
-						}
+						this.setState({ 
+							lobbies: serverUpdate.lobbies,
+							joinedLobbyId: serverUpdate.newLobbyId
+						});
 						break;
 
 					// User joined a lobby successfully
 					case "joined-lobby":
 						// console.log("joined-lobby");
 						// console.log("Setting state of lobbies");
-						if (this._isMounted) {
-							// console.log("Reached");
-							this.setState({ 
-								lobbies: serverUpdate.lobbies,
-								joinedLobbyId: serverUpdate.lobbyId
-							});
-							// console.log(serverUpdate.lobbies);
-						}
+						// console.log("Reached");
+						this.setState({ 
+							lobbies: serverUpdate.lobbies,
+							joinedLobbyId: serverUpdate.lobbyId
+						});
+						// console.log(serverUpdate.lobbies);
 						break;
 
 					// User left their lobby successfully
 					case "left-lobby":
-						if (this._isMounted && serverUpdate.status == "success") {
+						if (serverUpdate.status == "success") {
 							this.setState({ 
 								joinedLobbyId: null 
 							});
@@ -194,7 +192,7 @@ class LobbiesPage extends React.Component {
 
 					// User (who is also the lobby owner) deleted lobby successfully
 					case "deleted-lobby":
-						if (this._isMounted && serverUpdate.status == "success") {
+						if (serverUpdate.status == "success") {
 							this.setState({
 								lobbies: serverUpdate.lobbies,
 								joinedLobbyId: null
@@ -204,21 +202,33 @@ class LobbiesPage extends React.Component {
 
 					// Re-initialize the stage (user loss or won)
 					case "stage-termination":
-						if (serverUpdate.lobbyID == this.state.joinedLobbyId) {
-							document.removeEventListener("keydown", this.handleKeyPress);
-							document.removeEventListener("keyup", this.handleKeyRelease);
-							document.removeEventListener("mousemove", this.handleMouseMove);
-							document.removeEventListener("mousedown", this.handleMouseDown);
-							
-							window.stopStageGame();
-		
-							// Check if user won
-							if (serverUpdate.winningPID == this.state.playerId && this._isMounted) {
-								this.setState({
-									userWon: true
-								});
-							}
+						console.log("Trying to terminate stage");
+						document.removeEventListener("keydown", this.handleKeyPress);
+						document.removeEventListener("keyup", this.handleKeyRelease);
+						document.removeEventListener("mousemove", this.handleMouseMove);
+						document.removeEventListener("mousedown", this.handleMouseDown);
+						window.stopStageGame();
+
+						if (serverUpdate.isForced) {
+							this.setState({
+								showGameView: false,
+								userWon: false,
+								userLost: false,
+								joinedLobbyId: null,
+								lobbyClosed: true,
+								movingUp: false,
+								movingLeft: false,
+								movingDown: false,
+								movingRight: false,
+								horizontalDirection: 0,
+								verticalDirection: 0
+							});
+						} else if (serverUpdate.winningPID == this.state.playerId) {
+							this.setState({
+								userWon: true
+							});
 						}
+
 						break;
 
 					// The lobby owner (not this user) closed the lobby
@@ -230,8 +240,10 @@ class LobbiesPage extends React.Component {
 						break;
 
 
-					// TODO: Add this
+					// TODO: Add this (?)
 					case "left-game":
+
+
 						break;
 
 

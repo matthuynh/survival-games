@@ -68,7 +68,7 @@ module.exports = class Stage {
             // console.log("Adding player with id " + this.players[i].pid);
             // Player spawns in a random spot (they spawn away from the border)
             let xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
-            let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageWidth / 4);
+            let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageHeight / 4);
             
             // Check to see if the would collide with another player
             let collides = this.checkForGenerationCollisions(xSpawn, ySpawn);
@@ -534,8 +534,7 @@ module.exports = class Stage {
 			// TODO: Implement this a bit better
             // Dead players get removed from the player actors list
 			if (this.playerActors[i].isDead()) {
-				this.setPlayerStatus(this.playerActors[i].getPlayerID(), "In Lobby");
-				// TODO: Change up removeActor()
+				this.setPlayerStatus(this.playerActors[i].getPlayerID(), "Spectating");
 				this.removeActor(this.playerActors[i]);
                 this.numAlive -= 1;
             }
@@ -546,7 +545,7 @@ module.exports = class Stage {
                 
                 // TODO: Insert this record into the leaderboards 
 				this.winningPID = this.playerActors[0].getPlayerID();
-				this.setPlayerStatus(this.playerActors[i].getPlayerID(), "Winner!");
+				this.setPlayerStatus(this.playerActors[0].getPlayerID(), "Winner!");
             }
 		}
 

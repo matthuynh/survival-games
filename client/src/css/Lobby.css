@@ -9,14 +9,11 @@
     border: 2px solid #D3D3D3;
     border-radius: 15px;
     box-shadow: 2px 2px 2px 2px;
-    /* TODO: Is this color style necessary? */
-    color: #D3D3D3;
 }
 
 .lobby-page > h1, h2, h3, h4, h5, p {
     color: black;
 }
-
 
 .disable-cursor {
     cursor: not-allowed !important;

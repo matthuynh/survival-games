@@ -211,7 +211,8 @@ wss.on("connection", function connection(ws, req) {
 				}
 				break;
 
-			// Client wants to start game.  Only the lobby owner can do this.
+			// Client wants to start game. Only the lobby owner can do this.
+			// The game can only start if all players have status "In Lobby"
 			case "start-game":
 				// Check to see if the lobby exists, and the user is the owner
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
@@ -344,17 +345,18 @@ wss.on("connection", function connection(ws, req) {
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
 					// Check to see if the user is in the lobby, if so, remove them from game
-					if (lobby.isPlayerInLobby(clientUpdate.pid) && lobby.isGameInProgress()) {
+					if (lobby.isPlayerInLobby(clientUpdate.pid)) {
 						// console.log("The given client is in the lobby, removing them from game");
 
 						lobby.leaveGame(clientUpdate.pid, "quit");
 
 						// Successfully left lobby, alert user
-						let newGameState = JSON.stringify({
-							type: "left-game",
-							status: "success",
-						});
-						ws.send(newGameState);
+						// let newGameState = JSON.stringify({
+						// 	type: "left-game",
+						// 	pid: clientUpdate.pid,
+						// 	status: "success",
+						// });
+						// ws.send(newGameState);
 						broadcastUpdatedLobbies();
 					} 
 					// Could not leave lobby, send message to that player
@@ -376,8 +378,6 @@ wss.on("connection", function connection(ws, req) {
 					});
 					ws.send(errorMessage);
 				}
-
-
 				break;
 
 
@@ -430,6 +430,7 @@ class ServerInstance {
 	deleteLobby(lobbyId) {
 		let lobbyToDelete = this.getLobby(lobbyId);
 		if (lobbyToDelete) {
+			lobbyToDelete.forceStageTermination();
 			lobbyToDelete.endGame("");
 			for (let i = 0; i < this.lobbies.length; i++) {
 				if (this.lobbies[i].getLobbyId() == lobbyId) {
@@ -458,6 +459,7 @@ class Lobby {
 	constructor(lobbyId, lobbyOwnerId, ws) {
 		this.lobbyId = lobbyId;
 		this.lobbyOwnerId = lobbyOwnerId;
+		// possible statuses: "In Lobby", "In Game", "Winner!", "Spectating"
 		this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws, status: "In Lobby" }];
 
 		// NOTE: This is currently non-customizable by the user
@@ -554,7 +556,7 @@ class Lobby {
 		this.wss = wss;
 		this.gameInProgress = true;
 		this.lobbyPlayers.forEach((player) => {
-			player.status = "In game";
+			player.status = "In Game";
 		})
 
 		// NOTE: We pass in an anonymous function so that it can be called by ./game-engine/Stage.js and access the 'this' keyword to refer to this Lobby instance
@@ -562,10 +564,12 @@ class Lobby {
 			this.lobbyId,
 			this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
 			(playerId, status) => {
+				// function "name" is setPlayerStatus
 				console.log(`${playerId} either died or won, status is ${status}`);
 				// console.log(this.lobbyPlayers);
 				let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
 				this.lobbyPlayers[index].status = status;
+				broadcastUpdatedLobbies();
 			}
 		);
 
@@ -628,6 +632,18 @@ class Lobby {
 		return this.lobbyPlayers.length >= this.maxLobbySize;
 	}
 
+	// When the owner closes the lobby while a game is ongoing, forces
+	// other players to terminate their stage
+	forceStageTermination() {
+		let updatedState = JSON.stringify({
+			type: "stage-termination",
+			lobbyID: this.lobbyId,
+			winningPID: "",
+			isForced: true
+		});
+		wss.broadcastToLobby(updatedState, this.lobbyId);
+	}
+
 	// When a game finishes, the lobby is "reinitialized"
 	reinitializeLobby() {
 		this.gameInProgress = false;
@@ -642,6 +658,7 @@ class Lobby {
 			type: "stage-termination",
 			lobbyID: this.lobbyId,
 			winningPID: this.gameWinner,
+			isForced: false
 		});
 
 		this.gameWinner = null;
@@ -653,8 +670,8 @@ class Lobby {
 		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId);
 
 		if (playerIndex > -1) {
+			this.lobbyPlayers[playerIndex].status = "In Lobby";
 			if (this.gameInProgress) {
-				this.lobbyPlayers[playerIndex].status = "In Lobby";
 				this.multiplayerGame.setPlayerDead(playerId, reason);
 			}
 			return true;
@@ -666,14 +683,12 @@ class Lobby {
 // TODO: Move this class into its own file after finishing with the features
 // A multiplayer game has multiplayer players in it
 class MultiplayerGame {
-	// TODO: Make this constructor take more game parameters
 	constructor(gameId, gamePlayers, setPlayerStatus) {
 		this.gameId = gameId; // a game has the same ID as its lobby
 		this.players = gamePlayers;
 		const numPlayers = gamePlayers.length;
 
 		// Function 'pointer' that is defined in class Lobby
-		// setPlayerStatus("yo");
 		this.setPlayerStatus = setPlayerStatus;
 
 		// TODO: Investigate more into these values of mapWidth and mapHeight -- do they relate to logical map size, or the dimensions of the GUI displayed to the user?
@@ -695,7 +710,6 @@ class MultiplayerGame {
 		};
 
 		// Initialize the server-side stage
-		// TODO: Set generation settings here
 		this.stage = new Stage(
 			this.gameId,
 			this.players,

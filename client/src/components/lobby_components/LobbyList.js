@@ -3,8 +3,6 @@ import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
 import "../../css/Lobby.css";
 
-// TODO: Improve styling, add more functionality to this page
-
 // Display a list of lobbies currently stored on the server
 class LobbyList extends React.Component {
 	constructor(props) {

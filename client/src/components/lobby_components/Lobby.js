@@ -8,32 +8,46 @@ class Lobby extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			lobbies: null,
-			// TODO: This will need to store lobby players AND their statuss
+            lobbies: null,
 			lobbyPlayers: [],
 			lobbyId: null,
 			isLobbyOwner: false,
 			playerId: null,
 			lobbyOwnerId: null,
 			maxLobbySize: null,
+            lobbyReady: false,
 		};
 
 		this.determineLobbyInfo = this.determineLobbyInfo.bind(this);
 	}
 
-	// Calculate the lobby players and lobby owner for this lobby
+	// Calculate lobby information for this lobby
 	determineLobbyInfo() {
 		console.log(this.state.lobbies);
 		if (this.state.lobbies) {
 			for (let i = 0; i < this.state.lobbies.length; i++) {
-				// console.log(this.state.lobbies[i].id);
-				// console.log(this.state.lobbyId);
 				if (this.state.lobbies[i].id == this.state.lobbyId) {
+                    let thisLobby = this.state.lobbies[i];
+
+                    // Check if lobby is ready
+                    let isLobbyReady = true;
+                    if (thisLobby.lobbyPlayers.length <= 1) {
+                        isLobbyReady = false;
+                    } else {
+                        for (let j = 0; j < thisLobby.lobbyPlayers.length; j++) {
+                            if (thisLobby.lobbyPlayers[j].status !== "In Lobby") {
+                                isLobbyReady = false;
+                                break
+                            }
+                        }
+                    }
+
 					console.log("Updating lobby players");
 					this.setState({
-						lobbyPlayers: this.state.lobbies[i].lobbyPlayers,
-						lobbyOwnerId: this.state.lobbies[i].lobbyOwner,
-						maxLobbySize: this.state.lobbies[i].maxLobbySize,
+						lobbyPlayers: thisLobby.lobbyPlayers,
+						lobbyOwnerId: thisLobby.lobbyOwner,
+                        maxLobbySize: thisLobby.maxLobbySize,
+                        lobbyReady: isLobbyReady
 					});
 					// this.setState({
 					//     lobbyPlayers: this.state.lobbies[i].lobbyPlayers,
@@ -137,16 +151,15 @@ class Lobby extends React.Component {
 				{this.state.lobbyOwnerId == this.state.playerId ? (
 					// Lobby view for the lobby owner
 					<p>
-						You are lobby owner! You must have at least two players
-						in the lobby to start the game
+						You are lobby owner! You must have at least two players, and all players must be in the lobby to start the game
 						<Button
 							variant="success"
 							block
-							disabled={this.state.lobbyPlayers.length == 1}
+							disabled={this.state.lobbyReady == false}
 							className={
-								this.state.lobbyPlayers.length == 1
-									? "disable-cursor"
-									: ""
+								this.state.lobbyReady == true
+									? ""
+									: "disable-cursor"
 							}
 							onClick={() => {
 								this.props.handleStartGame(
