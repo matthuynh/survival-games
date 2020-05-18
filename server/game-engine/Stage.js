@@ -41,14 +41,14 @@ function getRandomColor() {
 
 // A Stage stores all actors (all environment objects). It is also responsible for calculating game logic (eg. collisions)
 module.exports = class Stage {
-	constructor(gameId, playerIDList, canvasWidth, canvasHeight, generationSettings, numPlayers, setPlayerDead) {
+	constructor(gameId, players, canvasWidth, canvasHeight, generationSettings, numPlayers, setPlayerStatus) {
         this.gameId = gameId;
-        this.playerIDList = playerIDList;
+        this.players = players;
         this.numPlayers = numPlayers;
         this.numAlive = numPlayers;
         this.gameHasEnded = false;
 		this.winningPID = null;
-		this.setPlayerDead = setPlayerDead;
+		this.setPlayerStatus = setPlayerStatus;
 
 		// Each actor is stored in different arrays to handle collisions differently
 		this.playerActors = []; // includes all Players
@@ -65,7 +65,7 @@ module.exports = class Stage {
         
         // Initialize each player in the stage
         for (let i = 0; i < this.numPlayers; i++) {
-            // console.log("Adding player with id " + this.playerIDList[i]);
+            // console.log("Adding player with id " + this.players[i].pid);
             // Player spawns in a random spot (they spawn away from the border)
             let xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
             let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageWidth / 4);
@@ -85,7 +85,7 @@ module.exports = class Stage {
             const playerRadius = 30;
             const playerHP = 100;
             const playerMovementSpeed = 8;
-            let player = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, this.playerIDList[i]);
+            let player = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, this.players[i].pid);
             this.addActor(player);
         }
 
@@ -108,11 +108,18 @@ module.exports = class Stage {
 	}
 	
 	// Given a player ID, remove that player from the game
-	removePlayer(pid) {
+	// This is called from MultiplayerGame if the player leaves the game or disconnects (leaves page)
+	removePlayer(pid, reason) {
+		// disconnection
 		for (let i = 0; i < this.playerActors.length; i++) {
             if (this.playerActors[i].getPlayerID() == pid) {
 				this.removeActor(this.playerActors[i]);
 				this.numAlive -= 1;
+
+				// This means the player quit game (but remains in lobby)
+				if (reason === "quit") {
+					this.setPlayerStatus(pid, "In Lobby");
+				}
 
 				// There is only one player left in the game; he wins automatically
 				if (this.numAlive == 1) {
@@ -527,7 +534,7 @@ module.exports = class Stage {
 			// TODO: Implement this a bit better
             // Dead players get removed from the player actors list
 			if (this.playerActors[i].isDead()) {
-				this.setPlayerDead(this.playerActors[i].getPlayerID());
+				this.setPlayerStatus(this.playerActors[i].getPlayerID(), "In Lobby");
 				// TODO: Change up removeActor()
 				this.removeActor(this.playerActors[i]);
                 this.numAlive -= 1;
@@ -538,7 +545,8 @@ module.exports = class Stage {
                 this.gameHasEnded = true;
                 
                 // TODO: Insert this record into the leaderboards 
-                this.winningPID = this.playerActors[0].getPlayerID();
+				this.winningPID = this.playerActors[0].getPlayerID();
+				this.setPlayerStatus(this.playerActors[i].getPlayerID(), "Winner!");
             }
 		}
 

@@ -15,7 +15,7 @@ class Stage {
 		this.numPlayers = numPlayers;
 		this.numAlive = numAlive;
 		this.gameHasEnded = false; // TODO: Not using this right now?
-		this.clientDied = false;
+		this.clientDied = false; // TODO: Use this more effectively, spectator mode?
 
 		// The logical width and height of the stage
 		let logicalMultiplier = 2;

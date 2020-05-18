@@ -23,13 +23,11 @@ class Lobby extends React.Component {
 
 	// Calculate the lobby players and lobby owner for this lobby
 	determineLobbyInfo() {
-		console.log("Inside");
 		console.log(this.state.lobbies);
 		if (this.state.lobbies) {
-			console.log("Inside2");
 			for (let i = 0; i < this.state.lobbies.length; i++) {
-				console.log(this.state.lobbies[i].id);
-				console.log(this.state.lobbyId);
+				// console.log(this.state.lobbies[i].id);
+				// console.log(this.state.lobbyId);
 				if (this.state.lobbies[i].id == this.state.lobbyId) {
 					console.log("Updating lobby players");
 					this.setState({
@@ -48,7 +46,7 @@ class Lobby extends React.Component {
 	}
 
 	componentDidMount() {
-		console.log(this.props);
+		// console.log(this.props);
 		this.setState(
 			{
 				lobbies: this.props.lobbies,

@@ -28,6 +28,22 @@ const disassociateClientLobby = (clientPID) => {
 	}
 }
 
+// Send updated state of lobbies to only that specified socket
+const sendUpdatedLobbies = (ws) => {
+	ws.send(lobbyList = JSON.stringify({
+		type: "view-lobbies",
+		lobbies: serverInstance.getLobbiesJSON(),
+	}));
+}
+
+// Send updated state of lobbies to all connected client sockets
+const broadcastUpdatedLobbies = () => {
+	wss.broadcast(JSON.stringify({
+		type: "view-lobbies",
+		lobbies: serverInstance.getLobbiesJSON(),
+	}));
+}
+
 wss.on("close", function () {
 	console.log("Server disconnected");
 });
@@ -76,11 +92,7 @@ wss.on("connection", function connection(ws, req) {
 	);
 
 	// Send the current state of lobbies to the user
-	let lobbyList = JSON.stringify({
-		type: "view-lobbies",
-		lobbies: serverInstance.getLobbiesJSON(),
-	});
-	ws.send(lobbyList);
+	sendUpdatedLobbies(ws);
 
 	// Client closes socket connection on server; remove them from any lobbies and games
 	ws.on("close", function () {
@@ -112,15 +124,10 @@ wss.on("connection", function connection(ws, req) {
 				}), disconnectedClient.lobbyID, disconnectedClient.PID);
 				serverInstance.deleteLobby(disconnectedClient.lobbyID);
 			} else {
-				lobby.leaveLobby(disconnectedClient.PID);
+				lobby.leaveLobby(disconnectedClient.PID, "disconnection");
 			}
 			
-			// Send updated state of lobbies to all clients
-			let lobbyList = JSON.stringify({
-				type: "view-lobbies",
-				lobbies: serverInstance.getLobbiesJSON(),
-			});
-			wss.broadcast(lobbyList);
+			broadcastUpdatedLobbies();
 		}
 
 		// Remove the disconnected client from the connected clients list
@@ -168,12 +175,7 @@ wss.on("connection", function connection(ws, req) {
 					})
 				);
 
-				// Send updated state of lobbies to all clients
-				let lobbyList = JSON.stringify({
-					type: "view-lobbies",
-					lobbies: serverInstance.getLobbiesJSON(),
-				});
-				wss.broadcast(lobbyList);
+				broadcastUpdatedLobbies();
 				// console.log("Client created and joined lobby with id " + createdLobby.getLobbyId());
 				break;
 
@@ -204,11 +206,7 @@ wss.on("connection", function connection(ws, req) {
 						ws.send(newLobbyState);
 
 						// Send updated state of lobbies to all clients
-						let lobbyList = JSON.stringify({
-							type: "view-lobbies",
-							lobbies: serverInstance.getLobbiesJSON(),
-						});
-						wss.broadcast(lobbyList);
+						broadcastUpdatedLobbies();
 					}
 				}
 				break;
@@ -242,11 +240,7 @@ wss.on("connection", function connection(ws, req) {
 								clientUpdate.lobbyId
 							);
 
-							let lobbyList = JSON.stringify({
-								type: "view-lobbies",
-								lobbies: serverInstance.getLobbiesJSON(),
-							});
-							wss.broadcast(lobbyList);
+							broadcastUpdatedLobbies();
 						}
 					}
 				}
@@ -276,12 +270,7 @@ wss.on("connection", function connection(ws, req) {
 
 						// console.log("Client joined lobby");
 
-						// Send updated state of lobbies to all clients
-						let lobbyList = JSON.stringify({
-							type: "view-lobbies",
-							lobbies: serverInstance.getLobbiesJSON(),
-						});
-						wss.broadcast(lobbyList);
+						broadcastUpdatedLobbies();
 					} else {
 						// console.log("Could not join lobby. Are you already in the lobby?");
 						let errorMessage = JSON.stringify({
@@ -312,7 +301,7 @@ wss.on("connection", function connection(ws, req) {
 					if (lobby.isPlayerInLobby(clientUpdate.pid)) {
 						// console.log("The given client is in the lobby, removing them");
 
-						lobby.leaveLobby(clientUpdate.pid);
+						lobby.leaveLobby(clientUpdate.pid, "disconnection");
 						disassociateClientLobby(clientUpdate.pid);
 						// If the lobby is empty, delete the lobby
 						if (lobby.getPlayersPIDs().length == 0) {
@@ -326,12 +315,7 @@ wss.on("connection", function connection(ws, req) {
 						});
 						ws.send(newLobbyState);
 
-						// Send updated state of lobbies to all clients
-						let lobbyList = JSON.stringify({
-							type: "view-lobbies",
-							lobbies: serverInstance.getLobbiesJSON(),
-						});
-						wss.broadcast(lobbyList);
+						broadcastUpdatedLobbies();
 					} else {
 						// console.log("The given client is NOT in the lobby");
 						// Could not leave lobby, send message to that player
@@ -363,7 +347,7 @@ wss.on("connection", function connection(ws, req) {
 					if (lobby.isPlayerInLobby(clientUpdate.pid) && lobby.isGameInProgress()) {
 						// console.log("The given client is in the lobby, removing them from game");
 
-						lobby.leaveGame(clientUpdate.pid);
+						lobby.leaveGame(clientUpdate.pid, "quit");
 
 						// Successfully left lobby, alert user
 						let newGameState = JSON.stringify({
@@ -371,13 +355,7 @@ wss.on("connection", function connection(ws, req) {
 							status: "success",
 						});
 						ws.send(newGameState);
-
-						// // Send updated state of lobbies to all clients
-						// let lobbyList = JSON.stringify({
-						// 	type: "view-lobbies",
-						// 	lobbies: serverInstance.getLobbiesJSON(),
-						// });
-						// wss.broadcast(lobbyList);
+						broadcastUpdatedLobbies();
 					} 
 					// Could not leave lobby, send message to that player
 					else {
@@ -502,7 +480,6 @@ class Lobby {
 		return {
 			id: this.lobbyId,
 			lobbyOwner: this.lobbyOwnerId,
-			// TODO: Maybe, need to pass player objects here, instead of just usernames
 			lobbyPlayers: this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status })),
 			gameInProgress: this.gameInProgress,
 			numPlayers: this.lobbyPlayers.length,
@@ -555,7 +532,7 @@ class Lobby {
 	}
 
 	// A player leaves a lobby. Return true if successful, otherwise false.
-	leaveLobby(playerId) {
+	leaveLobby(playerId, reason) {
 		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId);
 
 		// Player is in lobby; remove them
@@ -565,15 +542,11 @@ class Lobby {
 
 			// If there is an ongoing game, remove them from the game as well
 			if (this.gameInProgress) {
-				this.multiplayerGame.handleDisconnectedPlayer(playerId);
+				this.multiplayerGame.setPlayerDead(playerId, reason);
 			}
 			return true;
 		}
 		return false;
-	}
-
-	setPlayerDead(pid) {
-		console.log(`${pid} has died or left the lobby`);
 	}
 
 	// Begins the multiplayer game in this lobby, returns the initial game state
@@ -584,10 +557,16 @@ class Lobby {
 			player.status = "In game";
 		})
 
+		// NOTE: We pass in an anonymous function so that it can be called by ./game-engine/Stage.js and access the 'this' keyword to refer to this Lobby instance
 		this.multiplayerGame = new MultiplayerGame(
 			this.lobbyId,
-			this.lobbyPlayers.map(player => player.pid),
-			this.setPlayerDead
+			this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
+			(playerId, status) => {
+				console.log(`${playerId} either died or won, status is ${status}`);
+				// console.log(this.lobbyPlayers);
+				let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
+				this.lobbyPlayers[index].status = status;
+			}
 		);
 
 		try {
@@ -670,16 +649,13 @@ class Lobby {
 	}
 
 	// A player leaves the currently ongoing game in the lobby
-	leaveGame(playerId) {
+	leaveGame(playerId, reason) {
 		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId);
 
-		// Player is in lobby; remove them
 		if (playerIndex > -1) {
-			// If there is an ongoing game, remove them from the game as well
 			if (this.gameInProgress) {
 				this.lobbyPlayers[playerIndex].status = "In Lobby";
-				// TODO: Should this be called here?
-				// this.multiplayerGame.setPlayerDead(this.playerActors[i].getPlayerID());
+				this.multiplayerGame.setPlayerDead(playerId, reason);
 			}
 			return true;
 		}
@@ -691,12 +667,14 @@ class Lobby {
 // A multiplayer game has multiplayer players in it
 class MultiplayerGame {
 	// TODO: Make this constructor take more game parameters
-	constructor(gameId, gamePlayers, setPlayerDead) {
+	constructor(gameId, gamePlayers, setPlayerStatus) {
 		this.gameId = gameId; // a game has the same ID as its lobby
-		this.players = gamePlayers; // TODO: Will need to take more player information
+		this.players = gamePlayers;
 		const numPlayers = gamePlayers.length;
 
-		this.setPlayerDead = setPlayerDead;
+		// Function 'pointer' that is defined in class Lobby
+		// setPlayerStatus("yo");
+		this.setPlayerStatus = setPlayerStatus;
 
 		// TODO: Investigate more into these values of mapWidth and mapHeight -- do they relate to logical map size, or the dimensions of the GUI displayed to the user?
 		// These values are equivalent to the canvas width and height from A2
@@ -725,7 +703,7 @@ class MultiplayerGame {
 			this.mapHeight,
 			generationSettings,
 			numPlayers,
-			this.setPlayerDead
+			this.setPlayerStatus
 		);
 	}
 
@@ -781,8 +759,8 @@ class MultiplayerGame {
 	}
 
 	// Remove the player that disconnected
-	handleDisconnectedPlayer(playerID) {
-		this.stage.removePlayer(playerID);
+	setPlayerDead(playerID, reason) {
+		this.stage.removePlayer(playerID, reason);
 	}
 }
 
@@ -794,6 +772,7 @@ const startGlobalInterval = (server) => {
 	// This does not need to run that frequently, as it only checks for lobbies where games have finished
 	globalInterval = setInterval(() => {
 		console.log(`Checking lobbies... there are ${serverInstance.getLobbiesJSON().length} lobbies`);
+		// console.log(serverInstance.getLobbiesJSON());
 		server.checkLobbies();
 	}, 5000);
 
