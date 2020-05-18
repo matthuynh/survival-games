@@ -387,9 +387,6 @@ wss.on("connection", function connection(ws, req) {
 	});
 });
 
-// Import the Stage (this allows the server access to the game)
-const Stage = require("./game-engine/Stage.js");
-
 // This server instance keeps track of lobbies and multiplayer games
 class ServerInstance {
 	constructor() {
@@ -680,6 +677,10 @@ class Lobby {
 	}
 }
 
+
+// Import the Stage (this allows the server access to the game)
+const Stage = require("./game-engine/Stage.js");
+
 // TODO: Move this class into its own file after finishing with the features
 // A multiplayer game has multiplayer players in it
 class MultiplayerGame {
@@ -704,7 +705,7 @@ class MultiplayerGame {
 			numHPPots: 7,
 			numAmmo: 15,
 			numSpeedBoost: Math.floor(numPlayers / 2) + 1,
-			numRDS: numPlayers,
+			numRDS: 0,
 			numSmallGun: numPlayers,
 			numBigGun: Math.floor(numPlayers / 2) + 1,
 		};

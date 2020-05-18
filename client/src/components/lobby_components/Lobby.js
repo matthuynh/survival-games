@@ -8,14 +8,14 @@ class Lobby extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-            lobbies: null,
+			lobbies: null,
 			lobbyPlayers: [],
 			lobbyId: null,
 			isLobbyOwner: false,
 			playerId: null,
 			lobbyOwnerId: null,
 			maxLobbySize: null,
-            lobbyReady: false,
+			lobbyReady: false,
 		};
 
 		this.determineLobbyInfo = this.determineLobbyInfo.bind(this);
@@ -27,32 +27,34 @@ class Lobby extends React.Component {
 		if (this.state.lobbies) {
 			for (let i = 0; i < this.state.lobbies.length; i++) {
 				if (this.state.lobbies[i].id == this.state.lobbyId) {
-                    let thisLobby = this.state.lobbies[i];
+					let thisLobby = this.state.lobbies[i];
 
-                    // Check if lobby is ready
-                    let isLobbyReady = true;
-                    if (thisLobby.lobbyPlayers.length <= 1) {
-                        isLobbyReady = false;
-                    } else {
-                        for (let j = 0; j < thisLobby.lobbyPlayers.length; j++) {
-                            if (thisLobby.lobbyPlayers[j].status !== "In Lobby") {
-                                isLobbyReady = false;
-                                break
-                            }
-                        }
-                    }
+					// Check if lobby is ready
+					let isLobbyReady = true;
+					if (thisLobby.lobbyPlayers.length <= 1) {
+						isLobbyReady = false;
+					} else {
+						for (
+							let j = 0;
+							j < thisLobby.lobbyPlayers.length;
+							j++
+						) {
+							if (
+								thisLobby.lobbyPlayers[j].status !== "In Lobby"
+							) {
+								isLobbyReady = false;
+								break;
+							}
+						}
+					}
 
 					console.log("Updating lobby players");
 					this.setState({
 						lobbyPlayers: thisLobby.lobbyPlayers,
 						lobbyOwnerId: thisLobby.lobbyOwner,
-                        maxLobbySize: thisLobby.maxLobbySize,
-                        lobbyReady: isLobbyReady
+						maxLobbySize: thisLobby.maxLobbySize,
+						lobbyReady: isLobbyReady,
 					});
-					// this.setState({
-					//     lobbyPlayers: this.state.lobbies[i].lobbyPlayers,
-					//     lobbyOwnerId: this.state.lobbies[i].lobbyOwner
-					// }, console.log(this.state.lobbies[i].lobbyPlayers));
 					break;
 				}
 			}
@@ -78,7 +80,6 @@ class Lobby extends React.Component {
 		if (prevProps.lobbies !== this.props.lobbies) {
 			console.log("Updated lobbies");
 			// Note: setState is async, so we assign it a callback determineLobbyInfo()
-			// Q: This call to determineLobbyInfo() only works properly if it is put in an arrow function... why?
 			// It doesn't work if it is not placed in a function
 			this.setState({ lobbies: this.props.lobbies }, () => {
 				// console.log(this.state.lobbies);
@@ -151,7 +152,8 @@ class Lobby extends React.Component {
 				{this.state.lobbyOwnerId == this.state.playerId ? (
 					// Lobby view for the lobby owner
 					<p>
-						You are lobby owner! You must have at least two players, and all players must be in the lobby to start the game
+						You are lobby owner! You must have at least two players,
+						and all players must be in the lobby to start the game
 						<Button
 							variant="success"
 							block

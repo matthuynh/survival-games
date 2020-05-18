@@ -8,6 +8,7 @@ import "../css/LobbiesPage.css";
 import LobbyList from "./lobby_components/LobbyList";
 import Lobby from "./lobby_components/Lobby";
 import CloseLobby from "./lobby_components/CloseLobby";
+import GameView from "./lobby_components/GameView";
 
 const localIPAddress = "localhost";
 const wssServerURL = `ws://${localIPAddress}:10000`;
@@ -515,63 +516,34 @@ class LobbiesPage extends React.Component {
 				/>
 			);
 		}
-
-		// Render the individual lobby or game view
-		else if (this.state.joinedLobbyId !== null) {
-			// Render the game view for a regular browser connection
-			if (this.state.showGameView) {
-				return (
-					<div className="clientGameUI">
-						<Container>
-							<Row>
-								<br/>
-								<canvas
-									ref={this.canvasRef}
-									id="stage"
-									width="1200"
-									height="800"
-									className="clientCanvas"
-								>
-								</canvas>
-							</Row>
-							<Row>
-								<Button
-									variant="warning"
-									onClick={() => {this.handleLeaveGame(this.state.playerId, this.state.joinedLobbyId)}}
-									className="leaveGameButton"
-									block
-								>
-									Leave game
-								</Button>
-							</Row>
-							{this.state.userWon && 
-							<Row>
-								<h1> You won! </h1>
-							</Row>
-							}
-							{this.state.userLost &&
-							<Row>
-								<h1> You lost! </h1>	
-							</Row>}
-						</Container>
-					</div>
-				)
-			} 
-
-			// Lobby view
-			else {
-				return (
-					<Lobby 
-						lobbies = {this.state.lobbies}
-						lobbyId = {this.state.joinedLobbyId}
-						playerId = {this.state.playerId}
-						handleStartGame = {this.handleStartGame}
-						handleDeleteLobby = {this.handleDeleteLobby}
-						handleLeaveLobby = {this.handleLeaveLobby}
-					/>
-				);
-			}
+		
+		// Render the game view 
+		else if (this.state.joinedLobbyId !== null && this.state.showGameView) {
+			return (
+				<GameView
+					canvasRef = {this.canvasRef}
+					playerId = {this.state.playerId}
+					joinedLobbyId = {this.state.joinedLobbyId}
+					userWon = {this.state.userWon}
+					userLost = {this.state.userLost}
+					handleLeaveGame = {this.handleLeaveGame}
+				/>
+			)
 		}
+
+		// Render the lobby view
+		else if (this.state.joinedLobbyId !== null) {
+			return (
+				<Lobby 
+					lobbies = {this.state.lobbies}
+					lobbyId = {this.state.joinedLobbyId}
+					playerId = {this.state.playerId}
+					handleStartGame = {this.handleStartGame}
+					handleDeleteLobby = {this.handleDeleteLobby}
+					handleLeaveLobby = {this.handleLeaveLobby}
+				/>
+			);
+		}	
 	}
 }
 
