@@ -440,6 +440,7 @@ class ServerInstance {
 	// Runs on an interval
 	// Check to see if any games in lobbies have finished. Start ready lobbies
 	checkLobbies() {
+		// TODO: There is probably a better way of doing this.... pass in a callback to MultiplayerGame, like with initializeGame?
 		this.lobbies.forEach((lobby) => {
 			if (
 				lobby.isGameInProgress() == false &&
@@ -561,11 +562,18 @@ class Lobby {
 			this.lobbyId,
 			this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
 			(playerId, status) => {
-				// function "name" is setPlayerStatus
+				// function "name" is setPlayerStatus, handles changing player status (eg. dead, spectating)
+				// See Lobby for possible statuses ("In Lobby", "In Game", "Winner!", "Spectating")
 				console.log(`${playerId} either died or won, status is ${status}`);
-				// console.log(this.lobbyPlayers);
 				let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
 				this.lobbyPlayers[index].status = status;
+				if (status === "Spectating") {
+					this.lobbyPlayers[index].socket.send(JSON.stringify({
+						pid: playerId,
+						type: "lost-game"
+					}));
+				}
+				// console.log(this.lobbyPlayers[index]);
 				broadcastUpdatedLobbies();
 			}
 		);
@@ -577,6 +585,7 @@ class Lobby {
 				await this.multiplayerGame.sendPlayerUpdates(wss);
 
 				// Check to see if the game has ended (only 1 player remaining)
+				// TODO: There is probably a better way to trigger endGame() when a player wins.... pass in a callback to MultiplayerGame, like with initializeGame?
 				let gameWinner = this.multiplayerGame.getGameWinner();
 				if (gameWinner) {
 					this.endGame(gameWinner);

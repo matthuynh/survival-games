@@ -248,7 +248,7 @@ class LobbiesPage extends React.Component {
 						this.setState({
 							lobbyClosed: true,
 							joinedLobbyId: null
-						})
+						});
 						break;
 
 
@@ -258,6 +258,11 @@ class LobbiesPage extends React.Component {
 
 						break;
 
+					case "lost-game":
+						this.setState({
+							userLost: true
+						});
+						break;
 
 					default:
 						console.log("Received unknown update from socket server");
@@ -345,8 +350,8 @@ class LobbiesPage extends React.Component {
 		document.removeEventListener("mousemove", this.handleMouseMove);
 		document.removeEventListener("mousedown", this.handleMouseDown);
 
-		// Bring user back to lobby view
-		this.setState({showGameView: false });
+		// Resets user's game state
+		this.setState({ showGameView: false, userLost: false, userWon: false });
 	}
 
 	// Sends this player's movement to server
