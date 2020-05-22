@@ -57,11 +57,13 @@ module.exports = class Stage {
 		this.environmentActors = []; // these actors cannot collide. Includes Lines, buffs (HP, ammo, speed boost, RDS)
         
         // The logical width and height of the stage
-		let logicalMultiplier = 2;
+		let logicalMultiplier = 1;
 		this.stageWidth = canvasWidth * logicalMultiplier;
         this.stageHeight = canvasHeight * logicalMultiplier;
         this.canvasWidth = canvasWidth;
-        this.canvasHeight = canvasHeight;
+		this.canvasHeight = canvasHeight;
+		// TODO: Canvas width and canvas height are not needed here... they shuold not be set here as they could be different for each user.
+		// Each user may have a different screen size
         
         // Initialize each player in the stage
         for (let i = 0; i < this.numPlayers; i++) {

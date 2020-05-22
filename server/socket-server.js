@@ -695,8 +695,8 @@ class MultiplayerGame {
 		// TODO: Investigate more into these values of mapWidth and mapHeight -- do they relate to logical map size, or the dimensions of the GUI displayed to the user?
 		// These values are equivalent to the canvas width and height from A2
 		// The stage still needs to know the map size
-		this.mapWidth = 1200;
-		this.mapHeight = 800;
+		this.mapWidth = 2000;
+		this.mapHeight = 2000;
 
 		// Game specific settings
 		const generationSettings = {
@@ -740,9 +740,9 @@ class MultiplayerGame {
 			if (update.type == "move") {
 				player.setMovementDirection(update.x, update.y);
 			} else if (update.type == "click") {
-				player.setFiringDirection(update.x, update.y);
+				player.setFiringDirection(update.x, update.y, update.width, update.height);
 			} else if (update.type == "cursor") {
-				player.setCursorDirection(update.x, update.y);
+				player.setCursorDirection(update.x, update.y, update.width, update.height);
 			}
 		}
 	}

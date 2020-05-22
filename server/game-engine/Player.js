@@ -156,14 +156,27 @@ module.exports = class Player extends Circle {
 		return new Pair(this.x, this.y);
 	}
 
+	// Set direction for which the player should move
+	setMovementDirection(dx, dy) {
+		this.hidden = false;
+		this.dx = dx;
+		this.dy = dy;
+		this.setVelocity();
+		
+		// Used to calculate a new direction line
+		this.handX = this.x + this.cursorDirection.x * this.radius;
+		this.handY = this.y + this.cursorDirection.y * this.radius;
+		this.setDirectionLine(this.cursorX, this.cursorY);
+	}
+
 	// When the human player moves the mouse, need to move the "direction" of the player's hands accordingly
-	setCursorDirection(xCoordinate, yCoordinate) {
+	setCursorDirection(xCoordinate, yCoordinate, canvasWidth, canvasHeight) {
 		this.cursorX = xCoordinate;
         this.cursorY = yCoordinate;
 
 		// Calculate the cursor position relative to the canvas, as a unit vector
-		let relativeX = xCoordinate - this.x - (this.stage.getCanvasWidth() / 2 - this.x);
-		let relativeY = yCoordinate - this.y - (this.stage.getCanvasHeight() / 2 - this.y);
+		let relativeX = xCoordinate - this.x - (canvasWidth / 2 - this.x);
+		let relativeY = yCoordinate - this.y - (canvasHeight / 2 - this.y);
 		this.cursorDirection = new Pair(relativeX, relativeY);
         this.cursorDirection.normalize();
         
@@ -173,23 +186,10 @@ module.exports = class Player extends Circle {
 		// console.log(`Cursor direction is (${xCoordinate},${yCoordinate})`);
 	}
 
-	// Set direction for which the player should move
-	setMovementDirection(dx, dy) {
-		this.hidden = false;
-		this.dx = dx;
-		this.dy = dy;
-        this.setVelocity();
-        
-        // Used to calculate a new direction line
-        this.handX = this.x + this.cursorDirection.x * this.radius;
-		this.handY = this.y + this.cursorDirection.y * this.radius;
-		this.setDirectionLine(this.cursorX, this.cursorY);
-	}
-
 	// When human player moves the mouse, need to move the bullet from the "direction" of the player's hands accordingly
-	setFiringDirection(xCoordinate, yCoordinate) {
+	setFiringDirection(xCoordinate, yCoordinate, canvasWidth, canvasHeight) {
 		if (!this.isDead()) {
-			const firingVector = new Pair(xCoordinate - this.x - (this.stage.getCanvasWidth() / 2 - this.x), yCoordinate - this.y - (this.stage.getCanvasHeight() / 2 - this.y));
+			const firingVector = new Pair(xCoordinate - this.x - (canvasWidth / 2 - this.x), yCoordinate - this.y - (canvasHeight / 2 - this.y));
 			firingVector.normalize();
             const bulletRadius = 5;
             

@@ -14,7 +14,11 @@ class GameView extends React.Component {
 			joinedLobbyId: null,
 			userWon: false,
 			userLost: false,
+			innerWidth: 0,
+			innerHeight: 0
 		};
+
+		this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
 	}
 
 	componentDidMount() {
@@ -24,6 +28,21 @@ class GameView extends React.Component {
 			userWon: this.props.userWon,
 			userLost: this.props.userLost,
 		});
+
+		// Checks user's browser dimensions
+		this.updateWindowDimensions();
+		window.addEventListener('resize', this.updateWindowDimensions);
+	}
+
+	componentWillUnmount() {
+		window.removeEventListener('resize', this.updateWindowDimensions);
+	}
+
+	// Runs when the user resizes their browser screen
+	updateWindowDimensions() {
+		this.setState({ innerWidth: window.innerWidth, innerHeight: window.innerHeight });
+		this.props.updateDimensions(window.innerWidth, window.innerHeight);
+		// console.log(`Width: ${window.innerWidth}, Height: ${window.innerHeight}`);
 	}
 
 	// Update lobbies passed down from parent LobbiesPage
@@ -51,8 +70,8 @@ class GameView extends React.Component {
 						<canvas
 							ref={this.props.canvasRef}
 							id="stage"
-							width="1200"
-							height="800"
+							width={this.state.innerWidth}
+							height={this.state.innerHeight}
 							className="clientCanvas"
 						></canvas>
 					</Row>

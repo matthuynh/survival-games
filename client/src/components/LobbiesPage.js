@@ -33,7 +33,11 @@ class LobbiesPage extends React.Component {
 			movingDown: false,
 			movingRight: false,
 			horizontalDirection: 0,
-			verticalDirection: 0
+			verticalDirection: 0,
+
+			// Browser screen dimension
+			width: 0,
+			height: 0
 		};
 
 		// Send username when connecting to server
@@ -61,6 +65,13 @@ class LobbiesPage extends React.Component {
 		this.handleKeyRelease = this.handleKeyRelease.bind(this);
 		this.handleMouseMove = this.handleMouseMove.bind(this);
 		this.handleMouseDown = this.handleMouseDown.bind(this);
+		
+		this.updateDimensions = this.updateDimensions.bind(this);
+	}
+
+	// Called whenever the user resizes their browser screen
+	updateDimensions(width, height) {
+		this.setState({ width: width, height: height });
 	}
 	
 	// Return to lobby view after lobby owner closed lobby
@@ -358,6 +369,8 @@ class LobbiesPage extends React.Component {
 			type: "click",
 			x: xPosition,
 			y: yPosition,
+			width: this.state.width,
+			height: this.state.height
 		});
 		this.clientSocket.send(clientUpdate);
 	}
@@ -370,6 +383,8 @@ class LobbiesPage extends React.Component {
 			type: "cursor",
 			x: xPosition,
 			y: yPosition,
+			width: this.state.width,
+			height: this.state.height
 		});
 		this.clientSocket.send(clientUpdate);
 	}
@@ -468,9 +483,9 @@ class LobbiesPage extends React.Component {
 
 	// Handle when the mouses buttons are pressed
 	handleMouseDown(event) {
-		let canvas = this.canvasRef.current;
-		let xPosition = event.clientX - canvas.offsetLeft;
-		let yPosition = event.clientY - canvas.offsetTop;
+		let canvas = this.canvasRef.current.getBoundingClientRect();
+		let xPosition = event.clientX - canvas.left;
+		let yPosition = event.clientY - canvas.top;
 		// console.log(`{${xPosition}, ${yPosition}}`);
 
 		// Only send valid mouse clicks (must be within canvas)
@@ -482,9 +497,9 @@ class LobbiesPage extends React.Component {
 
 	// Handle mouse movement (movement os human's cursor)
 	handleMouseMove(event) {
-		let canvas = this.canvasRef.current;
-		let xPosition = event.clientX - canvas.offsetLeft;
-		let yPosition = event.clientY - canvas.offsetTop;
+		let canvas = this.canvasRef.current.getBoundingClientRect();
+		let xPosition = event.clientX - canvas.left;
+		let yPosition = event.clientY - canvas.top;
 		// console.log(`{${xPosition}, ${yPosition}}`);
 
 		// Only send valid mouse movements (must be within canvas)
@@ -527,6 +542,7 @@ class LobbiesPage extends React.Component {
 					userWon = {this.state.userWon}
 					userLost = {this.state.userLost}
 					handleLeaveGame = {this.handleLeaveGame}
+					updateDimensions = {this.updateDimensions}
 				/>
 			)
 		}

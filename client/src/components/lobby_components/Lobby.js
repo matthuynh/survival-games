@@ -23,7 +23,7 @@ class Lobby extends React.Component {
 
 	// Calculate lobby information for this lobby
 	determineLobbyInfo() {
-		console.log(this.state.lobbies);
+		// console.log(this.state.lobbiess);
 		if (this.state.lobbies) {
 			for (let i = 0; i < this.state.lobbies.length; i++) {
 				if (this.state.lobbies[i].id == this.state.lobbyId) {
@@ -48,7 +48,7 @@ class Lobby extends React.Component {
 						}
 					}
 
-					console.log("Updating lobby players");
+					// console.log("Updating lobby players");
 					this.setState({
 						lobbyPlayers: thisLobby.lobbyPlayers,
 						lobbyOwnerId: thisLobby.lobbyOwner,
@@ -78,7 +78,7 @@ class Lobby extends React.Component {
 	// Update this child component's state depending on parent state changes
 	componentDidUpdate(prevProps) {
 		if (prevProps.lobbies !== this.props.lobbies) {
-			console.log("Updated lobbies");
+			// console.log("Updated lobbies");
 			// Note: setState is async, so we assign it a callback determineLobbyInfo()
 			// It doesn't work if it is not placed in a function
 			this.setState({ lobbies: this.props.lobbies }, () => {
