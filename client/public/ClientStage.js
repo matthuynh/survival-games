@@ -2,6 +2,8 @@
 class Stage {
 	constructor(
 		canvas,
+		stageWidth,
+		stageHeight,
 		playerActors,
 		bulletActors,
 		crateActors,
@@ -11,16 +13,14 @@ class Stage {
 		numPlayers,
 		playerID
 	) {
-		this.canvas = canvas;
+		this.canvas = canvas; // canvas.width and canvas.height correspond to the user's own browser dimensions
 		this.numPlayers = numPlayers;
 		this.numAlive = numAlive;
 		this.gameHasEnded = false; // TODO: Not using this right now?
 		this.clientDied = false; // TODO: Use this more effectively, spectator mode?
 
-		// The logical width and height of the stage
-		let logicalMultiplier = 2;
-		this.stageWidth = canvas.width * logicalMultiplier;
-		this.stageHeight = canvas.height * logicalMultiplier;
+		this.stageWidth = stageWidth; // the stageWidth and stageHeight are the logical width and height of the stage. They are set from the server side. 
+		this.stageHeight = stageHeight;
 		this.centerX = null;
 		this.centerY = null;
 
@@ -95,142 +95,62 @@ class Stage {
 
 	// Draw the canvas
 	draw() {
+		// TODO: Try storing context instead... would that work instead of getting it each time?
 		let context = this.canvas.getContext("2d");
 
-		// Camera movement code
+		// Camera movement code -- keep user's player centered on screen
 		context.save();
 		context.resetTransform();
 		context.translate(
 			this.canvas.width / 2 - this.player.x,
 			this.canvas.height / 2 - this.player.y
-		); // this is how much of the map we can see at a time
+		);
 		context.clearRect(0, 0, this.stageWidth, this.stageHeight);
 		context.globalCompositionOperation = "destination-over";
 
-		// Generates the "world border" (a larger black rectangle behind the green rectangle)
-		context.fillStyle = "rgba(44, 130, 201, 1)";
+		// Generates the "world border" (a blue rectangle behind the green rectangle)
+		context.fillStyle = "rgba(44,130,201,1)";
 		context.fillRect(
 			-100,
 			-100,
-			this.stageWidth * 10,
-			this.stageHeight * 10
+			this.stageWidth * 4,
+			this.stageHeight * 4
 		);
 
-		// Generate the playing field for the world
+		// Generate the playing field for the world (a green rectangle), along with gridlines 
 		context.fillStyle = "rgba(34,139,34,1)";
 		context.fillRect(0, 0, this.stageWidth, this.stageHeight);
-
 		context.lineWidth = 1;
 		this.drawGridlines(context, this.stageWidth, this.stageHeight);
 
 		// Draw all actors on the canvas
 		for (let i = 0; i < this.playerActors.length; i++) {
-			let p = this.playerActors[i];
-			this.drawPlayer(context, p);
+			this.drawPlayer(context, this.playerActors[i]);
 		}
 		for (let i = 0; i < this.bulletActors.length; i++) {
-			let b = this.bulletActors[i];
-			this.drawBullet(context, b);
+			this.drawBullet(context, this.bulletActors[i]);
 		}
 		for (let i = 0; i < this.crateActors.length; i++) {
-			let c = this.crateActors[i];
-			this.drawCrate(context, c);
+			this.drawCrate(context, this.crateActors[i]);
 		}
 		for (let i = 0; i < this.environmentActors.length; i++) {
-			let e = this.environmentActors[i];
-			let textX;
-			let textY;
-			switch (e.type) {
-				case "LineEnv":
-					this.drawLine(context, e);
-					break;
-				case "AmmoEnv":
-					textX = e.x - e.radius / 2 - 3;
-					textY = e.y + 1;
-					this.drawEnvironmentObject(
-						context,
-						e,
-						"12px Courier",
-						"AMMO",
-						textX,
-						textY
-					);
-					break;
-				case "HealthPotEnv":
-					textX = e.x - e.radius / 2 + 2;
-					textY = e.y + 2;
-					this.drawEnvironmentObject(
-						context,
-						e,
-						"14px Courier",
-						"HP",
-						textX,
-						textY
-					);
-					break;
-				case "BushEnv":
-					this.drawBush(context, e);
-					break;
-				case "ScopeEnv":
-					textX = e.x - e.radius / 2 - 3;
-					textY = e.y + 1;
-					this.drawEnvironmentObject(
-						context,
-						e,
-						"12px Courier",
-						"RDS",
-						textX,
-						textY
-					);
-					break;
-				case "SpeedBoostEnv":
-					textX = e.x - e.radius / 2 - 9;
-					textY = e.y + 2;
-					this.drawEnvironmentObject(
-						context,
-						e,
-						"12px Courier",
-						"SPEED",
-						textX,
-						textY
-					);
-					break;
-				case "SmallGunEnv":
-					textX = e.x - e.radius / 2 - 8;
-					textY = e.y + 1;
-					this.drawEnvironmentObject(
-						context,
-						e,
-						"12px Courier",
-						"PISTOL",
-						textX,
-						textY
-					);
-					break;
-				case "BigGunEnv":
-					textX = e.x - e.radius / 2 - 7;
-					textY = e.y + 2;
-					this.drawEnvironmentObject(
-						context,
-						e,
-						"12px Courier",
-						"RIFLE",
-						textX,
-						textY
-					);
-					break;
-				default:
-					break;
-			}
+			this.drawEnvironmentObject(context, this.environmentActors[i]);
 		}
 
+		// Draw the game UI (health bar, ammo, etc.)
+		this.drawUI(context);
+		
+		context.restore();
+	}
+
+	drawUI(context) {
 		// Draw a death message if the player died
 		if (this.clientDied) {
 			context.font = "40px verdana";
 			context.fillStyle = "rgba(255,0,0,1)";
 			context.fillText("YOU DIED", this.centerX - 100, this.centerY - 10);
 		}
-
+		
 		// TODO: Fix rendering when the player is dead (these things don't update properly)
 		// Draw the HP bar
 		let playerHPPercent = this.player.currentHP / this.player.maxHP;
@@ -331,17 +251,7 @@ class Stage {
 			this.player.x - 590,
 			this.player.y - this.canvas.height / 2 + 40
 		);
-
-		context.restore();
 	}
-
-	// getLogicalLeft() {
-	// 	return this.logicalLeft;
-	// }
-
-	// getLogicalTop() {
-	// 	return this.logicalTop;
-	// }
 
 	// Given a context for a canvas, draw gridlines on the canvas
 	drawGridlines(context, width, height) {
@@ -429,9 +339,96 @@ class Stage {
 		context.fill();
 	}
 
+	// Given an environment object, determine its specific object, then draw it
+	drawEnvironmentObject(context, e) {
+		let textX, textY;
+		switch (e.type) {
+			case "LineEnv":
+				this.drawLine(context, e);
+				break;
+			case "AmmoEnv":
+				textX = e.x - e.radius / 2 - 3;
+				textY = e.y + 1;
+				this.drawObject(
+					context,
+					e,
+					"12px Courier",
+					"AMMO",
+					textX,
+					textY
+				);
+				break;
+			case "HealthPotEnv":
+				textX = e.x - e.radius / 2 + 2;
+				textY = e.y + 2;
+				this.drawObject(
+					context,
+					e,
+					"14px Courier",
+					"HP",
+					textX,
+					textY
+				);
+				break;
+			case "BushEnv":
+				this.drawBush(context, e);
+				break;
+			case "ScopeEnv":
+				textX = e.x - e.radius / 2 - 3;
+				textY = e.y + 1;
+				this.drawObject(
+					context,
+					e,
+					"12px Courier",
+					"RDS",
+					textX,
+					textY
+				);
+				break;
+			case "SpeedBoostEnv":
+				textX = e.x - e.radius / 2 - 9;
+				textY = e.y + 2;
+				this.drawObject(
+					context,
+					e,
+					"12px Courier",
+					"SPEED",
+					textX,
+					textY
+				);
+				break;
+			case "SmallGunEnv":
+				textX = e.x - e.radius / 2 - 8;
+				textY = e.y + 1;
+				this.drawObject(
+					context,
+					e,
+					"12px Courier",
+					"PISTOL",
+					textX,
+					textY
+				);
+				break;
+			case "BigGunEnv":
+				textX = e.x - e.radius / 2 - 7;
+				textY = e.y + 2;
+				this.drawObject(
+					context,
+					e,
+					"12px Courier",
+					"RIFLE",
+					textX,
+					textY
+				);
+				break;
+			default:
+				break;
+		}
+	}
+
 	// Given a reference o to an environmental object, draw it
 	// These include: RDS, Speed Boosts, Small Guns, Big Guns, Ammo, Health Pots
-	drawEnvironmentObject(context, o, font, fontText, fontX, fontY) {
+	drawObject(context, o, font, fontText, fontX, fontY) {
 		context.fillStyle = o.colour;
 		context.beginPath();
 		context.arc(o.x, o.y, o.radius, 0, 2 * Math.PI, false);

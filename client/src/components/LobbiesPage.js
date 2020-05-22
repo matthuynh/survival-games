@@ -146,6 +146,8 @@ class LobbiesPage extends React.Component {
 						// Initialize state of the client model
 						window.setupStageModel(
 							this.canvasRef.current,
+							serverUpdate.stageWidth,
+							serverUpdate.stageHeight,
 							serverUpdate.playerActors,
 							serverUpdate.bulletActors,
 							serverUpdate.crateActors,

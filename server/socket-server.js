@@ -225,6 +225,8 @@ wss.on("connection", function connection(ws, req) {
 							// Send the game model state to the connecting player
 							let initialGameState = JSON.stringify({
 								type: "stage-initialization",
+								stageWidth: initialGameStatus.width,
+								stageHeight: initialGameStatus.height,
 								playerActors: initialGameStatus.players,
 								bulletActors: initialGameStatus.bullets,
 								crateActors: initialGameStatus.crates,
@@ -700,13 +702,7 @@ class MultiplayerGame {
 
 		// Function 'pointer' that is defined in class Lobby
 		this.setPlayerStatus = setPlayerStatus;
-
-		// TODO: Investigate more into these values of mapWidth and mapHeight -- do they relate to logical map size, or the dimensions of the GUI displayed to the user?
-		// These values are equivalent to the canvas width and height from A2
-		// The stage still needs to know the map size
-		this.mapWidth = 2000;
-		this.mapHeight = 2000;
-
+		
 		// Game specific settings
 		const generationSettings = {
 			numBushes: 10,
@@ -717,17 +713,17 @@ class MultiplayerGame {
 			numRDS: 0,
 			numSmallGun: numPlayers,
 			numBigGun: Math.floor(numPlayers / 2) + 1,
+			stageWidth: 2000,
+			stageHeight: 2000
 		};
 
 		// Initialize the server-side stage
 		this.stage = new Stage(
 			this.gameId,
 			this.players,
-			this.mapWidth,
-			this.mapHeight,
-			generationSettings,
 			numPlayers,
-			this.setPlayerStatus
+			this.setPlayerStatus,
+			generationSettings,
 		);
 	}
 

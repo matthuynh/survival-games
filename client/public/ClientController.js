@@ -11,6 +11,8 @@ function updateStageModel(playerActors, bulletActors, environmentActors, numAliv
 // All setup is implemented here, called when the body from index.html loads
 function setupStageModel(
 	canvas,
+	stageWidth,
+	stageHeight,
 	playerActors,
 	bulletActors,
 	crateActors,
@@ -23,6 +25,8 @@ function setupStageModel(
 	// Instantiate a new Stage with the canvas element from index.html
 	stage = new Stage(
 		canvas,
+		stageWidth,
+		stageHeight,
 		playerActors,
 		bulletActors,
 		crateActors,
