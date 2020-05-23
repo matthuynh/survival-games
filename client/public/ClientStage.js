@@ -16,12 +16,13 @@ class Stage {
 		this.canvas = canvas; // canvas.width and canvas.height correspond to the user's own browser dimensions
 		this.numPlayers = numPlayers;
 		this.numAlive = numAlive;
-		this.gameHasEnded = false; // TODO: Not using this right now?
-		this.clientDied = false; // TODO: Use this more effectively, spectator mode?
+		this.hasEnded = false; // true if the game has ended on the server side
+		this.isSpectating = false;
+		this.startTime = startTime;
 
 		this.stageWidth = stageWidth; // the stageWidth and stageHeight are the logical width and height of the stage. They are set from the server side. 
 		this.stageHeight = stageHeight;
-		this.centerX = null;
+		this.centerX = null; // stores the last known spot of the player (used for drawing and spectating)
 		this.centerY = null;
 
 		this.playerActors = playerActors; // includes all Players
@@ -42,18 +43,11 @@ class Stage {
 					currentAmmo: this.playerActors[i].gunBullets,
 					ammoCapacity: this.playerActors[i].gunCapacity,
 				};
-				this.centerX = this.player.x; // used for drawing the UI
+				this.centerX = this.player.x;
 				this.centerY = this.player.y;
+				break;
 			}
 		}
-
-		// Save the starting coordinate of the canvas relative to the web page
-		// let boundingRect = this.canvas.getBoundingClientRect();
-		// this.logicalLeft = boundingRect.left;
-		// this.logicalTop = boundingRect.top;
-
-		// Used for pausing/unpausing the game new
-		this.startTime = startTime;
 	}
 
 	// Apply updates from the server model to the client model state
@@ -62,7 +56,7 @@ class Stage {
 		this.bulletActors = bulletActors;
 		this.environmentActors = environmentActors;
 		this.numAlive = numAlive;
-		this.hasEnded = hasEnded; // TODO: Not using this right now?
+		this.hasEnded = hasEnded; // TODO: Not using this right now
 
 		// Each client's stage should know which player belongs to that client
 		let playerStillAlive = false;
@@ -84,16 +78,11 @@ class Stage {
 		}
 
 		if (!playerStillAlive) {
-			this.clientDied = true;
+			this.isSpectating = true;
 		}
 	}
 
-	// Checks to see if this client's player is still alive (if they are dead, they can't play)
-	isStillAlive() {
-		return !this.clientDied;
-	}
-
-	// Draw the canvas
+	// Draw the canvas. This function is run every interval defined in ClientController.startStageModel()
 	draw() {
 		// TODO: Try storing context instead... would that work instead of getting it each time?
 		let context = this.canvas.getContext("2d");
@@ -105,14 +94,19 @@ class Stage {
 			this.canvas.width / 2 - this.player.x,
 			this.canvas.height / 2 - this.player.y
 		);
-		context.clearRect(0, 0, this.stageWidth, this.stageHeight);
+		context.clearRect(
+			-1000,
+			-1000,
+			this.stageWidth * 4,
+			this.stageHeight * 4
+		); // Note that this must match with the size of the world border
 		context.globalCompositionOperation = "destination-over";
 
 		// Generates the "world border" (a blue rectangle behind the green rectangle)
 		context.fillStyle = "rgba(44,130,201,1)";
 		context.fillRect(
-			-100,
-			-100,
+			-1000,
+			-1000,
 			this.stageWidth * 4,
 			this.stageHeight * 4
 		);
@@ -143,42 +137,116 @@ class Stage {
 		context.restore();
 	}
 
+	/**
+	 * Notes for scaling and positioning relative to canvas size:
+	 * - Note that the y-axis is positive in the down direction
+	 * - Shapes are drawn with positive y going down
+	 * - x-axis is still the same as normal
+	 * - origin (0,0) is top-left
+	 * - For this reason, you may need to subtract from the coords a bit to see the actual shape, depending on the size of the shape
+	 * 
+	 * Center:
+	 * this.centerX
+	 * this.centerY
+	 * 
+	 * Bottom left: 
+	 * this.centerX - (this.canvas.width / 2),
+	 * this.centerY + (this.canvas.height / 2) 
+	 * 
+	 * Bottom right:
+	 * this.centerX + (this.canvas.width / 2),
+	 * this.centerY + (this.canvas.height / 2) 
+	 * 
+	 * Top left:
+	 * this.centerX - (this.canvas.width / 2),
+	 * this.centerY - (this.canvas.height / 2) 
+	 * 
+	 * 
+	 * Top right:
+	 * this.centerX + (this.canvas.width / 2),
+	 * this.centerY - (this.canvas.height / 2) 
+	 * 
+	 */
 	drawUI(context) {
+		let topLeftX = this.centerX - (this.canvas.width / 2),
+		topLeftY = this.centerY - (this.canvas.height / 2),
+		topRightX = this.centerX + (this.canvas.width / 2),
+		topRightY = this.centerY - (this.canvas.height / 2);
+
+		let bottomLeftX = this.centerX - (this.canvas.width / 2),
+		bottomLeftY = this.centerY + (this.canvas.height / 2),
+		bottomRightX = this.centerX + (this.canvas.width / 2),
+		bottomRightY = this.centerY + (this.canvas.height / 2);
+
+		// console.log(`Canvas dimensions -- width: ${this.canvas.width}, height: ${this.canvas.height}`);
+
 		// Draw a death message if the player died
-		if (this.clientDied) {
+		if (this.isSpectating) {
 			context.font = "40px verdana";
 			context.fillStyle = "rgba(255,0,0,1)";
 			context.fillText("YOU DIED", this.centerX - 100, this.centerY - 10);
 		}
-		
-		// TODO: Fix rendering when the player is dead (these things don't update properly)
-		// Draw the HP bar
-		let playerHPPercent = this.player.currentHP / this.player.maxHP;
-		if (playerHPPercent < 0 || this.player == null) {
-			playerHPPercent = 0;
-		}
-		context.fillStyle = "rgba(54,54,54,1)";
-		context.fillRect(
-			this.player.x - this.canvas.width / 4,
-			this.player.y + this.canvas.height / 2 - 40,
-			600,
-			35
+
+		// Draw the logged in user's username
+		context.fillStyle = "rgba(0,0,0,1)";
+		context.font = "40px Impact";
+		context.fillText(
+			this.playerID,
+			bottomLeftX + 10,
+			bottomLeftY - 10
 		);
-		context.strokeStyle = "rgba(0,0,0,1)";
-		context.lineWidth = 1;
-		context.strokeRect(
-			this.player.x - this.canvas.width / 4,
-			this.player.y + this.canvas.height / 2 - 40,
-			600,
-			35
+		
+		// Draw the number of remaining enemies
+		context.font = "30px impact";
+		context.fillText(
+			`Alive: ${this.numAlive}/${this.numPlayers}`,
+			topLeftX + 10,
+			topLeftY + 35
 		);
 
-		context.fillStyle = "rgba(181,9,0,1)";
+		// Draw the elapsed time since the game started
+		context.font = "30px impact";
+		let currentTime = Math.round(new Date().getTime() / 1000);
+		let elapsedTime = Math.round(currentTime) - this.startTime;
+		context.fillText(
+			`${elapsedTime} s`,
+			topLeftX + 10,
+			topLeftY + 70
+		);
+
+		// TODO: Store some relative positions in variables (eg. this.canvas.width / 4)
+		// Draw the HP bar
+		let playerHPPercent = (this.isSpectating ? 0 : this.player.currentHP / this.player.maxHP);
+		context.lineWidth = 1;
+		context.fillStyle = "rgba(0,0,0,1)"; // black rectangle
 		context.fillRect(
-			this.player.x - this.canvas.width / 4 + 3,
-			this.player.y + this.canvas.height / 2 - 38,
-			playerHPPercent * 590,
+			this.centerX - (this.canvas.width / 4),
+			this.centerY + this.canvas.height / 2 - 45,
+			(this.canvas.width / 2) + 9,
+			40
+		);
+		context.fillStyle = "rgba(169,169,169,1)"; // grey rectangle
+		context.fillRect(
+			this.centerX - this.canvas.width / 4 + 5,
+			this.centerY + this.canvas.height / 2 - 40,
+			(this.canvas.width / 2),
 			30
+		);
+		context.fillStyle = "rgba(181,9,0,1)"; // red rectangle
+		context.fillRect(
+			this.centerX - this.canvas.width / 4 + 5,
+			this.centerY + this.canvas.height / 2 - 40,
+			playerHPPercent * (this.canvas.width / 2),
+			30
+		);
+
+		// Draw the HP percentage
+		context.font = "20px verdana";
+		context.fillStyle = "rgba(255,255,255,1)";
+		context.fillText(
+			`${Math.round(playerHPPercent * 100)}%`,
+			this.centerX - this.canvas.width / 4 + 8,
+			this.centerY + this.canvas.height / 2 - 18
 		);
 
 		// Draw the health status message
@@ -200,15 +268,8 @@ class Stage {
 		}
 		context.fillText(
 			healthMessage,
-			this.player.x - this.canvas.width / 4,
-			this.player.y + this.canvas.height / 2 - 50
-		);
-		context.font = "20px verdana";
-		context.fillStyle = "rgba(255,255,255,1)";
-		context.fillText(
-			`${Math.round(playerHPPercent * 100)}%`,
-			this.player.x - this.canvas.width / 4 + 5,
-			this.player.y + this.canvas.height / 2 - 12
+			this.centerX - this.canvas.width / 4,
+			this.centerY + this.canvas.height / 2 - 50
 		);
 
 		// Draw the gun and ammo count
@@ -225,32 +286,8 @@ class Stage {
 			this.player.y + this.canvas.width / 3 - 10
 		);
 
-		// Draw the logged in user's username
-		context.fillStyle = "rgba(0,0,0,1)";
-		context.font = "40px Impact";
-		context.fillText(
-			this.playerID,
-			this.player.x - this.canvas.height / 2 - 190,
-			this.player.y + this.canvas.width / 3 - 10
-		);
+		
 
-		// Draw the elapsed time since the game started
-		context.font = "30px impact";
-		let currentTime = Math.round(new Date().getTime() / 1000);
-		let elapsedTime = Math.round(currentTime) - this.startTime;
-		let bufferSpace = Math.round(elapsedTime / 100); // ensures that text doesn't overfill
-		context.fillText(
-			`Time: ${elapsedTime}`,
-			this.player.x + this.canvas.height / 2 + 80 - bufferSpace * 10,
-			this.player.y - this.canvas.width / 3 + 40
-		);
-
-		// Draw the number of remaining enemies
-		context.fillText(
-			`Players alive: ${this.numAlive}/${this.numPlayers}`,
-			this.player.x - 590,
-			this.player.y - this.canvas.height / 2 + 40
-		);
 	}
 
 	// Given a context for a canvas, draw gridlines on the canvas

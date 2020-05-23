@@ -184,6 +184,18 @@ class Lobby extends React.Component {
 						>
 							Delete Lobby
 						</Button>
+						<Button
+							variant="warning"
+							block
+							onClick={() => {
+								this.props.handleStartGame(
+									this.state.playerId,
+									this.state.lobbyId
+								);
+							}}
+						>
+							Force Start Game (Debug Mode)
+						</Button>
 					</p>
 				) : (
 					// Lobby view for all other lobby members

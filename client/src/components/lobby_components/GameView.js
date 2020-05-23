@@ -55,7 +55,6 @@ class GameView extends React.Component {
 		}
 		if (prevProps.userLost !== this.props.userLost) {
 			this.setState({ userLost: this.props.userLost, showMenuScreen: true });
-			console.log("Inside line 58");
 		}
 	}
 
