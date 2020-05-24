@@ -10,6 +10,8 @@ const HealthPotEnv = require("./environment/HealthPotEnv.js");
 const ScopeEnv = require("./environment/ScopeEnv.js");
 const Bullet = require("./environment/Bullet.js");
 const Gun = require("./environment/Gun.js");
+const GunPistol = require("./environment/GunPistol.js");
+const GunRifle = require("./environment/GunRifle.js");
 const Line = require("./environment/Line.js");
 
 const Stage = require("./Stage.js");
@@ -45,23 +47,24 @@ module.exports = class Player extends Circle {
 		this.cursorX = 0;
 		this.cursorY = 0;
 		this.directionLine = new Line(this.x, this.y, 0, 0, 1, "rgba(255,0,0,0)"); // a player has an invisible line drawn in the direction they are facing
+		this.stage.addActor(this.directionLine);
 
 		this.velocity = new Pair(0, 0);
 		this.cursorDirection = new Pair(0, 1); // represents the cursor direction, aka. where the player is facing
-
-		// Stores the player's buffs
-		this.hidden = false; // set to true when the player is under a bush
-		this.isUsingScope = false; // set to true when the player picks up the RDS buff
-
 		// The coordinates of where this player's hands are located
 		this.handX = 0;
 		this.handY = 0;
 
-		// The user starts with an "empty gun" -- they will need to pick up a real gun
-		this.stage.addActor(this.directionLine);
-		const numStartingBullets = 0, bulletCapacity = 0, startingRange = 400, bulletSpeed = 30, bulletDamage = 5, cooldown = 0;
-		this.gun = new Gun(stage, numStartingBullets, bulletCapacity, startingRange, bulletSpeed, cooldown, bulletDamage, this);
+		
+		// Stores the player's buffs
+		this.hidden = false; // set to true when the player is under a bush
+		this.isUsingScope = false; // set to true when the player picks up the RDS buff
 
+		// Design: weapons array is used to refer to all potential weapons the user can have
+		// Index 0 is for fists, Index 1 is for GunPistol, Index 2 is for GunRifle
+		this.weapons = [null, null, null];
+		this.currentWeapon = 0; // index of the weapon is currently equipped with
+		
 		this.movementSpeed = movementSpeed;
 		this.HP = hp;
 		this.maxHP = hp;
@@ -78,10 +81,11 @@ module.exports = class Player extends Circle {
             playerColour: this.colour,
             playerRadius: this.radius,
             playerHP: this.HP,
-            playerMaxHP: this.maxHP,
-            gunBullets: this.gun.getRemainingBullets(),
-            gunCapacity: this.gun.getAmmoCapacity()
-        }
+			playerMaxHP: this.maxHP,
+			currentWeapon: this.currentWeapon,
+			gunBullets: (this.weapons[this.currentWeapon] && this.weapons[this.currentWeapon].getRemainingBullets()) || 0,
+			gunCapacity: (this.weapons[this.currentWeapon] && this.weapons[this.currentWeapon].getAmmoCapacity()) || 0
+		}
     }
 
     // Returns this Player's ID
@@ -95,14 +99,12 @@ module.exports = class Player extends Circle {
 	}
 
 	// Increase HP for this player
-	increaseHP(hp, overload) {
+	increaseHP(hp) {
 		// The mobile feature allows you to overload your health
-		if (overload) {
-			if (this.HP + hp < 110) {
-				this.HP += hp;
-			} else {
-				this.HP = 110;
-			}
+		if (this.HP + hp <= 100) {
+			this.HP += hp;
+		} else {
+			this.HP = 100;
 		}
 	}
 
@@ -123,11 +125,6 @@ module.exports = class Player extends Circle {
 	// Return true if the player is in a bush
 	isHidden() {
 		return this.hidden;
-	}
-
-	// Return this player's gun
-	getPlayerGun() {
-		return this.gun;
 	}
 
 	// Change this player's movement speed
@@ -186,22 +183,26 @@ module.exports = class Player extends Circle {
 		// console.log(`Cursor direction is (${xCoordinate},${yCoordinate})`);
 	}
 
-	// When human player moves the mouse, need to move the bullet from the "direction" of the player's hands accordingly
+	// When human player clicks on the mouse (ie. shoots), need to move the bullet from the "direction" of the player's hands accordingly
 	setFiringDirection(xCoordinate, yCoordinate, canvasWidth, canvasHeight) {
-		if (!this.isDead()) {
+		if (!this.isDead() && this.currentWeapon >= 1) {
 			const firingVector = new Pair(xCoordinate - this.x - (canvasWidth / 2 - this.x), yCoordinate - this.y - (canvasHeight / 2 - this.y));
 			firingVector.normalize();
-            const bulletRadius = 5;
-            
-			// If the player is using a rifle, shoot 3 times (burst fire)
-			if (this.gun.getAmmoCapacity() == 200) {
-				this.gun.shootBurst(this.position, this.cursorDirection, firingVector, "rgba(0,0,0,1)", bulletRadius);
-			} else {
-				this.gun.shoot(this.position, this.cursorDirection, firingVector, "rgba(0,0,0,1)", bulletRadius);
-			}
+
+			this.weapons[this.currentWeapon].shoot(this.position, this.cursorDirection, firingVector, "rgba(0,0,0,1)");
 		}
 	}
 
+	// Change the user's current weapon
+	setWeapon(weaponNumber) {
+		// console.log(`User wants to switch to weapon number ${weaponNumber}`);
+		if (weaponNumber == 1) {
+			this.currentWeapon = 0;
+		}
+		else if (this.weapons[weaponNumber - 1] != null) {
+			this.currentWeapon = weaponNumber - 1;
+		}
+	}
 
 	// When the player moves around, or the mouse moves, generate a new direction line from player to cursor
 	setDirectionLine(xCoordinate, yCoordinate) {
@@ -255,23 +256,24 @@ module.exports = class Player extends Circle {
 				// Player collides with Ammo
 				else if (actorsList[i] instanceof AmmoEnv) {
 					// Check if player is within the Ammo
-					let ammoPosition = actorsList[i].getStartingPosition();
-					let dx = destinationX - ammoPosition.x;
-					let dy = destinationY - ammoPosition.y;
-					let distance = Math.sqrt(dx * dx + dy * dy) + 10;
+					const ammoPosition = actorsList[i].getStartingPosition();
+					const dx = destinationX - ammoPosition.x;
+					const dy = destinationY - ammoPosition.y;
+					const distance = Math.sqrt(dx * dx + dy * dy) + 10;
+					const userWeapon = this.weapons[this.currentWeapon];
 
 					// The player should only pick up ammo if they are not full
-					if (distance < this.radius + actorsList[i].getRadius()) {
-						if (this.getPlayerGun().getRemainingBullets() < this.getPlayerGun().getAmmoCapacity()) {
+					if (distance < this.radius + actorsList[i].getRadius() && userWeapon != null) {
+						if (userWeapon.getRemainingBullets() < userWeapon.getAmmoCapacity()) {
 							// console.log("player collision detected -- Player with Ammo");
 							this.stage.removeActor(actorsList[i]);
 
-							const bulletsToRefill = 5;
-							const bulletDifference = this.getPlayerGun().getAmmoCapacity() - this.getPlayerGun().getRemainingBullets();
+							const bulletsToRefill = 10;
+							const bulletDifference = userWeapon.getAmmoCapacity() - userWeapon.getRemainingBullets();
 							if (bulletDifference < bulletsToRefill) {
-								this.getPlayerGun().reloadGun(bulletDifference);
+								userWeapon.reloadGun(bulletDifference);
 							} else {
-								this.getPlayerGun().reloadGun(10);
+								userWeapon.reloadGun(bulletsToRefill);
 							}
 						}
 					}
@@ -319,11 +321,23 @@ module.exports = class Player extends Circle {
 					if (distance < this.radius + actorsList[i].getRadius()) {
 						// console.log("player collision detected -- Player with Small gun");
                         
-						// "Upgrade" the player gun only if they had an empty gun before
-						if (this.getPlayerGun().getAmmoCapacity() == 0) {
-                            this.stage.removeActor(actorsList[i]);
-							this.gun = new Gun(this.stage, 20, 40, 300, 15, 0, 5, this);
+						// Pick this up only if player doesn't already have the pistol
+						if (this.weapons[1] == null) {
+							this.stage.removeActor(actorsList[i]);
+							const gunProps = {
+								startingBullets: 20,
+								bulletCapacity: 40,
+								bulletSpeed: 17,
+								bulletDamage: 15,
+								bulletRadius: 7,
+								range: 800,
+								cooldown: 0
+							}
+							this.weapons[1] = new GunPistol(this.stage, this, gunProps);
 						}
+
+						// Makes the user switch their weapon
+						this.currentWeapon = 1;
 					}
 				}
 				// Player collides with big gun
@@ -337,12 +351,23 @@ module.exports = class Player extends Circle {
 					if (distance < this.radius + actorsList[i].getRadius()) {
                         // console.log("player collision detected -- Player with big gun");
                         
-                        // Player should only pick up big gun if they don't hold it yet
-                        if (this.getPlayerGun().getAmmoCapacity() < 200) {
-                            this.stage.removeActor(actorsList[i]);
-                            // "Upgrade the player gun"
-                            this.gun = new Gun(this.stage, 100, 200, 1600, 20, 0, 5, this);
-                        }
+                        // Pick this up only if the player doens't already own the rifle
+						if (this.weapons[2] == null) {
+							this.stage.removeActor(actorsList[i]);
+							const gunProps = {
+								startingBullets: 100,
+								bulletCapacity: 200,
+								bulletSpeed: 25,
+								bulletDamage: 5,
+								bulletRadius: 3,
+								range: 1600,
+								cooldown: 0
+							}
+							this.weapons[2] = new GunRifle(this.stage, this, gunProps);
+						}
+						
+						// Makes the user switch their weapon
+						this.currentWeapon = 2;
 					}
 				}
 				// Player collides with RDS
@@ -355,7 +380,7 @@ module.exports = class Player extends Circle {
 
 					if (distance < this.radius + actorsList[i].getRadius()) {
 						// Player should only pick up RDS if they already have a gun
-						if (this.getPlayerGun().getAmmoCapacity() != 0) {
+						if (this.weapons[1] != null || this.weapons[2] != null) {
 							// console.log("player collision detected -- Player with Scope");
 							this.setUsingScope();
 							this.stage.removeActor(actorsList[i]);

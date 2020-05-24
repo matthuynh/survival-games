@@ -147,6 +147,7 @@ wss.on("connection", function connection(ws, req) {
 			case "move":
 			case "click":
 			case "cursor":
+			case "weapon-toggle":
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
 					// console.log(clientUpdate);
@@ -744,10 +745,12 @@ class MultiplayerGame {
 		if (player) {
 			if (update.type == "move") {
 				player.setMovementDirection(update.x, update.y);
-			} else if (update.type == "click") {
-				player.setFiringDirection(update.x, update.y, update.width, update.height);
 			} else if (update.type == "cursor") {
 				player.setCursorDirection(update.x, update.y, update.width, update.height);
+			} else if (update.type == "click") {
+				player.setFiringDirection(update.x, update.y, update.width, update.height);
+			} else if (update.type == "weapon-toggle") {
+				player.setWeapon(update.toggle);
 			}
 		}
 	}

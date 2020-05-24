@@ -51,6 +51,7 @@ class LobbiesPage extends React.Component {
 		this.sendMovement = this.sendMovement.bind(this);
 		this.sendMouseClick = this.sendMouseClick.bind(this);
 		this.sendMouseMove = this.sendMouseMove.bind(this);
+		this.sendWeaponSwitch = this.sendWeaponSwitch.bind(this);
         this.initializeServerGame = this.initializeServerGame.bind(this);
         this.handleCreateLobby = this.handleCreateLobby.bind(this);
 		this.handleJoinLobby = this.handleJoinLobby.bind(this);
@@ -119,6 +120,13 @@ class LobbiesPage extends React.Component {
 
 		this.clientSocket.onclose = (event) => {
 			console.log("Front-end closing connectiong to web server");
+
+			// TODO: Will also need to remove all event listeners (this happens when the user is in a game, but the socket server is forcibly closed from the server side) -- make a helper method that checks to see if the listeners are mounted first before removing them
+			document.removeEventListener("keydown", this.handleKeyPress);
+			document.removeEventListener("keyup", this.handleKeyRelease);
+			document.removeEventListener("mousemove", this.handleMouseMove);
+			document.removeEventListener("mousedown", this.handleMouseDown);
+			this.returnToDashboard();
 		};
 
 		// When the client receives a message from the server, we will update our client accordingly
@@ -396,6 +404,17 @@ class LobbiesPage extends React.Component {
 		this.clientSocket.send(clientUpdate);
 	}
 
+	// Send weapon toggle to server
+	sendWeaponSwitch(key) {
+		let clientUpdate = JSON.stringify({
+			pid: this.state.playerId,
+			lobbyId: this.state.joinedLobbyId,
+			type: "weapon-toggle",
+			toggle: key
+		});
+		this.clientSocket.send(clientUpdate);
+	}
+
 	// A player attempts to starts a game on a lobby on the server
 	initializeServerGame() {
 		// Note that only the owner of a valid lobby may start a game
@@ -436,6 +455,10 @@ class LobbiesPage extends React.Component {
 					this.state.horizontalDirection,
 					this.state.verticalDirection
 				);
+			}
+			// Used for switching between weapons
+			if ("123".includes(key)) {
+				this.sendWeaponSwitch(key);
 			}
 		}
 	}

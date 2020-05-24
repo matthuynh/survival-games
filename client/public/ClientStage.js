@@ -14,13 +14,15 @@ class Stage {
 		playerID
 	) {
 		this.canvas = canvas; // canvas.width and canvas.height correspond to the user's own browser dimensions
+		this.graphicsContext = canvas.getContext("2d");
+
 		this.numPlayers = numPlayers;
 		this.numAlive = numAlive;
 		this.hasEnded = false; // true if the game has ended on the server side
 		this.isSpectating = false;
 		this.startTime = startTime;
 
-		this.stageWidth = stageWidth; // the stageWidth and stageHeight are the logical width and height of the stage. They are set from the server side. 
+		this.stageWidth = stageWidth; // the stageWidth and stageHeight are the logical width and height of the stage. They are set from the server side.
 		this.stageHeight = stageHeight;
 		this.centerX = null; // stores the last known spot of the player (used for drawing and spectating)
 		this.centerY = null;
@@ -51,7 +53,13 @@ class Stage {
 	}
 
 	// Apply updates from the server model to the client model state
-	applyServerUpdates(playerActors, bulletActors, environmentActors, numAlive, hasEnded) {
+	applyServerUpdates(
+		playerActors,
+		bulletActors,
+		environmentActors,
+		numAlive,
+		hasEnded
+	) {
 		this.playerActors = playerActors;
 		this.bulletActors = bulletActors;
 		this.environmentActors = environmentActors;
@@ -67,6 +75,7 @@ class Stage {
 					y: this.playerActors[i].playerPositionY,
 					currentHP: this.playerActors[i].playerHP,
 					maxHP: this.playerActors[i].playerMaxHP,
+					currentWeapon: this.playerActors[i].currentWeapon,
 					currentAmmo: this.playerActors[i].gunBullets,
 					ammoCapacity: this.playerActors[i].gunCapacity,
 				};
@@ -84,8 +93,7 @@ class Stage {
 
 	// Draw the canvas. This function is run every interval defined in ClientController.startStageModel()
 	draw() {
-		// TODO: Try storing context instead... would that work instead of getting it each time?
-		let context = this.canvas.getContext("2d");
+		let context = this.graphicsContext;
 
 		// Camera movement code -- keep user's player centered on screen
 		context.save();
@@ -111,7 +119,7 @@ class Stage {
 			this.stageHeight * 4
 		);
 
-		// Generate the playing field for the world (a green rectangle), along with gridlines 
+		// Generate the playing field for the world (a green rectangle), along with gridlines
 		context.fillStyle = "rgba(34,139,34,1)";
 		context.fillRect(0, 0, this.stageWidth, this.stageHeight);
 		context.lineWidth = 1;
@@ -133,7 +141,7 @@ class Stage {
 
 		// Draw the game UI (health bar, ammo, etc.)
 		this.drawUI(context);
-		
+
 		context.restore();
 	}
 
@@ -144,39 +152,39 @@ class Stage {
 	 * - x-axis is still the same as normal
 	 * - origin (0,0) is top-left
 	 * - For this reason, you may need to subtract from the coords a bit to see the actual shape, depending on the size of the shape
-	 * 
+	 *
 	 * Center:
 	 * this.centerX
 	 * this.centerY
-	 * 
-	 * Bottom left: 
+	 *
+	 * Bottom left:
 	 * this.centerX - (this.canvas.width / 2),
-	 * this.centerY + (this.canvas.height / 2) 
-	 * 
+	 * this.centerY + (this.canvas.height / 2)
+	 *
 	 * Bottom right:
 	 * this.centerX + (this.canvas.width / 2),
-	 * this.centerY + (this.canvas.height / 2) 
-	 * 
+	 * this.centerY + (this.canvas.height / 2)
+	 *
 	 * Top left:
 	 * this.centerX - (this.canvas.width / 2),
-	 * this.centerY - (this.canvas.height / 2) 
-	 * 
-	 * 
+	 * this.centerY - (this.canvas.height / 2)
+	 *
+	 *
 	 * Top right:
 	 * this.centerX + (this.canvas.width / 2),
-	 * this.centerY - (this.canvas.height / 2) 
-	 * 
+	 * this.centerY - (this.canvas.height / 2)
+	 *
 	 */
 	drawUI(context) {
-		let topLeftX = this.centerX - (this.canvas.width / 2),
-		topLeftY = this.centerY - (this.canvas.height / 2),
-		topRightX = this.centerX + (this.canvas.width / 2),
-		topRightY = this.centerY - (this.canvas.height / 2);
+		let topLeftX = this.centerX - this.canvas.width / 2,
+			topLeftY = this.centerY - this.canvas.height / 2,
+			topRightX = this.centerX + this.canvas.width / 2,
+			topRightY = this.centerY - this.canvas.height / 2;
 
-		let bottomLeftX = this.centerX - (this.canvas.width / 2),
-		bottomLeftY = this.centerY + (this.canvas.height / 2),
-		bottomRightX = this.centerX + (this.canvas.width / 2),
-		bottomRightY = this.centerY + (this.canvas.height / 2);
+		let bottomLeftX = this.centerX - this.canvas.width / 2,
+			bottomLeftY = this.centerY + this.canvas.height / 2,
+			bottomRightX = this.centerX + this.canvas.width / 2,
+			bottomRightY = this.centerY + this.canvas.height / 2;
 
 		// console.log(`Canvas dimensions -- width: ${this.canvas.width}, height: ${this.canvas.height}`);
 
@@ -190,12 +198,8 @@ class Stage {
 		// Draw the logged in user's username
 		context.fillStyle = "rgba(0,0,0,1)";
 		context.font = "40px Impact";
-		context.fillText(
-			this.playerID,
-			bottomLeftX + 10,
-			bottomLeftY - 10
-		);
-		
+		context.fillText(this.playerID, bottomLeftX + 10, bottomLeftY - 10);
+
 		// Draw the number of remaining enemies
 		context.font = "30px impact";
 		context.fillText(
@@ -208,28 +212,26 @@ class Stage {
 		context.font = "30px impact";
 		let currentTime = Math.round(new Date().getTime() / 1000);
 		let elapsedTime = Math.round(currentTime) - this.startTime;
-		context.fillText(
-			`${elapsedTime} s`,
-			topLeftX + 10,
-			topLeftY + 70
-		);
+		context.fillText(`${elapsedTime} s`, topLeftX + 10, topLeftY + 70);
 
-		// TODO: Store some relative positions in variables (eg. this.canvas.width / 4)
+		// TODO: Store some relative positions in variables (eg. this.canvas.width / 4) instead of having JS calculate each time
 		// Draw the HP bar
-		let playerHPPercent = (this.isSpectating ? 0 : this.player.currentHP / this.player.maxHP);
+		let playerHPPercent = this.isSpectating
+			? 0
+			: this.player.currentHP / this.player.maxHP;
 		context.lineWidth = 1;
 		context.fillStyle = "rgba(0,0,0,1)"; // black rectangle
 		context.fillRect(
-			this.centerX - (this.canvas.width / 4),
+			this.centerX - this.canvas.width / 4,
 			this.centerY + this.canvas.height / 2 - 45,
-			(this.canvas.width / 2) + 9,
+			this.canvas.width / 2 + 9,
 			40
 		);
-		context.fillStyle = "rgba(169,169,169,1)"; // grey rectangle
+		context.fillStyle = "rgba(169,169,169,1)"; // light grey rectangle
 		context.fillRect(
 			this.centerX - this.canvas.width / 4 + 5,
 			this.centerY + this.canvas.height / 2 - 40,
-			(this.canvas.width / 2),
+			this.canvas.width / 2,
 			30
 		);
 		context.fillStyle = "rgba(181,9,0,1)"; // red rectangle
@@ -272,22 +274,68 @@ class Stage {
 			this.centerY + this.canvas.height / 2 - 50
 		);
 
-		// Draw the gun and ammo count
-		context.fillStyle = "rgba(0,0,0,1)";
-		context.font = "40px Impact";
-		let bulletCount = this.player.currentAmmo;
-		let totalBullets = this.player.ammoCapacity;
-		let currentGunName = "No Gun";
-		if (totalBullets == 40) { currentGunName = "Pistol" }
-		else if (totalBullets == 200) { currentGunName = "Rifle" }
-		context.fillText(
-			`${currentGunName}: ${bulletCount}/${totalBullets}`,
-			this.player.x + this.canvas.height / 2 - 40,
-			this.player.y + this.canvas.width / 3 - 10
-		);
-
+		// Draw the weapons bar (the "highlighted" bar represents the user's current weapon)
+		const numWeapons = 3; // this value needs to be hardcoded depending on how many possible weapons there are 
+		context.fillStyle = "rgba(160,160,160,0.5)";
+		let offsetY = 10;
+		for (let i = 0; i < numWeapons; i++) {
+			if (numWeapons - 1 - i == this.player.currentWeapon) {
+				context.fillStyle = "rgba(255,255,255,0.5)";
+			}
+			context.fillRect(
+				bottomRightX - this.canvas.width / 6,
+				bottomRightY - offsetY,
+				this.canvas.width / 6 - 5,
+				-40
+			);
+			offsetY += 50;
+			context.fillStyle = "rgba(140,140,140,0.5)";
+		}
 		
+		// Draw the weapon border, weapon name, and weapon number
+		const weaponNames = ["Rifle", "Revolver", "Fists"];
+		const weaponNumbers = ["3", "2", "1"];
+		context.fillStyle = "rgba(0,0,0,1)";
+		context.font = "20px Impact";
+		offsetY = 10;
+		for (let i = 0; i < 3; i++) {
+			context.fillText(
+				weaponNames[i],
+				bottomRightX - this.canvas.width / 6,
+				bottomRightY - offsetY
+			);
+			context.fillText(
+				weaponNumbers[i],
+				bottomRightX - 20,
+				bottomRightY - offsetY
+			)
+			context.strokeRect(
+				bottomRightX - this.canvas.width / 6,
+				bottomRightY - offsetY,
+				this.canvas.width / 6 - 5,
+				-40
+			);
+			offsetY += 50;
+		}
 
+		// Draw the ammo count
+		if (this.player.currentWeapon >= 1) {
+			context.textAlign = "center"
+			context.fillStyle = "rgba(0,0,0,1)";
+			context.font = "50px Impact";
+			context.fillText(
+				this.player.currentAmmo,
+				this.centerX,
+				this.centerY + this.canvas.height / 2 - 50
+			)
+			context.font = "20px Impact";
+			context.fillText(
+				`/${this.player.ammoCapacity}`,
+				this.centerX + 70,
+				this.centerY + this.canvas.height / 2 - 50
+			)
+		}
+		context.textAlign = "start"
 	}
 
 	// Given a context for a canvas, draw gridlines on the canvas
@@ -331,6 +379,16 @@ class Stage {
 			p.playerPositionY + p.cursorDirectionY * p.playerRadius;
 		context.arc(playerHandX, playerHandY, 10, 0, 2 * Math.PI, false);
 		context.fill();
+
+		// Draw the player's name
+		context.font = "20px Lucida Console";
+		context.textAlign = "center"
+		context.fillText(
+			p.playerID,
+			p.playerPositionX,
+			p.playerPositionY - 35
+		)
+		context.textAlign = "start"; // all the other text in the UI uses this
 	}
 
 	// Draw a Bullet
@@ -398,14 +456,7 @@ class Stage {
 			case "HealthPotEnv":
 				textX = e.x - e.radius / 2 + 2;
 				textY = e.y + 2;
-				this.drawObject(
-					context,
-					e,
-					"14px Courier",
-					"HP",
-					textX,
-					textY
-				);
+				this.drawObject(context, e, "14px Courier", "HP", textX, textY);
 				break;
 			case "BushEnv":
 				this.drawBush(context, e);
