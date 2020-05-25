@@ -15,6 +15,7 @@ const GunRifle = require("./environment/GunRifle.js");
 const Line = require("./environment/Line.js");
 
 const Stage = require("./Stage.js");
+const CollisionEngine = require("./CollisionEngine.js");
 
 // Return a random integer between 0 and n, inclusive
 function randInt(n) { return Math.round(Math.random() * n); }
@@ -500,7 +501,7 @@ module.exports = class Player extends Circle {
 				}
 			}
 			// Check for collision of player against world map
-			else if (this.stage.collidesWithWorldBorder(this.position.x + this.velocity.x, this.position.y + this.velocity.y, 30)) {
+			else if (CollisionEngine.checkPlayerToBorderCollision(this.position.x + this.velocity.x, this.position.y + this.velocity.y, 30, this.stage.stageWidth, this.stage.stageHeight)) {
 				// console.log("Collision with world border!");
 
 				// Check which border we hit

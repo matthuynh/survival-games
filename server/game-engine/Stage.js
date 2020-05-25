@@ -13,6 +13,7 @@ const Gun = require("./environment/Gun.js");
 const Line = require("./environment/Line.js");
 
 const Player = require('./Player.js');
+const CollisionEngine = require("./CollisionEngine.js");
 
 // Return a random integer between 0 and n, inclusive
 function randInt(n) { return Math.round(Math.random() * n); }
@@ -194,7 +195,7 @@ module.exports = class Stage {
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this bush would collide any other actors
 				let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -244,7 +245,7 @@ module.exports = class Stage {
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this scope buff would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -267,7 +268,7 @@ module.exports = class Stage {
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this speed buff would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -289,7 +290,7 @@ module.exports = class Stage {
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this small gun would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -311,7 +312,7 @@ module.exports = class Stage {
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this big gun would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -333,7 +334,7 @@ module.exports = class Stage {
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this ammo would collide any other actors
 				let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -355,7 +356,7 @@ module.exports = class Stage {
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this HP pot would collide any other actors
 				let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -486,13 +487,6 @@ module.exports = class Stage {
 	getEnvironmentActors() {
 		return this.environmentActors;
 	}
-
-	collidesWithWorldBorder(destinationX, destinationY, tolerance) {
-		if ((destinationX < 0 + tolerance || destinationX > this.stageWidth - tolerance || destinationY < 0 + tolerance || destinationY > this.stageHeight - tolerance)) {
-			return true;
-		}
-		return false;
-    }
     
     // Return the PID of the player who won the game, else null
     getWinner() {

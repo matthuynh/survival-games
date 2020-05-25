@@ -10,6 +10,23 @@ import Lobby from "./lobby_components/Lobby";
 import CloseLobby from "./lobby_components/CloseLobby";
 import GameView from "./lobby_components/GameView";
 
+import UIFx from 'uifx';
+import revolverSoundImport from "../assets/audio/revolver.mp3";
+import burstSoundImport from "../assets/audio/3-burst.mp3";
+import emptyGunImport from "../assets/audio/empty-gun.wav";
+
+const revolverSound = new UIFx(revolverSoundImport, {
+	volume: 0.5
+});
+
+const burstSound = new UIFx(burstSoundImport, {
+	volume: 0.5
+});
+
+const emptyGunSound = new UIFx(emptyGunImport, {
+	volume: 0.5
+});
+
 const localIPAddress = "localhost";
 const wssServerURL = `ws://${localIPAddress}:10000`;
 
@@ -522,6 +539,19 @@ class LobbiesPage extends React.Component {
 		if (xPosition >= 0 && yPosition >= 0) {
 			// Send this action through websockets to the server
 			this.sendMouseClick(xPosition, yPosition);
+			// console.log(window.getCurrentPlayerWeapon());
+			let currentGun = window.getCurrentPlayerWeapon();
+			switch(currentGun) {
+				case 1:
+					revolverSound.play();
+					break;
+				case 2:
+					burstSound.play();
+					break;
+				case -1:
+					emptyGunSound.play();
+					break;
+			}
 		}
 	}
 

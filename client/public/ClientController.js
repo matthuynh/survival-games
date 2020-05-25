@@ -54,3 +54,11 @@ function stopStageGame() {
 	interval = null;
 	stage = null;
 }
+
+// Called by LobbiesPage.js (React)
+function getCurrentPlayerWeapon() {
+	if (stage.player && stage.player.currentWeapon) {
+		if (stage.player.currentAmmo > 1) { return stage.player.currentWeapon };
+		return -1;
+	} 
+}

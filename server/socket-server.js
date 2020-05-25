@@ -3,6 +3,9 @@ const WebSocketServer = require("ws").Server;
 const wss = new WebSocketServer({ port: wssport });
 console.log(`WebSocket server listening on port ${wssport}`);
 
+// Import the MultiplayerGame (this allows the server access to the game)
+const MultiplayerGame = require("./game-engine/MultiplayerGame.js");
+
 // The ws server keeps track of connected clients and game lobbies
 let connectedClients = [];
 
@@ -219,7 +222,7 @@ wss.on("connection", function connection(ws, req) {
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
 					if (lobby.getLobbyOwnerId() == clientUpdate.pid) {
-						let initialGameStatus = lobby.initializeGame(this);
+						let initialGameStatus = lobby.initializeGame();
 
 						// Successfully initialized game
 						if (initialGameStatus) {
@@ -553,8 +556,7 @@ class Lobby {
 	}
 
 	// Begins the multiplayer game in this lobby, returns the initial game state
-	initializeGame(wss) {
-		this.wss = wss;
+	initializeGame() {
 		this.gameInProgress = true;
 		this.lobbyPlayers.forEach((player) => {
 			player.status = "In Game";
@@ -562,6 +564,7 @@ class Lobby {
 
 		// NOTE: We pass in an anonymous function so that it can be called by ./game-engine/Stage.js and access the 'this' keyword to refer to this Lobby instance
 		this.multiplayerGame = new MultiplayerGame(
+			wss,
 			this.lobbyId,
 			this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
 			(playerId, status) => {
@@ -686,104 +689,6 @@ class Lobby {
 			return true;
 		}
 		return false;
-	}
-}
-
-
-// Import the Stage (this allows the server access to the game)
-const Stage = require("./game-engine/Stage.js");
-
-// TODO: Move this class into its own file after finishing with the features
-// A multiplayer game has multiplayer players in it
-class MultiplayerGame {
-	constructor(gameId, gamePlayers, setPlayerStatus) {
-		this.gameId = gameId; // a game has the same ID as its lobby
-		this.players = gamePlayers;
-		const numPlayers = gamePlayers.length;
-
-		// Function 'pointer' that is defined in class Lobby
-		this.setPlayerStatus = setPlayerStatus;
-		
-		// Game specific settings
-		const generationSettings = {
-			numBushes: 10,
-			numCrates: 5,
-			numHPPots: 7,
-			numAmmo: 15,
-			numSpeedBoost: Math.floor(numPlayers / 2) + 1,
-			numRDS: 0,
-			numSmallGun: numPlayers,
-			numBigGun: Math.floor(numPlayers / 2) + 1,
-			stageWidth: 2000,
-			stageHeight: 2000
-		};
-
-		// Initialize the server-side stage
-		this.stage = new Stage(
-			this.gameId,
-			this.players,
-			numPlayers,
-			this.setPlayerStatus,
-			generationSettings,
-		);
-	}
-
-	// Return the initial starting state of this stage (called when the game starts)
-	getInitialState() {
-		return this.stage.getInitialStageState();
-	}
-
-	// Given a player's movement or mouse click, update the state
-	updateState(update) {
-		// console.log("Fetching player updates");
-
-		// Get the ID of the player who triggered this update
-		let pid = update.pid;
-		let player = this.stage.getPlayer(pid);
-
-		// Only clients with a player that is still alive can make updates
-		if (player) {
-			if (update.type == "move") {
-				player.setMovementDirection(update.x, update.y);
-			} else if (update.type == "cursor") {
-				player.setCursorDirection(update.x, update.y, update.width, update.height);
-			} else if (update.type == "click") {
-				player.setFiringDirection(update.x, update.y, update.width, update.height);
-			} else if (update.type == "weapon-toggle") {
-				player.setWeapon(update.toggle);
-			}
-		}
-	}
-
-	// Triggers a step in the stage, allowing stage model to re-calculate all logic
-	async calculateUpdates() {
-		this.stage.step();
-	}
-
-	// Send the state of the stage to all players
-	async sendPlayerUpdates() {
-		// console.log("Sending player updates");
-		let update = this.stage.getUpdatedStageState();
-
-		let updatedState = JSON.stringify({
-			type: "stage-update",
-			playerActors: update.players,
-			bulletActors: update.bullets,
-			environmentActors: update.environment,
-			numAlive: update.numAlive,
-			hasEnded: update.hasEnded,
-		});
-		wss.broadcastToLobby(updatedState, this.gameId);
-	}
-
-	// Return the PID of the winner of the game, else if game is still ongoing, return null
-	getGameWinner() {
-		return this.stage.getWinner();
-	}
-
-	// Remove the player that disconnected
-	setPlayerDead(playerID, reason) {
-		this.stage.removePlayer(playerID, reason);
 	}
 }
 
