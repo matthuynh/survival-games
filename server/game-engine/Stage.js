@@ -82,7 +82,7 @@ module.exports = class Stage {
             const playerColour = getRandomColor(); // each player has a different color
             const playerRadius = 30;
             const playerHP = 100;
-            const playerMovementSpeed = 8;
+            const playerMovementSpeed = 15; // default is 8; debug is 15
             let player = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, this.players[i].pid);
             this.addActor(player);
         }

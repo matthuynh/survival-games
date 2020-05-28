@@ -473,12 +473,25 @@ module.exports = class Player extends Circle {
 	// Take one "step" for animation
 	step() {
 		if (!this.isDead()) {
-            this.setDirectionLine(this.cursorX, this.cursorY);
+			// console.log(this.toString());
+			this.setDirectionLine(this.cursorX, this.cursorY);
+
+			// This is what is happening:
+			// When the player has a lot of velocity, (eg. speed boost), then
+			// destinationX will be calculated to be greater than what is intended
+			// Thus, when checking collisions, there will appear to be an extra
+			// "buffer". This is because the player has a higher velocity so their
+			// intended destinationX would be greater than if they were slower
+
+			// What needs to happen:
+			// The collision needs to account for this extra velocity, and only move
+			// the player to the world border, but then stop them. Right now, it just
+			// stops them outright.
 
 			// Check if where we are proposing to move will cause a collision
 			let destinationX = this.position.x + this.velocity.x;
 			let destinationY = this.position.y + this.velocity.y;
-			let collided = this.checkForCollisions(destinationX + 10, destinationY + 10);
+			let collided = this.checkForCollisions(destinationX, destinationY);
 
 			// Collision with another actor
 			if (collided) {
@@ -487,57 +500,40 @@ module.exports = class Player extends Circle {
 				if (collided == "player") {
 					this.position.x = this.position.x - (this.velocity.x / 10);
 					this.position.y = this.position.y - (this.velocity.y / 10);
-					this.setPlayerPosition();
 				} else if (collided == "crateTopLeft") {
 					// Move the player back so they are no longer colliding
-					this.position.x = this.position.x - 5;
-					this.position.y = this.position.y - 5;
-					this.setPlayerPosition();
+					destinationX = this.position.x - 5;
+					destinationY = this.position.y - 5;
 				} else if (collided == "crateBottomRight") {
 					// Move the player back so they are no longer colliding
-					this.position.x = this.position.x + 5;
-					this.position.y = this.position.y + 5;
-					this.setPlayerPosition();
+					destinationX = this.position.x + 5;
+					destinationY = this.position.y + 5;
 				}
 			}
 			// Check for collision of player against world map
-			else if (CollisionEngine.checkPlayerToBorderCollision(this.position.x + this.velocity.x, this.position.y + this.velocity.y, 30, this.stage.stageWidth, this.stage.stageHeight)) {
-				// console.log("Collision with world border!");
-
+			else if (CollisionEngine.checkPlayerToBorderCollision(this.radius, this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.stage.stageWidth, this.stage.stageHeight)) {
+				destinationX = this.position.x + this.velocity.x;
+				destinationY = this.position.y + this.velocity.y;
+				
 				// Check which border we hit
-				let tolerance = 30;
-				let destinationX = this.position.x + this.velocity.x;
-				let destinationY = this.position.y + this.velocity.y;
-
-				// Hit left border
-				if (destinationX < 0 + tolerance) {
-					destinationX = this.position.x - this.velocity.x;
+				if (destinationX < 0 + this.radius) {
+					destinationX = this.radius; // Hit left border
 				}
-				// Hit right border
-				else if (destinationX > this.stage.stageWidth - tolerance) {
-					destinationX = this.position.x - this.velocity.x;
+				if (destinationX > this.stage.stageWidth - this.radius) {
+					destinationX = this.stage.stageWidth - this.radius; // Hit right border
 				}
-				// Hit top border
-				else if (destinationY < 0 + tolerance) {
-					destinationY = this.position.y - this.velocity.y;
+				if (destinationY < 0 + this.radius) {
+					destinationY = this.radius; // Hit top border
 				}
-				// Hit bottom border
-				else if (destinationY > this.stage.stageHeight - tolerance) {
-					destinationY = this.position.y - this.velocity.y;
+				if (destinationY > this.stage.stageHeight - this.radius) {
+					destinationY = this.stage.stageHeight - this.radius; // Hit bottom border
 				}
-
-				// Move the Player away from the world border
-				this.setVelocity();
-				this.position.x = destinationX;
-				this.position.y = destinationY;
-				this.setPlayerPosition();
 			}
-			else {
-				// Update the player's location
-				this.position.x = destinationX;
-				this.position.y = destinationY;
-				this.setPlayerPosition();
-			}
+
+			// Update the player's location
+			this.position.x = destinationX;
+			this.position.y = destinationY;
+			this.setPlayerPosition();
 		}
 	}
 }

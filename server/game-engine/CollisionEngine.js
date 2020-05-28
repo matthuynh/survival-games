@@ -35,16 +35,12 @@ module.exports = CollisionEngine = {
 	},
 
 	// Used by class Player to check for collisions between the Player and world border
-	// Return true if the Player collides with world border
-	checkPlayerToBorderCollision(destinationX, destinationY, tolerance, stageWidth, stageHeight) {
-		if (
-			destinationX < 0 + tolerance ||
-			destinationX > stageWidth - tolerance ||
-			destinationY < 0 + tolerance ||
-			destinationY > stageHeight - tolerance
-		) {
-			return true;
-		}
-		return false;
+	checkPlayerToBorderCollision(playerRadius, destinationX, destinationY, stageWidth, stageHeight) {
+		return (
+			destinationX < 0 + playerRadius ||
+			destinationX > stageWidth - playerRadius ||
+			destinationY < 0 + playerRadius ||
+			destinationY > stageHeight - playerRadius
+		);
 	},
 };
