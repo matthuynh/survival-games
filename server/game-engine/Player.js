@@ -223,9 +223,9 @@ module.exports = class Player extends Circle {
 
 	// Add speed to the player (combined with direction, this makes a vector)
 	setVelocity() {
-		const speedMultiplier = this.movementSpeed;
-		this.velocity.x = this.dx * speedMultiplier;
-		this.velocity.y = this.dy * speedMultiplier;
+		// Movement speed is basically the speed multiplier
+		this.velocity.x = this.dx * this.movementSpeed;
+		this.velocity.y = this.dy * this.movementSpeed;
 	}
 
 	// Check for collisions between this player and other actors
@@ -412,60 +412,14 @@ module.exports = class Player extends Circle {
 				break;
 			}
 		}
+		if (collidesPlayer) {
+			return "player";
+		}
 
 		// Check for crate collision
 		if (!collidesPlayer) {
 			// Check if the player will collide with any crate
-			let crateList = this.stage.getCrateActors();
-			for (let i = 0; i < crateList.length; i++) {
-				let crateObject = crateList[i];
-
-				// Check for collision with Crates
-				// https://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle
-				// players only collide with Crates (guaranteed to have height and width)
-				let objectPosition = crateList[i].getStartingPosition();
-
-				// Check which corner the player is closest to
-				let destinationPair = new Pair(destinationX, destinationY);
-				let distanceToTopLeft = distanceBetweenTwoPoints(destinationX, destinationY, objectPosition.x, objectPosition.y);
-				let distanceToBottomRight = distanceBetweenTwoPoints(destinationX, destinationY, objectPosition.x + crateObject.getWidth(), objectPosition.y + crateObject.getHeight());
-				if (distanceToTopLeft < distanceToBottomRight) {
-					crateCollidingDirection = "TopLeft";
-				} else {
-					crateCollidingDirection = "BottomRight";
-				}
-
-				// x and y distance between the player (a circle) and the Crate (a rectangle)
-				let distanceX = Math.abs(this.x - objectPosition.x - crateObject.getWidth() / 2);
-				let distanceY = Math.abs(this.y - objectPosition.y - crateObject.getHeight() / 2);
-
-				// If the distance between the player and Crate is longer than the player radius + half(Crate Width), we know they are not colliding
-				if ((distanceX > ((crateObject.getWidth() / 2) + this.radius) || distanceY > ((crateObject.getWidth() / 2) + this.radius))) {
-					continue;
-				}
-				// If the distance between the player and Crate is too short (indicating that they are colliding)
-				else if (distanceX <= (crateObject.getWidth() / 2) || distanceY <= (crateObject.getHeight() / 2)) {
-					// console.log("player collision detected -- player with Crate");
-					collidesCrate = true;
-					break;
-				}
-				// Check if the corners of the player and Crate are colliding
-				else {
-					let dx = distanceX - crateObject.getWidth() / 2;
-					let dy = distanceY - crateObject.getHeight() / 2;
-					if (dx * dx + dy * dy <= (this.radius * this.radius)) {
-						// console.log("player collision detected -- player with Crate");
-						collidesCrate = true;
-						break;
-					}
-				}
-
-			}
-		}
-		if (collidesPlayer) {
-			return "player";
-		} else if (collidesCrate) {
-			return "crate" + crateCollidingDirection;
+			return CollisionEngine.checkPlayerToCrateCollision(destinationX, destinationY, this.stage.getCrateActors(), this.radius);
 		}
 		return false;
 	}
@@ -497,21 +451,28 @@ module.exports = class Player extends Circle {
 			if (collided) {
 				// console.log("Collided with another actor!");
 				// Move the player back so they are no longer colliding
-				if (collided == "player") {
+				if (collided === "player") {
 					this.position.x = this.position.x - (this.velocity.x / 10);
 					this.position.y = this.position.y - (this.velocity.y / 10);
-				} else if (collided == "crateTopLeft") {
+				} else if (collided.side === "crateTop") {
 					// Move the player back so they are no longer colliding
-					destinationX = this.position.x - 5;
-					destinationY = this.position.y - 5;
-				} else if (collided == "crateBottomRight") {
+					// destinationX = this.position.x;
+					destinationY = collided.y - this.radius;
+				} else if (collided.side === "crateBottom") {
 					// Move the player back so they are no longer colliding
-					destinationX = this.position.x + 5;
-					destinationY = this.position.y + 5;
+					// destinationX = this.position.x;
+					destinationY = collided.y + this.radius + 1;
+				} else if (collided.side === "crateLeft") {
+					destinationX = collided.x - this.radius;
+					// destinationY = this.position.y;
+				} else if (collided.side === "crateRight") {
+					destinationX = collided.x + this.radius;
+					// destinationY = this.position.y;
 				}
 			}
 			// Check for collision of player against world map
 			else if (CollisionEngine.checkPlayerToBorderCollision(this.radius, this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.stage.stageWidth, this.stage.stageHeight)) {
+				console.log("Colliding with world border");
 				destinationX = this.position.x + this.velocity.x;
 				destinationY = this.position.y + this.velocity.y;
 				

@@ -82,7 +82,7 @@ module.exports = class Stage {
             const playerColour = getRandomColor(); // each player has a different color
             const playerRadius = 30;
             const playerHP = 100;
-            const playerMovementSpeed = 15; // default is 8; debug is 15
+            const playerMovementSpeed = 8; // default is 8; debug is 15
             let player = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, this.players[i].pid);
             this.addActor(player);
         }
@@ -218,7 +218,7 @@ module.exports = class Stage {
 			let attemptsToMake = 3; // after 3 attempts, stops trying to generate this crate
 			const colour = "rgb(128,128,128,1)";
 			while (!validGeneration && attemptsToMake > 0) {
-				let width = 100, height = 100;
+				let width = 150, height = 150;
 				let startingX = randInt(this.stageWidth - 200);
 				let startingY = randInt(this.stageHeight - 200);
 

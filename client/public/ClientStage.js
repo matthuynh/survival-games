@@ -196,6 +196,7 @@ class Stage {
 		}
 
 		// Draw the logged in user's username
+		// TODO: Why doesn't this show up "in front" of a Crate?
 		context.fillStyle = "rgba(0,0,0,1)";
 		context.font = "40px Impact";
 		context.fillText(this.playerID, bottomLeftX + 10, bottomLeftY - 10);
