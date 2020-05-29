@@ -128,7 +128,7 @@ class GameView extends React.Component {
 						</Button>
 					</Modal.Body>
 					<Modal.Footer>
-						How to play: Use WASD to move around. Walk over weapons and powerups to pick them up.
+						How to play: Use WASD to move around. Walk over weapons and powerups to pick them up. Press "H" to toggle GUI display. Press "M" to toggle minimap (future feature)
 					</Modal.Footer>
 				</Modal>
 			</div>

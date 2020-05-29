@@ -55,10 +55,17 @@ function stopStageGame() {
 	stage = null;
 }
 
-// Called by LobbiesPage.js (React)
+// Called by LobbiesPage.js (React) for sound
 function getCurrentPlayerWeapon() {
 	if (stage.player && stage.player.currentWeapon) {
 		if (stage.player.currentAmmo > 1) { return stage.player.currentWeapon };
 		return -1;
 	} 
+}
+
+// Toggles the user's GUI -- called by LobbiesPage.js
+function toggleGUI() {
+	if (stage.player) {
+		stage.toggleGUI();
+	}
 }

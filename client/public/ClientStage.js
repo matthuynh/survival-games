@@ -26,6 +26,7 @@ class Stage {
 		this.stageHeight = stageHeight;
 		this.centerX = null; // stores the last known spot of the player (used for drawing and spectating)
 		this.centerY = null;
+		this.displayGUI = true;
 
 		this.playerActors = playerActors; // includes all Players
 		this.bulletActors = bulletActors; // stores Bullets
@@ -139,8 +140,8 @@ class Stage {
 			this.drawEnvironmentObject(context, this.environmentActors[i]);
 		}
 
-		// Draw the game UI (health bar, ammo, etc.)
-		this.drawUI(context);
+		// Draw the game GUI (health bar, ammo, etc.)
+		this.displayGUI && this.drawGUI(context);
 
 		context.restore();
 	}
@@ -175,7 +176,7 @@ class Stage {
 	 * this.centerY - (this.canvas.height / 2)
 	 *
 	 */
-	drawUI(context) {
+	drawGUI(context) {
 		let topLeftX = this.centerX - this.canvas.width / 2,
 			topLeftY = this.centerY - this.canvas.height / 2,
 			topRightX = this.centerX + this.canvas.width / 2,
@@ -196,7 +197,6 @@ class Stage {
 		}
 
 		// Draw the logged in user's username
-		// TODO: Why doesn't this show up "in front" of a Crate?
 		context.fillStyle = "rgba(0,0,0,1)";
 		context.font = "40px Impact";
 		context.fillText(this.playerID, bottomLeftX + 10, bottomLeftY - 10);
@@ -382,14 +382,16 @@ class Stage {
 		context.fill();
 
 		// Draw the player's name
-		context.font = "20px Lucida Console";
-		context.textAlign = "center"
-		context.fillText(
-			p.playerID,
-			p.playerPositionX,
-			p.playerPositionY - 35
-		)
-		context.textAlign = "start"; // all the other text in the UI uses this
+		if (this.displayGUI) {
+			context.font = "20px Lucida Console";
+			context.textAlign = "center"
+			context.fillText(
+				p.playerID,
+				p.playerPositionX,
+				p.playerPositionY - 35
+			)
+			context.textAlign = "start"; // all the other text in the GUI uses this
+		}
 	}
 
 	// Draw a Bullet
@@ -524,5 +526,10 @@ class Stage {
 		context.stroke();
 		context.font = font;
 		context.fillText(fontText, fontX, fontY);
+	}
+
+	// Toggles the GUI display
+	toggleGUI() {
+		this.displayGUI = !this.displayGUI;
 	}
 }
