@@ -218,7 +218,7 @@ module.exports = class Stage {
 			let attemptsToMake = 3; // after 3 attempts, stops trying to generate this crate
 			const colour = "rgb(128,128,128,1)";
 			while (!validGeneration && attemptsToMake > 0) {
-				let width = 150, height = 150;
+				let width = 220, height = 220;
 				let startingX = randInt(this.stageWidth - 200);
 				let startingY = randInt(this.stageHeight - 200);
 

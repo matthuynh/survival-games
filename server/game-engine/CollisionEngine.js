@@ -107,7 +107,6 @@ module.exports = CollisionEngine = {
 					break;
 				}
 			}
-
 		}
 		// Determine which side of the crate the circle collided with
 		if (collidesCrate) { 
@@ -201,4 +200,76 @@ module.exports = CollisionEngine = {
 		}
 	},
 
+	// Used by class Bullet to check for collisions between a bullet and player
+	checkBulletToPlayerCollision(destinationX, destinationY, playerList, bulletRadius, bulletOwner) {
+		for (let i = 0; i < playersList.length; i++) {
+			// Check if the player is shooting ANOTHER player (not the one shooting the bullet) -- player can't shoot itself
+			if (playersList[i] == bulletOwner) {
+				continue;
+			}
+
+			let playerPosition = playersList[i].getPlayerPosition();
+			let dx = destinationX - playerPosition.x;
+			let dy = destinationY - playerPosition.y;
+			let distance = Math.sqrt(dx * dx + dy * dy);
+
+			// Bullet collides with the player
+			if (distance < bulletRadius + playersList[i].getRadius()) {
+				// console.log("Bullet collision detected -- Bullet with player");
+
+				// Decrease the player's HP
+				playersList[i].decreaseHP(this.bulletDamage);
+				// console.log("players HP: " + playersList[i].HP);
+				return true;
+			}
+		}
+		return false;
+	},
+
+	// Used by class Bullet to check for collisions between a bullet and crate
+	checkBulletToCrateCollision(destinationX, destinationY, crateList, bulletRadius) {
+		for (let i = 0; i < crateList.length; i++) {
+			let crateObject = crateList[i];
+			let cratePosition = crateObject.getStartingPosition();
+
+			// // x and y distance between the Bullet (a circle) and the Crate (a rectangle)
+			// let distanceX = Math.abs(this.x - objectPosition.x - crateObject.getWidth() / 2);
+			// let distanceY = Math.abs(this.y - objectPosition.y - crateObject.getHeight() / 2);
+
+			// // If the distance between the Bullet and Crate is longer than the Bullet radius + half(Crate Width), we know they are not colliding
+			// if ((distanceX > ((crateObject.getWidth() / 2) + this.radius) || distanceY > ((crateObject.getWidth() / 2) + this.radius))) {
+			// 	continue;
+			// }
+			// // If the distance between the Bullet and Crate is too short (indicating that they are colliding)
+			// else if (distanceX <= (crateObject.getWidth() / 2) || distanceY <= (crateObject.getHeight() / 2)) {
+			// 	// console.log("Bullet collision detected -- Bullet with Crate");
+			// 	collidesCrate = true;
+			// 	break;
+			// }
+
+			// x and y distance between where the player (a circle) will move to, and the Crate (a rectangle)
+			let distanceX = Math.abs(destinationX - cratePosition.x - crateObject.getWidth() / 2);
+			let distanceY = Math.abs(destinationY - cratePosition.y - crateObject.getHeight() / 2);
+
+			// If the distance between the player and Crate is longer than the player radius + half(Crate Width), we know they are not colliding
+			if ((distanceX > ((crateObject.getWidth() / 2) + playerRadius)) || (distanceY > ((crateObject.getHeight() / 2) + playerRadius))) {
+				continue;
+			}
+
+			// If the distance between the player and Crate is too short (indicating that they are colliding)
+			if (distanceX <= (crateObject.getWidth() / 2) || distanceY <= (crateObject.getHeight() / 2)) {
+				return true;
+			}
+			// Check if the corners of the player and Crate are colliding
+			else {
+				let dx = distanceX - crateObject.getWidth() / 2;
+				let dy = distanceY - crateObject.getHeight() / 2;
+				if (dx * dx + dy * dy <= (playerRadius * playerRadius)) {
+					// console.log("player collision detected -- player with Crate");
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 };
