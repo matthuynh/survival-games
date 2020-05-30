@@ -191,7 +191,7 @@ module.exports = class Stage {
 			// console.log("Generating bush");
 			let validGeneration = false;
 			let attemptsToMake = 3;
-			const colour = "rgba(0,61,17,0.9)", radius = 50;
+			const colour = "rgba(0,61,17,0.95)", radius = 80;
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);

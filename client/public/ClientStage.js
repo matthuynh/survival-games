@@ -27,6 +27,7 @@ class Stage {
 		this.centerX = null; // stores the last known spot of the player (used for drawing and spectating)
 		this.centerY = null;
 		this.displayGUI = true;
+		this.displayMinimapLarge = false; // toggles between small and large view
 
 		this.playerActors = playerActors; // includes all Players
 		this.bulletActors = bulletActors; // stores Bullets
@@ -103,6 +104,9 @@ class Stage {
 			this.canvas.width / 2 - this.player.x,
 			this.canvas.height / 2 - this.player.y
 		);
+		// this.canvas.style.width = this.canvas.clientWidth;
+		// this.canvas.style.height = this.canvas.clientHeight;
+
 		context.clearRect(
 			-1000,
 			-1000,
@@ -112,7 +116,7 @@ class Stage {
 		context.globalCompositionOperation = "destination-over";
 
 		// Generates the "world border" (a blue rectangle behind the green rectangle)
-		context.fillStyle = "rgba(44,130,201,1)";
+		context.fillStyle = "rgb(30,144,255)";
 		context.fillRect(
 			-1000,
 			-1000,
@@ -128,6 +132,10 @@ class Stage {
 
 		// Draw all actors on the canvas
 		for (let i = 0; i < this.playerActors.length; i++) {
+			// TODO: Test this feature to see if its feasible in multiplayer
+			// if (this.playerActors[i].isHidden && this.playerActors[i].playerID !== this.playerID) {
+			// 	continue;
+			// }
 			this.drawPlayer(context, this.playerActors[i]);
 		}
 		for (let i = 0; i < this.bulletActors.length; i++) {
@@ -190,6 +198,7 @@ class Stage {
 		// console.log(`Canvas dimensions -- width: ${this.canvas.width}, height: ${this.canvas.height}`);
 
 		// Draw a death message if the player died
+		// TODO: Move this out of drawGUI, since user can toggle this to turn off. Could be confusing
 		if (this.isSpectating) {
 			context.font = "40px verdana";
 			context.fillStyle = "rgba(255,0,0,1)";
@@ -198,8 +207,8 @@ class Stage {
 
 		// Draw the logged in user's username
 		context.fillStyle = "rgba(0,0,0,1)";
-		context.font = "40px Impact";
-		context.fillText(this.playerID, bottomLeftX + 10, bottomLeftY - 10);
+		// context.font = "40px Impact";
+		// context.fillText(this.playerID, bottomLeftX + 10, bottomLeftY - 10);
 
 		// Draw the number of remaining enemies
 		context.font = "30px impact";
@@ -337,6 +346,8 @@ class Stage {
 			)
 		}
 		context.textAlign = "start"
+
+		// this.drawMinimap(context, bottomLeftX, bottomLeftY); // this is here so that it can be toggled to display with toggle GUI
 	}
 
 	// Given a context for a canvas, draw gridlines on the canvas
@@ -528,8 +539,43 @@ class Stage {
 		context.fillText(fontText, fontX, fontY);
 	}
 
+	// Alternate approach: make a separate canvas, and draw all crates and bushes on it, and ONLY
+	// draw the current player
+	drawMinimap(context, bottomLeftX, bottomLeftY) {
+		// Draw "border" around minimap
+		context.lineWidth = 5;
+		context.fillStyle = "rgba(0,0,0,1)"; // black rectangle
+		context.strokeRect(
+			bottomLeftX + 10,
+			bottomLeftY - this.canvas.width / 7 - 5,
+			this.canvas.width / 7 - 5,
+			this.canvas.width / 7 - 5,
+		);
+		context.lineWidth = 1;
+		
+		// NOTE: Seems like this won't work, since it is just copying the original canvas,
+		// which has varying width and length (as it resizes to the user's browser)
+		// It also doesn't show the entire map, since it just copies what the user can
+		// already see, but makes it smaller.
+		let minimap = document.createElement('canvas');
+		let minimapContext = minimap.getContext('2d');
+
+		// minimapContext.width = this.stageWidth;
+		// minimapContext.height = this.stageHeight;
+		minimapContext.scale(0.2, 0.2);
+		// Try using this.graphicsContext
+		// Difference between this.graphicsContext and this.canvas?
+		minimapContext.drawImage(this.canvas, 0, 0);
+		
+		context.drawImage(minimap, bottomLeftX + 10, bottomLeftY - this.canvas.width / 7 - 5, this.canvas.width / 7 - 5, this.canvas.width / 7 - 5);
+	}
+
 	// Toggles the GUI display
 	toggleGUI() {
 		this.displayGUI = !this.displayGUI;
+	}
+
+	toggleMinimapSize() {
+		this.displayMinimapLarge = !this.displayMinimapLarge;
 	}
 }

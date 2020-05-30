@@ -71,7 +71,6 @@ class LobbiesPage extends React.Component {
 		this.sendWeaponSwitch = this.sendWeaponSwitch.bind(this);
 		this.sendGUIToggle = this.sendGUIToggle.bind(this);
 
-        this.initializeServerGame = this.initializeServerGame.bind(this);
         this.handleCreateLobby = this.handleCreateLobby.bind(this);
 		this.handleJoinLobby = this.handleJoinLobby.bind(this);
 		this.handleLeaveLobby = this.handleLeaveLobby.bind(this);
@@ -437,17 +436,6 @@ class LobbiesPage extends React.Component {
 	// Send GUI toggle to the client view (ClientController.js) -- this doesn't need to go to server
 	sendGUIToggle(key) {
 		window.toggleGUI();
-	}
-
-	// A player attempts to starts a game on a lobby on the server
-	initializeServerGame() {
-		// Note that only the owner of a valid lobby may start a game
-		let clientUpdate = JSON.stringify({
-			pid: this.state.playerId,
-			type: "start-game",
-			lobbyId: this.state.joinedLobbyId,
-		});
-		this.clientSocket.send(clientUpdate);
 	}
 
 	// ----- KEYBOARD AND MOUSE LISTENER CODE --------------------------------------------

@@ -1,3 +1,20 @@
+const Pair = require("./environment/Pair.js");
+const Circle = require("./environment/Circle.js");
+const Crate = require("./environment/Crate.js");
+const BushEnv = require("./environment/BushEnv.js");
+const AmmoEnv = require("./environment/AmmoEnv.js");
+const SmallGunEnv = require("./environment/SmallGunEnv.js");
+const BigGunEnv = require("./environment/BigGunEnv.js");
+const SpeedBoostEnv = require("./environment/SpeedBoostEnv.js");
+const HealthPotEnv = require("./environment/HealthPotEnv.js");
+const ScopeEnv = require("./environment/ScopeEnv.js");
+const Bullet = require("./environment/Bullet.js");
+const Gun = require("./environment/Gun.js");
+const GunPistol = require("./environment/GunPistol.js");
+const GunRifle = require("./environment/GunRifle.js");
+const Line = require("./environment/Line.js");
+
+
 /**
  * A collection of functions that handle collisions for the game
  *
@@ -29,11 +46,6 @@ module.exports = CollisionEngine = {
 	// Used by class WorldGenerator to check for collisions between objects
 	// Return true if the object collides
 	checkObjectToObjectCollision() {
-	},
-
-	// Used by class Player to check for collisions between the Player and other actors (includes other players and objects)
-	// Return the type of actor it collides with, else null if no collision
-	checkPlayerToObjectCollision() {
 	},
 
 	// Used by class WorldGenerator to check for collisions between the object and world border
@@ -137,5 +149,56 @@ module.exports = CollisionEngine = {
 			}
 		}
 		return false;
-	}
+	},
+
+	// Used by class Player to check for collisions between the Player and any other Player
+	checkPlayerToPlayerCollision(destinationX, destinationY, playersList, playerRadius) {
+		// Check if the player (a circle) will collide with other players (also circles)
+		for (let i = 0; i < playersList.length; i++) {
+			// Check if the player is ANOTHER player
+			if (playersList[i] == this) {
+				// Skip this collision detection (player cannot collide with self)
+				continue;
+			}
+
+			let playerPosition = playersList[i].getPlayerPosition();
+			let dx = destinationX - playerPosition.x;
+			let dy = destinationY - playerPosition.y;
+			let distance = Math.sqrt(dx * dx + dy * dy) + 10;
+
+			// player collides with the player
+			if (distance < playerRadius + playersList[i].getRadius()) {
+				// console.log("player collision detected -- player with player");
+				return "player"
+			}
+		}
+	},
+
+	// Used by class Player to check for collisions between the Player and environment objects. Only the human player should be calling this method.
+	// Return the type of actor it collides with, else null if no collision
+	checkPlayerToObjectCollision(destinationX, destinationY, environmentList, playerRadius) {
+		// TODO: Get rid of Line... it being in the env list will mess up other code
+		for (let i = 0; i < environmentList.length; i++) {
+			// console.log(environmentList[i]);
+			if (environmentList[i] instanceof Line) { continue; }
+			let objPosition = environmentList[i].getStartingPosition();
+			let dx = destinationX - objPosition.x;
+			let dy = destinationY - objPosition.y;
+			let distance = Math.sqrt(dx * dx + dy * dy);
+	
+			if (distance < playerRadius + environmentList[i].getRadius()) {
+				if (distance < playerRadius / 4 + environmentList[i].getRadius() / 2) {
+					return {
+						type: environmentList[i],
+						overlap: "full"
+					}
+				}
+				return {
+					type: environmentList[i],
+					overlap: "partial"
+				}
+			}
+		}
+	},
+
 };
