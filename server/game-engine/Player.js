@@ -10,9 +10,12 @@ const HealthPotEnv = require("./environment/HealthPotEnv.js");
 const ScopeEnv = require("./environment/ScopeEnv.js");
 const Bullet = require("./environment/Bullet.js");
 const Gun = require("./environment/Gun.js");
+const GunPistol = require("./environment/GunPistol.js");
+const GunRifle = require("./environment/GunRifle.js");
 const Line = require("./environment/Line.js");
 
 const Stage = require("./Stage.js");
+const CollisionEngine = require("./CollisionEngine.js");
 
 // Return a random integer between 0 and n, inclusive
 function randInt(n) { return Math.round(Math.random() * n); }
@@ -45,23 +48,24 @@ module.exports = class Player extends Circle {
 		this.cursorX = 0;
 		this.cursorY = 0;
 		this.directionLine = new Line(this.x, this.y, 0, 0, 1, "rgba(255,0,0,0)"); // a player has an invisible line drawn in the direction they are facing
+		this.stage.addActor(this.directionLine);
 
 		this.velocity = new Pair(0, 0);
 		this.cursorDirection = new Pair(0, 1); // represents the cursor direction, aka. where the player is facing
-
-		// Stores the player's buffs
-		this.hidden = false; // set to true when the player is under a bush
-		this.isUsingScope = false; // set to true when the player picks up the RDS buff
-
 		// The coordinates of where this player's hands are located
 		this.handX = 0;
 		this.handY = 0;
 
-		// The user starts with an "empty gun" -- they will need to pick up a real gun
-		this.stage.addActor(this.directionLine);
-		const numStartingBullets = 0, bulletCapacity = 0, startingRange = 400, bulletSpeed = 30, bulletDamage = 5, cooldown = 0;
-		this.gun = new Gun(stage, numStartingBullets, bulletCapacity, startingRange, bulletSpeed, cooldown, bulletDamage, this);
+		
+		// Stores the player's buffs
+		this.hidden = false; // set to true when the player is under a bush
+		this.isUsingScope = false; // set to true when the player picks up the RDS buff
 
+		// Design: weapons array is used to refer to all potential weapons the user can have
+		// Index 0 is for fists, Index 1 is for GunPistol, Index 2 is for GunRifle
+		this.weapons = [null, null, null];
+		this.currentWeapon = 0; // index of the weapon is currently equipped with
+		
 		this.movementSpeed = movementSpeed;
 		this.HP = hp;
 		this.maxHP = hp;
@@ -78,10 +82,11 @@ module.exports = class Player extends Circle {
             playerColour: this.colour,
             playerRadius: this.radius,
             playerHP: this.HP,
-            playerMaxHP: this.maxHP,
-            gunBullets: this.gun.getRemainingBullets(),
-            gunCapacity: this.gun.getAmmoCapacity()
-        }
+			playerMaxHP: this.maxHP,
+			currentWeapon: this.currentWeapon,
+			gunBullets: (this.weapons[this.currentWeapon] && this.weapons[this.currentWeapon].getRemainingBullets()) || 0,
+			gunCapacity: (this.weapons[this.currentWeapon] && this.weapons[this.currentWeapon].getAmmoCapacity()) || 0
+		}
     }
 
     // Returns this Player's ID
@@ -95,14 +100,12 @@ module.exports = class Player extends Circle {
 	}
 
 	// Increase HP for this player
-	increaseHP(hp, overload) {
+	increaseHP(hp) {
 		// The mobile feature allows you to overload your health
-		if (overload) {
-			if (this.HP + hp < 110) {
-				this.HP += hp;
-			} else {
-				this.HP = 110;
-			}
+		if (this.HP + hp <= 100) {
+			this.HP += hp;
+		} else {
+			this.HP = 100;
 		}
 	}
 
@@ -123,11 +126,6 @@ module.exports = class Player extends Circle {
 	// Return true if the player is in a bush
 	isHidden() {
 		return this.hidden;
-	}
-
-	// Return this player's gun
-	getPlayerGun() {
-		return this.gun;
 	}
 
 	// Change this player's movement speed
@@ -156,14 +154,27 @@ module.exports = class Player extends Circle {
 		return new Pair(this.x, this.y);
 	}
 
+	// Set direction for which the player should move
+	setMovementDirection(dx, dy) {
+		this.hidden = false;
+		this.dx = dx;
+		this.dy = dy;
+		this.setVelocity();
+		
+		// Used to calculate a new direction line
+		this.handX = this.x + this.cursorDirection.x * this.radius;
+		this.handY = this.y + this.cursorDirection.y * this.radius;
+		this.setDirectionLine(this.cursorX, this.cursorY);
+	}
+
 	// When the human player moves the mouse, need to move the "direction" of the player's hands accordingly
-	setCursorDirection(xCoordinate, yCoordinate) {
+	setCursorDirection(xCoordinate, yCoordinate, canvasWidth, canvasHeight) {
 		this.cursorX = xCoordinate;
         this.cursorY = yCoordinate;
 
 		// Calculate the cursor position relative to the canvas, as a unit vector
-		let relativeX = xCoordinate - this.x - (this.stage.getCanvasWidth() / 2 - this.x);
-		let relativeY = yCoordinate - this.y - (this.stage.getCanvasHeight() / 2 - this.y);
+		let relativeX = xCoordinate - this.x - (canvasWidth / 2 - this.x);
+		let relativeY = yCoordinate - this.y - (canvasHeight / 2 - this.y);
 		this.cursorDirection = new Pair(relativeX, relativeY);
         this.cursorDirection.normalize();
         
@@ -173,35 +184,26 @@ module.exports = class Player extends Circle {
 		// console.log(`Cursor direction is (${xCoordinate},${yCoordinate})`);
 	}
 
-	// Set direction for which the player should move
-	setMovementDirection(dx, dy) {
-		this.hidden = false;
-		this.dx = dx;
-		this.dy = dy;
-        this.setVelocity();
-        
-        // Used to calculate a new direction line
-        this.handX = this.x + this.cursorDirection.x * this.radius;
-		this.handY = this.y + this.cursorDirection.y * this.radius;
-		this.setDirectionLine(this.cursorX, this.cursorY);
-	}
-
-	// When human player moves the mouse, need to move the bullet from the "direction" of the player's hands accordingly
-	setFiringDirection(xCoordinate, yCoordinate) {
-		if (!this.isDead()) {
-			const firingVector = new Pair(xCoordinate - this.x - (this.stage.getCanvasWidth() / 2 - this.x), yCoordinate - this.y - (this.stage.getCanvasHeight() / 2 - this.y));
+	// When human player clicks on the mouse (ie. shoots), need to move the bullet from the "direction" of the player's hands accordingly
+	setFiringDirection(xCoordinate, yCoordinate, canvasWidth, canvasHeight) {
+		if (!this.isDead() && this.currentWeapon >= 1) {
+			const firingVector = new Pair(xCoordinate - this.x - (canvasWidth / 2 - this.x), yCoordinate - this.y - (canvasHeight / 2 - this.y));
 			firingVector.normalize();
-            const bulletRadius = 5;
-            
-			// If the player is using a rifle, shoot 3 times (burst fire)
-			if (this.gun.getAmmoCapacity() == 200) {
-				this.gun.shootBurst(this.position, this.cursorDirection, firingVector, "rgba(0,0,0,1)", bulletRadius);
-			} else {
-				this.gun.shoot(this.position, this.cursorDirection, firingVector, "rgba(0,0,0,1)", bulletRadius);
-			}
+
+			this.weapons[this.currentWeapon].shoot(this.position, this.cursorDirection, firingVector, "rgba(0,0,0,1)");
 		}
 	}
 
+	// Change the user's current weapon
+	setWeapon(weaponNumber) {
+		// console.log(`User wants to switch to weapon number ${weaponNumber}`);
+		if (weaponNumber == 1) {
+			this.currentWeapon = 0;
+		}
+		else if (this.weapons[weaponNumber - 1] != null) {
+			this.currentWeapon = weaponNumber - 1;
+		}
+	}
 
 	// When the player moves around, or the mouse moves, generate a new direction line from player to cursor
 	setDirectionLine(xCoordinate, yCoordinate) {
@@ -221,9 +223,9 @@ module.exports = class Player extends Circle {
 
 	// Add speed to the player (combined with direction, this makes a vector)
 	setVelocity() {
-		const speedMultiplier = this.movementSpeed;
-		this.velocity.x = this.dx * speedMultiplier;
-		this.velocity.y = this.dy * speedMultiplier;
+		// Movement speed is basically the speed multiplier
+		this.velocity.x = this.dx * this.movementSpeed;
+		this.velocity.y = this.dy * this.movementSpeed;
 	}
 
 	// Check for collisions between this player and other actors
@@ -255,23 +257,24 @@ module.exports = class Player extends Circle {
 				// Player collides with Ammo
 				else if (actorsList[i] instanceof AmmoEnv) {
 					// Check if player is within the Ammo
-					let ammoPosition = actorsList[i].getStartingPosition();
-					let dx = destinationX - ammoPosition.x;
-					let dy = destinationY - ammoPosition.y;
-					let distance = Math.sqrt(dx * dx + dy * dy) + 10;
+					const ammoPosition = actorsList[i].getStartingPosition();
+					const dx = destinationX - ammoPosition.x;
+					const dy = destinationY - ammoPosition.y;
+					const distance = Math.sqrt(dx * dx + dy * dy) + 10;
+					const userWeapon = this.weapons[this.currentWeapon];
 
 					// The player should only pick up ammo if they are not full
-					if (distance < this.radius + actorsList[i].getRadius()) {
-						if (this.getPlayerGun().getRemainingBullets() < this.getPlayerGun().getAmmoCapacity()) {
+					if (distance < this.radius + actorsList[i].getRadius() && userWeapon != null) {
+						if (userWeapon.getRemainingBullets() < userWeapon.getAmmoCapacity()) {
 							// console.log("player collision detected -- Player with Ammo");
 							this.stage.removeActor(actorsList[i]);
 
-							const bulletsToRefill = 5;
-							const bulletDifference = this.getPlayerGun().getAmmoCapacity() - this.getPlayerGun().getRemainingBullets();
+							const bulletsToRefill = 10;
+							const bulletDifference = userWeapon.getAmmoCapacity() - userWeapon.getRemainingBullets();
 							if (bulletDifference < bulletsToRefill) {
-								this.getPlayerGun().reloadGun(bulletDifference);
+								userWeapon.reloadGun(bulletDifference);
 							} else {
-								this.getPlayerGun().reloadGun(10);
+								userWeapon.reloadGun(bulletsToRefill);
 							}
 						}
 					}
@@ -319,11 +322,23 @@ module.exports = class Player extends Circle {
 					if (distance < this.radius + actorsList[i].getRadius()) {
 						// console.log("player collision detected -- Player with Small gun");
                         
-						// "Upgrade" the player gun only if they had an empty gun before
-						if (this.getPlayerGun().getAmmoCapacity() == 0) {
-                            this.stage.removeActor(actorsList[i]);
-							this.gun = new Gun(this.stage, 20, 40, 300, 15, 0, 5, this);
+						// Pick this up only if player doesn't already have the pistol
+						if (this.weapons[1] == null) {
+							this.stage.removeActor(actorsList[i]);
+							const gunProps = {
+								startingBullets: 20,
+								bulletCapacity: 40,
+								bulletSpeed: 17,
+								bulletDamage: 15,
+								bulletRadius: 7,
+								range: 800,
+								cooldown: 0
+							}
+							this.weapons[1] = new GunPistol(this.stage, this, gunProps);
 						}
+
+						// Makes the user switch their weapon
+						this.currentWeapon = 1;
 					}
 				}
 				// Player collides with big gun
@@ -337,12 +352,23 @@ module.exports = class Player extends Circle {
 					if (distance < this.radius + actorsList[i].getRadius()) {
                         // console.log("player collision detected -- Player with big gun");
                         
-                        // Player should only pick up big gun if they don't hold it yet
-                        if (this.getPlayerGun().getAmmoCapacity() < 200) {
-                            this.stage.removeActor(actorsList[i]);
-                            // "Upgrade the player gun"
-                            this.gun = new Gun(this.stage, 100, 200, 1600, 20, 0, 5, this);
-                        }
+                        // Pick this up only if the player doens't already own the rifle
+						if (this.weapons[2] == null) {
+							this.stage.removeActor(actorsList[i]);
+							const gunProps = {
+								startingBullets: 100,
+								bulletCapacity: 200,
+								bulletSpeed: 25,
+								bulletDamage: 5,
+								bulletRadius: 3,
+								range: 1600,
+								cooldown: 0
+							}
+							this.weapons[2] = new GunRifle(this.stage, this, gunProps);
+						}
+						
+						// Makes the user switch their weapon
+						this.currentWeapon = 2;
 					}
 				}
 				// Player collides with RDS
@@ -355,7 +381,7 @@ module.exports = class Player extends Circle {
 
 					if (distance < this.radius + actorsList[i].getRadius()) {
 						// Player should only pick up RDS if they already have a gun
-						if (this.getPlayerGun().getAmmoCapacity() != 0) {
+						if (this.weapons[1] != null || this.weapons[2] != null) {
 							// console.log("player collision detected -- Player with Scope");
 							this.setUsingScope();
 							this.stage.removeActor(actorsList[i]);
@@ -386,60 +412,14 @@ module.exports = class Player extends Circle {
 				break;
 			}
 		}
+		if (collidesPlayer) {
+			return "player";
+		}
 
 		// Check for crate collision
 		if (!collidesPlayer) {
 			// Check if the player will collide with any crate
-			let crateList = this.stage.getCrateActors();
-			for (let i = 0; i < crateList.length; i++) {
-				let crateObject = crateList[i];
-
-				// Check for collision with Crates
-				// https://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle
-				// players only collide with Crates (guaranteed to have height and width)
-				let objectPosition = crateList[i].getStartingPosition();
-
-				// Check which corner the player is closest to
-				let destinationPair = new Pair(destinationX, destinationY);
-				let distanceToTopLeft = distanceBetweenTwoPoints(destinationX, destinationY, objectPosition.x, objectPosition.y);
-				let distanceToBottomRight = distanceBetweenTwoPoints(destinationX, destinationY, objectPosition.x + crateObject.getWidth(), objectPosition.y + crateObject.getHeight());
-				if (distanceToTopLeft < distanceToBottomRight) {
-					crateCollidingDirection = "TopLeft";
-				} else {
-					crateCollidingDirection = "BottomRight";
-				}
-
-				// x and y distance between the player (a circle) and the Crate (a rectangle)
-				let distanceX = Math.abs(this.x - objectPosition.x - crateObject.getWidth() / 2);
-				let distanceY = Math.abs(this.y - objectPosition.y - crateObject.getHeight() / 2);
-
-				// If the distance between the player and Crate is longer than the player radius + half(Crate Width), we know they are not colliding
-				if ((distanceX > ((crateObject.getWidth() / 2) + this.radius) || distanceY > ((crateObject.getWidth() / 2) + this.radius))) {
-					continue;
-				}
-				// If the distance between the player and Crate is too short (indicating that they are colliding)
-				else if (distanceX <= (crateObject.getWidth() / 2) || distanceY <= (crateObject.getHeight() / 2)) {
-					// console.log("player collision detected -- player with Crate");
-					collidesCrate = true;
-					break;
-				}
-				// Check if the corners of the player and Crate are colliding
-				else {
-					let dx = distanceX - crateObject.getWidth() / 2;
-					let dy = distanceY - crateObject.getHeight() / 2;
-					if (dx * dx + dy * dy <= (this.radius * this.radius)) {
-						// console.log("player collision detected -- player with Crate");
-						collidesCrate = true;
-						break;
-					}
-				}
-
-			}
-		}
-		if (collidesPlayer) {
-			return "player";
-		} else if (collidesCrate) {
-			return "crate" + crateCollidingDirection;
+			return CollisionEngine.checkPlayerToCrateCollision(destinationX, destinationY, this.stage.getCrateActors(), this.radius);
 		}
 		return false;
 	}
@@ -447,71 +427,74 @@ module.exports = class Player extends Circle {
 	// Take one "step" for animation
 	step() {
 		if (!this.isDead()) {
-            this.setDirectionLine(this.cursorX, this.cursorY);
+			// console.log(this.toString());
+			this.setDirectionLine(this.cursorX, this.cursorY);
+
+			// This is what is happening:
+			// When the player has a lot of velocity, (eg. speed boost), then
+			// destinationX will be calculated to be greater than what is intended
+			// Thus, when checking collisions, there will appear to be an extra
+			// "buffer". This is because the player has a higher velocity so their
+			// intended destinationX would be greater than if they were slower
+
+			// What needs to happen:
+			// The collision needs to account for this extra velocity, and only move
+			// the player to the world border, but then stop them. Right now, it just
+			// stops them outright.
 
 			// Check if where we are proposing to move will cause a collision
 			let destinationX = this.position.x + this.velocity.x;
 			let destinationY = this.position.y + this.velocity.y;
-			let collided = this.checkForCollisions(destinationX + 10, destinationY + 10);
+			let collided = this.checkForCollisions(destinationX, destinationY);
 
 			// Collision with another actor
 			if (collided) {
 				// console.log("Collided with another actor!");
 				// Move the player back so they are no longer colliding
-				if (collided == "player") {
+				if (collided === "player") {
 					this.position.x = this.position.x - (this.velocity.x / 10);
 					this.position.y = this.position.y - (this.velocity.y / 10);
-					this.setPlayerPosition();
-				} else if (collided == "crateTopLeft") {
+				} else if (collided.side === "crateTop") {
 					// Move the player back so they are no longer colliding
-					this.position.x = this.position.x - 5;
-					this.position.y = this.position.y - 5;
-					this.setPlayerPosition();
-				} else if (collided == "crateBottomRight") {
+					// destinationX = this.position.x;
+					destinationY = collided.y - this.radius;
+				} else if (collided.side === "crateBottom") {
 					// Move the player back so they are no longer colliding
-					this.position.x = this.position.x + 5;
-					this.position.y = this.position.y + 5;
-					this.setPlayerPosition();
+					// destinationX = this.position.x;
+					destinationY = collided.y + this.radius + 1;
+				} else if (collided.side === "crateLeft") {
+					destinationX = collided.x - this.radius;
+					// destinationY = this.position.y;
+				} else if (collided.side === "crateRight") {
+					destinationX = collided.x + this.radius;
+					// destinationY = this.position.y;
 				}
 			}
 			// Check for collision of player against world map
-			else if (this.stage.collidesWithWorldBorder(this.position.x + this.velocity.x, this.position.y + this.velocity.y, 30)) {
-				// console.log("Collision with world border!");
-
+			else if (CollisionEngine.checkPlayerToBorderCollision(this.radius, this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.stage.stageWidth, this.stage.stageHeight)) {
+				console.log("Colliding with world border");
+				destinationX = this.position.x + this.velocity.x;
+				destinationY = this.position.y + this.velocity.y;
+				
 				// Check which border we hit
-				let tolerance = 30;
-				let destinationX = this.position.x + this.velocity.x;
-				let destinationY = this.position.y + this.velocity.y;
-
-				// Hit left border
-				if (destinationX < 0 + tolerance) {
-					destinationX = this.position.x - this.velocity.x;
+				if (destinationX < 0 + this.radius) {
+					destinationX = this.radius; // Hit left border
 				}
-				// Hit right border
-				else if (destinationX > this.stage.stageWidth - tolerance) {
-					destinationX = this.position.x - this.velocity.x;
+				if (destinationX > this.stage.stageWidth - this.radius) {
+					destinationX = this.stage.stageWidth - this.radius; // Hit right border
 				}
-				// Hit top border
-				else if (destinationY < 0 + tolerance) {
-					destinationY = this.position.y - this.velocity.y;
+				if (destinationY < 0 + this.radius) {
+					destinationY = this.radius; // Hit top border
 				}
-				// Hit bottom border
-				else if (destinationY > this.stage.stageHeight - tolerance) {
-					destinationY = this.position.y - this.velocity.y;
+				if (destinationY > this.stage.stageHeight - this.radius) {
+					destinationY = this.stage.stageHeight - this.radius; // Hit bottom border
 				}
-
-				// Move the Player away from the world border
-				this.setVelocity();
-				this.position.x = destinationX;
-				this.position.y = destinationY;
-				this.setPlayerPosition();
 			}
-			else {
-				// Update the player's location
-				this.position.x = destinationX;
-				this.position.y = destinationY;
-				this.setPlayerPosition();
-			}
+
+			// Update the player's location
+			this.position.x = destinationX;
+			this.position.y = destinationY;
+			this.setPlayerPosition();
 		}
 	}
 }

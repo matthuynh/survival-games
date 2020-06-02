@@ -13,6 +13,7 @@ const Gun = require("./environment/Gun.js");
 const Line = require("./environment/Line.js");
 
 const Player = require('./Player.js');
+const CollisionEngine = require("./CollisionEngine.js");
 
 // Return a random integer between 0 and n, inclusive
 function randInt(n) { return Math.round(Math.random() * n); }
@@ -41,13 +42,14 @@ function getRandomColor() {
 
 // A Stage stores all actors (all environment objects). It is also responsible for calculating game logic (eg. collisions)
 module.exports = class Stage {
-	constructor(gameId, playerIDList, canvasWidth, canvasHeight, generationSettings, numPlayers) {
+	constructor(gameId, players, numPlayers, setPlayerStatus, generationSettings) {
         this.gameId = gameId;
-        this.playerIDList = playerIDList;
+        this.players = players;
         this.numPlayers = numPlayers;
         this.numAlive = numPlayers;
         this.gameHasEnded = false;
-        this.winningPID = null;
+		this.winningPID = null;
+		this.setPlayerStatus = setPlayerStatus;
 
 		// Each actor is stored in different arrays to handle collisions differently
 		this.playerActors = []; // includes all Players
@@ -56,18 +58,15 @@ module.exports = class Stage {
 		this.environmentActors = []; // these actors cannot collide. Includes Lines, buffs (HP, ammo, speed boost, RDS)
         
         // The logical width and height of the stage
-		let logicalMultiplier = 2;
-		this.stageWidth = canvasWidth * logicalMultiplier;
-        this.stageHeight = canvasHeight * logicalMultiplier;
-        this.canvasWidth = canvasWidth;
-        this.canvasHeight = canvasHeight;
+		this.stageWidth = generationSettings.stageWidth;
+        this.stageHeight = generationSettings.stageHeight;
         
         // Initialize each player in the stage
         for (let i = 0; i < this.numPlayers; i++) {
-            // console.log("Adding player with id " + this.playerIDList[i]);
+            // console.log("Adding player with id " + this.players[i].pid);
             // Player spawns in a random spot (they spawn away from the border)
             let xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
-            let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageWidth / 4);
+            let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageHeight / 4);
             
             // Check to see if the would collide with another player
             let collides = this.checkForGenerationCollisions(xSpawn, ySpawn);
@@ -83,8 +82,8 @@ module.exports = class Stage {
             const playerColour = getRandomColor(); // each player has a different color
             const playerRadius = 30;
             const playerHP = 100;
-            const playerMovementSpeed = 8;
-            let player = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, this.playerIDList[i]);
+            const playerMovementSpeed = 8; // default is 8; debug is 15
+            let player = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, this.players[i].pid);
             this.addActor(player);
         }
 
@@ -107,11 +106,18 @@ module.exports = class Stage {
 	}
 	
 	// Given a player ID, remove that player from the game
-	removePlayer(pid) {
+	// This is called from MultiplayerGame if the player leaves the game or disconnects (leaves page)
+	removePlayer(pid, reason) {
+		// disconnection
 		for (let i = 0; i < this.playerActors.length; i++) {
             if (this.playerActors[i].getPlayerID() == pid) {
 				this.removeActor(this.playerActors[i]);
 				this.numAlive -= 1;
+
+				// This means the player quit game (but remains in lobby)
+				if (reason === "quit") {
+					this.setPlayerStatus(pid, "In Lobby");
+				}
 
 				// There is only one player left in the game; he wins automatically
 				if (this.numAlive == 1) {
@@ -142,6 +148,8 @@ module.exports = class Stage {
         this.environmentActors.forEach(environment => environmentObjs.push(environment.getJSONRepresentation()));
 
         let state = {
+			width: this.stageWidth,
+			height: this.stageHeight,
             players: players,
             bullets: bullets,
             crates: crates,
@@ -187,7 +195,7 @@ module.exports = class Stage {
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this bush would collide any other actors
 				let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -210,7 +218,7 @@ module.exports = class Stage {
 			let attemptsToMake = 3; // after 3 attempts, stops trying to generate this crate
 			const colour = "rgb(128,128,128,1)";
 			while (!validGeneration && attemptsToMake > 0) {
-				let width = 100, height = 100;
+				let width = 150, height = 150;
 				let startingX = randInt(this.stageWidth - 200);
 				let startingY = randInt(this.stageHeight - 200);
 
@@ -237,7 +245,7 @@ module.exports = class Stage {
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this scope buff would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -260,7 +268,7 @@ module.exports = class Stage {
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this speed buff would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -282,7 +290,7 @@ module.exports = class Stage {
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this small gun would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -304,7 +312,7 @@ module.exports = class Stage {
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this big gun would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -326,7 +334,7 @@ module.exports = class Stage {
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this ammo would collide any other actors
 				let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -348,7 +356,7 @@ module.exports = class Stage {
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (this.collidesWithWorldBorder(startingX, startingY, 40)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this HP pot would collide any other actors
 				let collides = this.checkForGenerationCollisions(startingX, startingY);
@@ -464,14 +472,6 @@ module.exports = class Stage {
 		}
 	}
 
-    getCanvasWidth() {
-        return this.canvasWidth;
-    }
-
-    getCanvasHeight() {
-        return this.canvasHeight;
-    }
-
 	getPlayerActors() {
 		return this.playerActors;
 	}
@@ -487,13 +487,6 @@ module.exports = class Stage {
 	getEnvironmentActors() {
 		return this.environmentActors;
 	}
-
-	collidesWithWorldBorder(destinationX, destinationY, tolerance) {
-		if ((destinationX < 0 + tolerance || destinationX > this.stageWidth - tolerance || destinationY < 0 + tolerance || destinationY > this.stageHeight - tolerance)) {
-			return true;
-		}
-		return false;
-    }
     
     // Return the PID of the player who won the game, else null
     getWinner() {
@@ -523,19 +516,22 @@ module.exports = class Stage {
 
 		// Check if any player actors died
 		for (let i = 0; i < this.playerActors.length; i++) {
-
+			// TODO: Implement this a bit better
             // Dead players get removed from the player actors list
 			if (this.playerActors[i].isDead()) {
-                this.removeActor(this.playerActors[i]);
+				this.setPlayerStatus(this.playerActors[i].getPlayerID(), "Spectating");
+				this.removeActor(this.playerActors[i]);
                 this.numAlive -= 1;
             }
             
-            // Game ends (only one person is left)
-            if (this.numAlive <= 1) {
+			// Game ends (only one person is left)
+			// NOTE: Set this value to be 0 for single player mode
+            if (this.numAlive <= 0) {
                 this.gameHasEnded = true;
                 
                 // TODO: Insert this record into the leaderboards 
-                this.winningPID = this.playerActors[0].getPlayerID();
+				this.winningPID = this.playerActors[0].getPlayerID();
+				this.setPlayerStatus(this.playerActors[0].getPlayerID(), "Winner!");
             }
 		}
 

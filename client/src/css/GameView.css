@@ -1,0 +1,12 @@
+#stage {
+    /* border:5px solid black; */
+}
+
+html, body {
+    overflow: hidden;
+}
+
+.clientCanvas {
+    overflow: hidden;
+    cursor: crosshair;
+}

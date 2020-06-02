@@ -8,7 +8,7 @@ Steps to Run:
     - `sqlite3 database.db < schema.sql`
 
 - Run Express Server:
-    - From server directory, do `npx nodemon express-server.js 10421`
+    - From server directory, do `npx nodemon express-server.js`
     - We have specified the express server to run on port 10421
 
 - Run Web Socket Server:

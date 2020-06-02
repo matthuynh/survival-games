@@ -6,11 +6,32 @@ import Row from 'react-bootstrap/Row';
 import { Link } from 'react-router-dom';
 import "../css/LobbiesPage.css";
 
-// const localIPAddress = "192.168.2.235"; // NOTE: Modify this line to connect on your mobile device -- see features.txt to see what to put here
+import LobbyList from "./lobby_components/LobbyList";
+import Lobby from "./lobby_components/Lobby";
+import CloseLobby from "./lobby_components/CloseLobby";
+import GameView from "./lobby_components/GameView";
+
+import UIFx from 'uifx';
+import revolverSoundImport from "../assets/audio/revolver.mp3";
+import burstSoundImport from "../assets/audio/3-burst.mp3";
+import emptyGunImport from "../assets/audio/empty-gun.wav";
+
+const revolverSound = new UIFx(revolverSoundImport, {
+	volume: 0.5
+});
+
+const burstSound = new UIFx(burstSoundImport, {
+	volume: 0.5
+});
+
+const emptyGunSound = new UIFx(emptyGunImport, {
+	volume: 0.5
+});
+
 const localIPAddress = "localhost";
 const wssServerURL = `ws://${localIPAddress}:10000`;
-// const clientSocket = new WebSocket(wssServerURL);
 
+// Note: disabled React Strict Mode in index.js, as it would cause the constructor to load twice
 class LobbiesPage extends React.Component {
 	_isMounted = false;
 	constructor(props) {
@@ -18,10 +39,11 @@ class LobbiesPage extends React.Component {
 		this.state = {
 			showGameView: false,
 			playerId: props.playerId,
-			isMobilePlayer: false,
 			userWon: false,
+			userLost: false,
 			joinedLobbyId: null,
 			lobbies: [],
+			lobbyClosed: false,
 
 			// Player movement code
 			movingUp: false,
@@ -30,24 +52,26 @@ class LobbiesPage extends React.Component {
 			movingRight: false,
 			horizontalDirection: 0,
 			verticalDirection: 0,
-			clientSocket: new WebSocket(wssServerURL)
+
+			// Browser screen dimension
+			width: 0,
+			height: 0
 		};
+
+		// Send username when connecting to server
+		this.clientSocket = new WebSocket(`${wssServerURL}?connectingUID=${this.state.playerId}`);
 
 		// Set ref for canvas (alternative to document.getElementById(...))
 		this.canvasRef = React.createRef();
-		this.mobileCanvasRef = React.createRef();
-
-		// Mobile functions
-		this.handleMobileConnection = this.handleMobileConnection.bind(this);
-		this.healPlayer = this.healPlayer.bind(this);
-		this.activateHealingCanvas = this.activateHealingCanvas.bind(this);
-		this.updateTouch = this.updateTouch.bind(this);
 
 		// Controller functions
 		this.returnToDashboard = this.returnToDashboard.bind(this);
 		this.sendMovement = this.sendMovement.bind(this);
 		this.sendMouseClick = this.sendMouseClick.bind(this);
 		this.sendMouseMove = this.sendMouseMove.bind(this);
+		this.sendWeaponSwitch = this.sendWeaponSwitch.bind(this);
+		this.sendGUIToggle = this.sendGUIToggle.bind(this);
+
 		this.initializeServerGame = this.initializeServerGame.bind(this);
 		this.handleCreateLobby = this.handleCreateLobby.bind(this);
 		this.handleJoinLobby = this.handleJoinLobby.bind(this);
@@ -55,23 +79,48 @@ class LobbiesPage extends React.Component {
 		this.handleDeleteLobby = this.handleDeleteLobby.bind(this);
 		this.handleStartGame = this.handleStartGame.bind(this);
 		this.handleLeaveGame = this.handleLeaveGame.bind(this);
+		this.handleCloseLobbyDialog = this.handleCloseLobbyDialog.bind(this);
 
 		// Keyboard/mouse listener functions
 		this.handleKeyPress = this.handleKeyPress.bind(this);
 		this.handleKeyRelease = this.handleKeyRelease.bind(this);
 		this.handleMouseMove = this.handleMouseMove.bind(this);
 		this.handleMouseDown = this.handleMouseDown.bind(this);
+
+		this.updateDimensions = this.updateDimensions.bind(this);
+	}
+
+	// Called whenever the user resizes their browser screen
+	updateDimensions(width, height) {
+		this.setState({ width: width, height: height });
+	}
+
+	// Return to lobby view after lobby owner closed lobby
+	handleCloseLobbyDialog() {
+		this.setState({
+			lobbyClosed: false
+		})
 	}
 
 	// Return to dashboard, close sockets, and reset state
 	returnToDashboard() {
-		// clientSocket.close();
+		this.clientSocket.close();
+
+		//change to dashboard here----------------------------------------------------------
 		this.props.handleDash();
 		this.setState({
 			showGameView: false,
-			joinedLobbyId: null,
 			userWon: false,
-			lobbies: []
+			userLost: false,
+			joinedLobbyId: null,
+			lobbies: [],
+			lobbyClosed: false,
+			movingUp: false,
+			movingLeft: false,
+			movingDown: false,
+			movingRight: false,
+			horizontalDirection: 0,
+			verticalDirection: 0
 		});
 	}
 
@@ -84,180 +133,173 @@ class LobbiesPage extends React.Component {
 	// Runs when the page loads
 	componentDidMount() {
 		this._isMounted = true;
-		// console.log("Starting socket connection");
 		// console.log("This client's player ID is " + this.state.playerId);
 
-		// When the server establishes the connect with the client here
-		this.state.clientSocket.onopen = () => {
-			// console.log("Front-end connected to the web server");
-
-			let initialUpdate = JSON.stringify({
-				pid: this.state.playerId,
-				type: "identify-client",
-			});
-			this.state.clientSocket.send(initialUpdate);
+		this.clientSocket.onopen = () => {
+			console.log("Front-end connected to the web server");
 		};
 
-		this.state.clientSocket.onclose = (event) => {
-			// alert(
-			// 	"closed code:" +
-			// 		event.code +
-			// 		" reason:" +
-			// 		event.reason +
-			// 		" wasClean:" +
-			// 		event.wasClean
-			// );
+		this.clientSocket.onclose = (event) => {
+			console.log("Front-end closing connectiong to web server");
+
+			// TODO: Will also need to remove all event listeners (this happens when the user is in a game, but the socket server is forcibly closed from the server side) -- make a helper method that checks to see if the listeners are mounted first before removing them
+			document.removeEventListener("keydown", this.handleKeyPress);
+			document.removeEventListener("keyup", this.handleKeyRelease);
+			document.removeEventListener("mousemove", this.handleMouseMove);
+			document.removeEventListener("mousedown", this.handleMouseDown);
+			this.returnToDashboard();
 		};
 
-		// When the client receives a message from the server, we will execute this event
-		this.state.clientSocket.onmessage = (event) => {
+		// When the client receives a message from the server, we will update our client accordingly
+		this.clientSocket.onmessage = (event) => {
 			let serverUpdate = JSON.parse(event.data);
 			// console.log(serverUpdate);
+			if (serverUpdate && this._isMounted) {
+				switch (serverUpdate.type) {
+					// Update the client's game model state
+					case "stage-update":
+						window.updateStageModel(
+							serverUpdate.playerActors,
+							serverUpdate.bulletActors,
+							serverUpdate.environmentActors,
+							serverUpdate.numAlive,
+							serverUpdate.hasEnded
+						);
+						break;
 
-			// Update the client game model state
-			if (serverUpdate && serverUpdate.type == "stage-update") {
-				// console.log(serverUpdate);
-				window.updateStageModel(
-					serverUpdate.playerActors,
-					serverUpdate.bulletActors,
-					serverUpdate.environmentActors,
-					serverUpdate.numAlive,
-					serverUpdate.hasEnded
-				);
-			}
-			// Initialize client game model state by receiving initial model state from server
-			else if (serverUpdate && serverUpdate.type == "stage-initialization") {
-				if (this._isMounted) {
-					this.setState({ showGameView: true });
-				}
-				// console.log("Starting client stage model");
+					// Initialize client game model state by receiving initial model state from server
+					case "stage-initialization":
+						this.setState({ showGameView: true });
+						console.log("Starting client stage model");
 
-				// Users on a browser will be able to player the game
-				if (this.state.isMobilePlayer === false) {
-					// Initialize state of the client model
-					window.setupStageModel(
-						this.canvasRef.current,
-						serverUpdate.playerActors,
-						serverUpdate.bulletActors,
-						serverUpdate.crateActors,
-						serverUpdate.environmentActors,
-						serverUpdate.startTime,
-						serverUpdate.numAlive,
-						serverUpdate.numPlayers,
-						this.state.playerId
-					);
+						// Initialize state of the client model
+						window.setupStageModel(
+							this.canvasRef.current,
+							serverUpdate.stageWidth,
+							serverUpdate.stageHeight,
+							serverUpdate.playerActors,
+							serverUpdate.bulletActors,
+							serverUpdate.crateActors,
+							serverUpdate.environmentActors,
+							serverUpdate.startTime,
+							serverUpdate.numAlive,
+							serverUpdate.numPlayers,
+							this.state.playerId
+						);
 
-					// Start the client model interval (for re-drawing)
-					window.startStageModel();
-					document.addEventListener("keydown", this.handleKeyPress);
-					document.addEventListener("keyup", this.handleKeyRelease);
-					document.addEventListener("mousemove", this.handleMouseMove);
-					document.addEventListener("mousedown", this.handleMouseDown);
-				}
-			}
-			// Get list of lobbies
-			else if (serverUpdate && serverUpdate.type == "view-lobbies") {
-				// console.log("Updating lobby view");
-				if (this._isMounted) {
-					this.setState({
-						lobbies: serverUpdate.lobbies
-					});
-				}
-			}
-			// Created a lobby, receive the lobby id
-			else if (serverUpdate && serverUpdate.type == "new-lobby") {
-				if (this._isMounted) {
-					this.setState({
-						lobbies: serverUpdate.lobbies,
-						joinedLobbyId: serverUpdate.newLobbyId,
-					});
-				}
-			}
-			// Joined a lobby successfully
-			else if (serverUpdate && serverUpdate.type == "joined-lobby") {
-				// console.log("Setting state of lobbies");
-				if (this._isMounted) {
-					this.setState({
-						joinedLobbyId: serverUpdate.lobbyId
-					});
-				}
-			}
-			// User left their lobby successfully
-			else if (serverUpdate && serverUpdate.type == "left-lobby" && serverUpdate.status == "success") {
-				if (this._isMounted) {
-					this.setState({
-						joinedLobbyId: null
-					});
-				}
-			}
-			// Lobby owner deleted lobby successfully
-			else if (serverUpdate && serverUpdate.type == "deleted-lobby" && serverUpdate.status == "success") {
-				if (this._isMounted) {
-					this.setState({
-						lobbies: serverUpdate.lobbies,
-						joinedLobbyId: null
-					});
-				}
-			}
-			// Re-initialize the stage (user loss or won)
-			else if (serverUpdate && serverUpdate.type == "stage-termination") {
-				if (serverUpdate.lobbyID == this.state.joinedLobbyId) {
-					document.removeEventListener("keydown", this.handleKeyPress);
-					document.removeEventListener("keyup", this.handleKeyRelease);
-					document.removeEventListener("mousemove", this.handleMouseMove);
-					document.removeEventListener("mousedown", this.handleMouseDown);
+						// Start the client model interval (for re-drawing)
+						window.startStageModel();
+						document.addEventListener("keydown", this.handleKeyPress);
+						document.addEventListener("keyup", this.handleKeyRelease);
+						document.addEventListener("mousemove", this.handleMouseMove);
+						document.addEventListener("mousedown", this.handleMouseDown);
+						break;
 
-					window.stopStageGame();
-
-					// Check if user won
-					if (serverUpdate.winningPID == this.state.playerId && this._isMounted) {
+					// Receive list of updated lobbies state from socket server
+					case "view-lobbies":
+						console.log("Updating lobby view");
+						// console.log(serverUpdate.lobbies);
 						this.setState({
-							userWon: true
+							lobbies: serverUpdate.lobbies
 						});
-					}
+						break;
+
+					// Created a lobby, receive the lobby id
+					case "new-lobby":
+						this.setState({
+							lobbies: serverUpdate.lobbies,
+							joinedLobbyId: serverUpdate.newLobbyId
+						});
+						break;
+
+					// User joined a lobby successfully
+					case "joined-lobby":
+						// console.log("joined-lobby");
+						// console.log("Setting state of lobbies");
+						// console.log("Reached");
+						this.setState({
+							lobbies: serverUpdate.lobbies,
+							joinedLobbyId: serverUpdate.lobbyId
+						});
+						// console.log(serverUpdate.lobbies);
+						break;
+
+					// User left their lobby successfully
+					case "left-lobby":
+						if (serverUpdate.status == "success") {
+							this.setState({
+								joinedLobbyId: null
+							});
+						}
+						break;
+
+					// User (who is also the lobby owner) deleted lobby successfully
+					case "deleted-lobby":
+						if (serverUpdate.status == "success") {
+							this.setState({
+								lobbies: serverUpdate.lobbies,
+								joinedLobbyId: null
+							});
+						}
+						break;
+
+					// Re-initialize the stage (user loss or won)
+					case "stage-termination":
+						console.log("Trying to terminate stage");
+						document.removeEventListener("keydown", this.handleKeyPress);
+						document.removeEventListener("keyup", this.handleKeyRelease);
+						document.removeEventListener("mousemove", this.handleMouseMove);
+						document.removeEventListener("mousedown", this.handleMouseDown);
+						window.stopStageGame();
+
+						if (serverUpdate.isForced) {
+							this.setState({
+								showGameView: false,
+								userWon: false,
+								userLost: false,
+								joinedLobbyId: null,
+								lobbyClosed: true,
+								movingUp: false,
+								movingLeft: false,
+								movingDown: false,
+								movingRight: false,
+								horizontalDirection: 0,
+								verticalDirection: 0
+							});
+						} else if (serverUpdate.winningPID == this.state.playerId) {
+							this.setState({
+								userWon: true
+							});
+						}
+
+						break;
+
+					// The lobby owner (not this user) closed the lobby
+					case "kicked-lobby":
+						this.setState({
+							lobbyClosed: true,
+							joinedLobbyId: null
+						});
+						break;
+
+
+					// TODO: Add this (?)
+					case "left-game":
+
+						break;
+
+					case "lost-game":
+						this.setState({
+							userLost: true
+						});
+						break;
+
+					default:
+						console.log("Received unknown update from socket server");
 				}
 			}
 		};
 	}
-
-	// Handle a mobile connection to the game
-	handleMobileConnection(lobbyId) {
-		this.setState({
-			isMobilePlayer: true,
-			joinedLobbyId: lobbyId,
-			showGameView: true
-		});
-	}
-
-	// Given a specified PID, heal that user if it exists in the game
-	healPlayer(playerId, lobbyId) {
-		let clientUpdate = JSON.stringify({
-			type: "heal-player",
-			pid: playerId,
-			lobbyId: lobbyId,
-		});
-		this.state.clientSocket.send(clientUpdate);
-		this.activateHealingCanvas();
-	}
-
-	// Activate the healing canvas on mobile
-	activateHealingCanvas() {
-		let mobileCanvas = this.mobileCanvasRef.current;
-		let context = mobileCanvas.getContext("2d");
-		context.fillStyle = "rgb(29,107,12)";
-		context.fillRect(0, 0, mobileCanvas.width, mobileCanvas.height);
-		// this.mobileCanvasRef.current.addEventListener('touchend', (event) => { this.updateTouch("touchend", event); });
-		this.mobileCanvasRef.current.addEventListener('touchmove', (event) => { this.updateTouch("touchmove", event); });
-		// this.mobileCanvasRef.current.addEventListener('touchstart', (event) => { this.updateTouch("touchstart", event) ;});
-	}
-
-	updateTouch(eventType, event) {
-		if (eventType == "touchmove") {
-			this.healPlayer(this.state.playerId, this.state.joinedLobbyId);
-		}
-		event.preventDefault();
-	}
-
 
 	// A player can join a preexisting lobby on the server
 	handleJoinLobby(lobbyId) {
@@ -268,11 +310,12 @@ class LobbiesPage extends React.Component {
 			type: "join-lobby",
 			lobbyId: lobbyId,
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// A player can leave the lobby they are in
 	handleLeaveLobby(playerId, lobbyNumber) {
+		console.log("Inside handleLeaveLobby()");
 		// console.log("Client tries to leave lobby with id " + lobbyNumber);
 
 		let clientUpdate = JSON.stringify({
@@ -280,7 +323,7 @@ class LobbiesPage extends React.Component {
 			type: "leave-lobby",
 			lobbyId: lobbyNumber,
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// A player creates a lobby on the server. That player automatically joins the lobby as well
@@ -289,39 +332,46 @@ class LobbiesPage extends React.Component {
 			pid: this.state.playerId,
 			type: "create-lobby",
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// A player deletes the lobby he is in 
 	handleDeleteLobby(playerId, lobbyId) {
+		console.log("Inside handleDeleteLobby()");
 		let clientUpdate = JSON.stringify({
 			type: "delete-lobby",
 			pid: playerId,
 			lobbyId: lobbyId
 		})
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// A lobby owner attempts to starts a game on a lobby on the server
 	handleStartGame(ownerId, lobbyId) {
+		console.log("Inside handleStartGame()");
+		// console.log(ownerId);
+		// console.log(lobbyId);
+
 		// Note that only the owner of a valid lobby may start a game
 		let clientUpdate = JSON.stringify({
 			pid: ownerId,
 			type: "start-game",
 			lobbyId: lobbyId,
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// User leaves game
 	handleLeaveGame(playerId, lobbyId) {
+		console.log("Inside handleLeaveGame()");
 		// Note that leaving a game also causes you to leave the lobby
 		let clientUpdate = JSON.stringify({
-			type: "leave-lobby",
+			type: "leave-game",
 			pid: playerId,
 			lobbyId: lobbyId,
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
+
 		window.stopStageGame();
 
 		// Unhook keyboard and mouse listeners
@@ -330,7 +380,8 @@ class LobbiesPage extends React.Component {
 		document.removeEventListener("mousemove", this.handleMouseMove);
 		document.removeEventListener("mousedown", this.handleMouseDown);
 
-		this.returnToDashboard();
+		// Resets user's game state
+		this.setState({ showGameView: false, userLost: false, userWon: false });
 	}
 
 	// Sends this player's movement to server
@@ -342,7 +393,7 @@ class LobbiesPage extends React.Component {
 			x: horizontalDirection,
 			y: verticalDirection,
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// Sends this player's mouse click to server
@@ -353,8 +404,10 @@ class LobbiesPage extends React.Component {
 			type: "click",
 			x: xPosition,
 			y: yPosition,
+			width: this.state.width,
+			height: this.state.height
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// Sends this player's mouse click to server
@@ -365,8 +418,26 @@ class LobbiesPage extends React.Component {
 			type: "cursor",
 			x: xPosition,
 			y: yPosition,
+			width: this.state.width,
+			height: this.state.height
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
+	}
+
+	// Send weapon toggle to server
+	sendWeaponSwitch(key) {
+		let clientUpdate = JSON.stringify({
+			pid: this.state.playerId,
+			lobbyId: this.state.joinedLobbyId,
+			type: "weapon-toggle",
+			toggle: key
+		});
+		this.clientSocket.send(clientUpdate);
+	}
+
+	// Send GUI toggle to the client view (ClientController.js) -- this doesn't need to go to server
+	sendGUIToggle(key) {
+		window.toggleGUI();
 	}
 
 	// A player attempts to starts a game on a lobby on the server
@@ -377,7 +448,7 @@ class LobbiesPage extends React.Component {
 			type: "start-game",
 			lobbyId: this.state.joinedLobbyId,
 		});
-		this.state.clientSocket.send(clientUpdate);
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// ----- KEYBOARD AND MOUSE LISTENER CODE --------------------------------------------
@@ -409,6 +480,14 @@ class LobbiesPage extends React.Component {
 					this.state.horizontalDirection,
 					this.state.verticalDirection
 				);
+			}
+			// Used for switching between weapons
+			if ("123".includes(key)) {
+				this.sendWeaponSwitch(key);
+			}
+			// Used for toggling GUI display
+			if ("h".includes(key)) {
+				this.sendGUIToggle(key);
 			}
 		}
 	}
@@ -463,23 +542,36 @@ class LobbiesPage extends React.Component {
 
 	// Handle when the mouses buttons are pressed
 	handleMouseDown(event) {
-		let canvas = this.canvasRef.current;
-		let xPosition = event.clientX - canvas.offsetLeft;
-		let yPosition = event.clientY - canvas.offsetTop;
+		let canvas = this.canvasRef.current.getBoundingClientRect();
+		let xPosition = event.clientX - canvas.left;
+		let yPosition = event.clientY - canvas.top;
 		// console.log(`{${xPosition}, ${yPosition}}`);
 
 		// Only send valid mouse clicks (must be within canvas)
 		if (xPosition >= 0 && yPosition >= 0) {
 			// Send this action through websockets to the server
 			this.sendMouseClick(xPosition, yPosition);
+			// console.log(window.getCurrentPlayerWeapon());
+			let currentGun = window.getCurrentPlayerWeapon();
+			switch (currentGun) {
+				case 1:
+					revolverSound.play();
+					break;
+				case 2:
+					burstSound.play();
+					break;
+				case -1:
+					emptyGunSound.play();
+					break;
+			}
 		}
 	}
 
 	// Handle mouse movement (movement os human's cursor)
 	handleMouseMove(event) {
-		let canvas = this.canvasRef.current;
-		let xPosition = event.clientX - canvas.offsetLeft;
-		let yPosition = event.clientY - canvas.offsetTop;
+		let canvas = this.canvasRef.current.getBoundingClientRect();
+		let xPosition = event.clientX - canvas.left;
+		let yPosition = event.clientY - canvas.top;
 		// console.log(`{${xPosition}, ${yPosition}}`);
 
 		// Only send valid mouse movements (must be within canvas)
@@ -491,199 +583,54 @@ class LobbiesPage extends React.Component {
 
 	render() {
 		// console.log("State of joined lobby id is " + this.state.joinedLobbyId);
-		// Render the main lobby view
-		if (this.state.joinedLobbyId === null) {
+		// "Lobby closed" screen
+		if (this.state.lobbyClosed) {
 			return (
-				<div className="lobby-page">
-					<h1>LOBBIES</h1>
-					<p> To play a game, join a pre-existing lobby by clicking "Join Lobby", or create your own lobby below. Note that if you Create a Lobby and start a game by yourself, you will automatically win. The game will then end shortly, so you won't be able to control your player (as the canvas is disabled). You will need to start a game with at least two players in the lobby.</p>
-					<hr />
-					<Table striped bordered hover size="sm">
-						<thead>
-							<tr>
-								<th> Lobby ID </th>
-								<th> Players </th>
-								<th> Status </th>
-							</tr>
-						</thead>
-						<tbody>
-							{/* Render each lobby */}
-							{this.state.lobbies.map((lobby, index) => {
-								return (
-									<tr key={index}>
-										<td>{lobby.id}</td>
-										<td>{lobby.numPlayers}</td>
-										<td>
-											{lobby.gameInProgress === true ? (
-												<p>
-													Ongoing Game
-												</p>
-											) : (
-													<p>
-														<Button
-															variant="outline-success"
-															block
-															onClick={() => { this.handleJoinLobby(lobby.id) }}
-														>
-															Join Lobby
-													</Button>
-														<Button
-															variant="outline-success"
-															block
-															onClick={() => { this.handleMobileConnection(lobby.id) }}
-														>
-															Connect Mobile Device
-													</Button>
-													</p>
-												)}
-										</td>
-									</tr>
-								);
-							})}
-						</tbody>
-					</Table>
-					{this.state.lobbies.length < 1 && (
-						<p> No lobbies, click below to make one </p>
-					)}
-
-					<Button
-						variant="success"
-						block
-						onClick={this.handleCreateLobby}
-					>
-						Create Lobby
-					</Button>
-					<Link to="/dashboard">
-						<Button
-							variant="primary"
-							block
-						>
-							Go back to Dashboard
-						</Button>
-					</Link>
-				</div>
+				<CloseLobby
+					handleCloseLobbyDialog={this.handleCloseLobbyDialog}
+				/>
 			);
 		}
 
-		// Render the individual lobby or game view
+		// Render the main lobby view
+		else if (this.state.joinedLobbyId === null) {
+			return (
+				<LobbyList
+					lobbies={this.state.lobbies}
+					joinLobby={this.handleJoinLobby}
+					createLobby={this.handleCreateLobby}
+					returnToDashboard={this.returnToDashboard}
+				/>
+			);
+		}
+
+		// Render the game view 
+		else if (this.state.joinedLobbyId !== null && this.state.showGameView) {
+			return (
+				<GameView
+					canvasRef={this.canvasRef}
+					playerId={this.state.playerId}
+					joinedLobbyId={this.state.joinedLobbyId}
+					userWon={this.state.userWon}
+					userLost={this.state.userLost}
+					handleLeaveGame={this.handleLeaveGame}
+					updateDimensions={this.updateDimensions}
+				/>
+			)
+		}
+
+		// Render the lobby view
 		else if (this.state.joinedLobbyId !== null) {
-			// Render the game view for a regular browser connection
-			if (this.state.showGameView && this.state.isMobilePlayer === false) {
-				return (
-					<div className="clientGameUI">
-						<Container>
-							<Row>
-								<br />
-								<canvas
-									ref={this.canvasRef}
-									id="stage"
-									width="1200"
-									height="800"
-									className="clientCanvas"
-								>
-								</canvas>
-							</Row>
-							<Row>
-								<Button
-									variant="danger"
-									onClick={() => { this.handleLeaveGame(this.state.playerId, this.state.joinedLobbyId) }}
-									className="leaveGameButton"
-									block
-								>
-									Quit game and lobby
-								</Button>
-							</Row>
-							{this.state.userWon &&
-								<Row>
-									<h1> You won! To play another game, click on the button above</h1>
-								</Row>
-							}
-						</Container>
-					</div>
-				)
-			}
-			// Render the game for a mobile player
-			else if (this.state.showGameView && this.state.isMobilePlayer === true) {
-				return (
-					<div className="mobileUI">
-						<Button
-							variant="success"
-							block
-							disabled
-						>
-							Successfully connected to game
-						</Button>
-						<br />
-						<center>
-							<canvas
-								ref={this.mobileCanvasRef}
-								width="200"
-								height="200"
-								className="mobileClientCanvas"
-								id="mobileStage"
-							>
-							</canvas>
-						</center>
-						<br />
-						<Button
-							variant="light"
-							block
-							size="lg"
-							onClick={() => {
-								this.activateHealingCanvas();
-							}}
-						>
-							Activate Healing!
-						</Button>
-					</div>
-				)
-			}
-			// Render the lobby view
-			else {
-				// Check to see if user is owner of lobby
-				let isLobbyOwner = false;
-				for (let i = 0; i < this.state.lobbies.length; i++) {
-					if (this.state.lobbies[i].lobbyOwner == this.state.playerId) {
-						isLobbyOwner = true;
-						break;
-					}
-				}
-				return (
-					<div className="lobby-page">
-						<h1>You are in Lobby {this.state.joinedLobbyId}</h1>
-						{(isLobbyOwner) ?
-							<p>
-								You are lobby owner (only you can start the game)
-								Note that if you start a game by yourself, you will automatically win. The game will then end shortly, so you won't be able to control your player (as the canvas is disabled). You will need to start a game with at least two players in the lobby.
-								<Button
-									variant="success"
-									block
-									onClick={() => { this.handleStartGame(this.state.playerId, this.state.joinedLobbyId) }}
-								>
-									Start Game
-								</Button>
-								<Button
-									variant="danger"
-									block
-									onClick={() => { this.handleDeleteLobby(this.state.playerId, this.state.joinedLobbyId) }}
-								>
-									Delete Lobby
-								</Button>
-							</p>
-							:
-							<p> Welcome. Please wait for lobby owner to start game. Your game will automatically load once the lobby owner starts the game
-								<Button
-									variant="danger"
-									block
-									onClick={() => { this.handleLeaveLobby(this.state.playerId, this.state.joinedLobbyId) }}
-								>
-									Leave Lobby
-								</Button>
-							</p>
-						}
-					</div>
-				);
-			}
+			return (
+				<Lobby
+					lobbies={this.state.lobbies}
+					lobbyId={this.state.joinedLobbyId}
+					playerId={this.state.playerId}
+					handleStartGame={this.handleStartGame}
+					handleDeleteLobby={this.handleDeleteLobby}
+					handleLeaveLobby={this.handleLeaveLobby}
+				/>
+			);
 		}
 	}
 }

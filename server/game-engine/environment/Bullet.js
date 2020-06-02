@@ -1,4 +1,3 @@
-// TODO: See if we need to import Stage?
 const Circle = require("./Circle.js");
 const Crate = require("./Crate.js");
 

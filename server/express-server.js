@@ -1,6 +1,7 @@
 // WEB SERVER CODE 
-const process = require("process");
-const port = parseInt(process.argv[2]);
+// const process = require("process");
+// const port = parseInt(process.argv[2]);
+const port = 10421;
 const express = require("express");
 const app = express();
 
