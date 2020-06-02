@@ -84,6 +84,7 @@ class GameView extends React.Component {
 	}
 
 	// TODO: Improve Modal styling. Consider disabling the ability to close the modal once the game ends
+	// Alternative for canvas: set width and height to logical stage dimension, then use css to set width and height for player's browser size
 	render() {
 		return (
 			<div className="clientGameUI">
@@ -128,7 +129,7 @@ class GameView extends React.Component {
 						</Button>
 					</Modal.Body>
 					<Modal.Footer>
-						How to play: Use WASD to move around. Walk over weapons and powerups to pick them up. Press "H" to toggle GUI display. Press "M" to toggle minimap (future feature)
+						How to play: Use WASD to move around. Walk over weapons and powerups to pick them up. Press "H" to toggle GUI display
 					</Modal.Footer>
 				</Modal>
 			</div>

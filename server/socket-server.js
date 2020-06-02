@@ -121,7 +121,6 @@ wss.on("connection", function connection(ws, req) {
 			
 			// If they are lobby owner, kick everyone else out
 			if (lobby.getLobbyOwnerId() === disconnectedClient.PID) {
-				console.log("in here");
 				wss.broadcastToLobbyNonOwner(JSON.stringify({
 					type: "kicked-lobby"
 				}), disconnectedClient.lobbyID, disconnectedClient.PID);

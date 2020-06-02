@@ -1,5 +1,5 @@
 const Circle = require("./Circle.js");
-const Crate = require("./Crate.js");
+// const CollisionEngine = require("../CollisionEngine.js");
 
 // Return the distance between two points, given the x and y coordinate of each point
 function distanceBetweenTwoPoints(startingX, startingY, endingX, endingY) {
@@ -67,68 +67,20 @@ module.exports = class Bullet extends Circle {
 		}
 		else {
 			// Check if the bullet will collide with other players
-			let collidesPlayer = false;
-			let playersList = stage.getPlayerActors();
-			for (let i = 0; i < playersList.length; i++) {
-				// Check if the player is shooting ANOTHER player (not the one shooting the bullet)
-				if (playersList[i] == this.owner) {
-					// Skip this collision detection (player cannot collide with their own bullet)
-					continue;
-				}
-
-				let playerPosition = playersList[i].getPlayerPosition();
-				let dx = destinationX - playerPosition.x;
-				let dy = destinationY - playerPosition.y;
-				let distance = Math.sqrt(dx * dx + dy * dy);
-
-				// Bullet collides with the player
-				if (distance < this.radius + playersList[i].getRadius()) {
-					// console.log("Bullet collision detected -- Bullet with player");
-
-					// Decrease the player's HP
-					playersList[i].decreaseHP(this.bulletDamage);
-					// console.log("players HP: " + playersList[i].HP);
-					collidesPlayer = true;
-				}
-			}
-
-			// Player collision takes precendence over crate collision
+			let collidesPlayer = CollisionEngine.checkBulletToPlayerCollision(destinationX, destinationY, stage.getPlayerActors(), this.radius, this.owner, this.bulletDamage);
 			if (collidesPlayer) {
 				stage.removeActor(this);
-			} else {
-				// Check if the bullet will collide with anything else in the environment
-				let collidesCrate = false;
-				let crateList = stage.getCrateActors();
-				for (let i = 0; i < crateList.length; i++) {
-					let crateObject = crateList[i];
-
-					// Bullets do not collide with Bushes
-					// Check for collision with Crates
-					if (crateList[i] instanceof Crate) {
-						// Bullets only collide with Crates (guaranteed to have height and width)
-						let objectPosition = crateList[i].getStartingPosition();
-
-						// x and y distance between the Bullet (a circle) and the Crate (a rectangle)
-						let distanceX = Math.abs(this.x - objectPosition.x - crateObject.getWidth() / 2);
-						let distanceY = Math.abs(this.y - objectPosition.y - crateObject.getHeight() / 2);
-
-						// If the distance between the Bullet and Crate is longer than the Bullet radius + half(Crate Width), we know they are not colliding
-						if ((distanceX > ((crateObject.getWidth() / 2) + this.radius) || distanceY > ((crateObject.getWidth() / 2) + this.radius))) {
-							continue;
-						}
-						// If the distance between the Bullet and Crate is too short (indicating that they are colliding)
-						else if (distanceX <= (crateObject.getWidth() / 2) || distanceY <= (crateObject.getHeight() / 2)) {
-							// console.log("Bullet collision detected -- Bullet with Crate");
-							collidesCrate = true;
-							break;
-						}
-					}
-				}
-
-				// Bullet collides with crate; remove it
-				if (collidesCrate || false) {
+			} 
+			
+			// Check if the bullet will collide with a crate
+			else {
+				let collidesCrate = CollisionEngine.checkBulletToCrateCollision(destinationX, destinationY, stage.getCrateActors(), this.radius);
+				if (collidesCrate) {
 					stage.removeActor(this);
-				} else {
+				} 
+				
+				// No collisions -- move the bullet
+				else {
 					this.x = destinationX;
 					this.y = destinationY;
 					// console.log(`Coordinates of bullet: (${this.x}, ${this.y})`);
