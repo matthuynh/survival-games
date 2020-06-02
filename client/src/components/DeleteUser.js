@@ -1,6 +1,8 @@
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
+import auth from "../Routing/auth";
+import { Link } from 'react-router-dom';
 import '../css/DeleteUser.css';
 import Axios from 'axios';
 
@@ -47,8 +49,10 @@ class DeleteUser extends React.Component {
             data: postData
         })
             .then(response => {
-                //change state if user is deleted
-                that.props.handleDeleteUser();
+                //delete user and redirect to login screen
+                auth.delete(() => {
+                    this.props.history.push("/login");
+                })
             })
             .catch(error => {
                 //error checking api call
@@ -82,7 +86,9 @@ class DeleteUser extends React.Component {
                 <hr />
                 <input type="password" className="form-control" placeholder="enter Password" value={this.state.password} onChange={this.handlePassword} />
                 <Button variant="danger" className="delete-button" onClick={this.handleDeleteUser}>Delete Me Forever</Button>
-                <Button variant="primary" className="delete-button" onClick={this.props.handleDash}>Go to Dashboard</Button>
+                <Link to="/dashboard">
+                    <Button variant="primary" className="delete-button">Go to Dashboard</Button>
+                </Link>
             </div>
         );
     }

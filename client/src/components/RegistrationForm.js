@@ -2,6 +2,8 @@ import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
+import Logo from '../assets/register.png'
 import '../css/RegisterForm.css';
 
 
@@ -107,7 +109,7 @@ class RegistrationForm extends React.Component {
         return (
             <div className="register-form">
                 {alert}
-                <h1>🏹 REGISTER</h1>
+                <img src={Logo} />
                 <hr />
 
                 <input type="text" className="form-control" placeholder="Username" value={this.state.username} onChange={this.handleUsername} required />
@@ -116,7 +118,9 @@ class RegistrationForm extends React.Component {
                 <input type="password" className="form-control" placeholder="Re-enter Password" value={this.state.confirmPassword} onChange={this.handleConfirmPassword} />
 
                 <Button variant="primary" type="submit" onClick={this.handleRegisterUser} className="register-button">Register</Button>
-                <Button variant="primary" type="submit" onClick={this.props.handleRegister} className="register-button">Home</Button>
+                <Link to="/login">
+                    <Button variant="primary" className="register-button">Login</Button>
+                </Link>
             </div>
         );
     }

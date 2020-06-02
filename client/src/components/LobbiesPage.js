@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
+import { Link } from 'react-router-dom';
 import "../css/LobbiesPage.css";
 
 // const localIPAddress = "192.168.2.235"; // NOTE: Modify this line to connect on your mobile device -- see features.txt to see what to put here
@@ -43,12 +44,12 @@ class LobbiesPage extends React.Component {
 		this.updateTouch = this.updateTouch.bind(this);
 
 		// Controller functions
-        this.returnToDashboard = this.returnToDashboard.bind(this);
+		this.returnToDashboard = this.returnToDashboard.bind(this);
 		this.sendMovement = this.sendMovement.bind(this);
 		this.sendMouseClick = this.sendMouseClick.bind(this);
 		this.sendMouseMove = this.sendMouseMove.bind(this);
-        this.initializeServerGame = this.initializeServerGame.bind(this);
-        this.handleCreateLobby = this.handleCreateLobby.bind(this);
+		this.initializeServerGame = this.initializeServerGame.bind(this);
+		this.handleCreateLobby = this.handleCreateLobby.bind(this);
 		this.handleJoinLobby = this.handleJoinLobby.bind(this);
 		this.handleLeaveLobby = this.handleLeaveLobby.bind(this);
 		this.handleDeleteLobby = this.handleDeleteLobby.bind(this);
@@ -60,20 +61,20 @@ class LobbiesPage extends React.Component {
 		this.handleKeyRelease = this.handleKeyRelease.bind(this);
 		this.handleMouseMove = this.handleMouseMove.bind(this);
 		this.handleMouseDown = this.handleMouseDown.bind(this);
-    }
-    
-    // Return to dashboard, close sockets, and reset state
-    returnToDashboard(){
-        // clientSocket.close();
-        this.props.handleDash();
-        this.setState({
-            showGameView: false,
+	}
+
+	// Return to dashboard, close sockets, and reset state
+	returnToDashboard() {
+		// clientSocket.close();
+		this.props.handleDash();
+		this.setState({
+			showGameView: false,
 			joinedLobbyId: null,
 			userWon: false,
-            lobbies: []
-        });
+			lobbies: []
+		});
 	}
-	
+
 	// Runs when the page unloads (eg. a game finishes)
 	componentWillUnmount() {
 		// This variable is used to prevent unnecessary setstates on this unmounted component
@@ -127,9 +128,9 @@ class LobbiesPage extends React.Component {
 			// Initialize client game model state by receiving initial model state from server
 			else if (serverUpdate && serverUpdate.type == "stage-initialization") {
 				if (this._isMounted) {
-					this.setState({showGameView: true });
+					this.setState({ showGameView: true });
 				}
-                // console.log("Starting client stage model");
+				// console.log("Starting client stage model");
 
 				// Users on a browser will be able to player the game
 				if (this.state.isMobilePlayer === false) {
@@ -145,7 +146,7 @@ class LobbiesPage extends React.Component {
 						serverUpdate.numPlayers,
 						this.state.playerId
 					);
-	
+
 					// Start the client model interval (for re-drawing)
 					window.startStageModel();
 					document.addEventListener("keydown", this.handleKeyPress);
@@ -158,15 +159,15 @@ class LobbiesPage extends React.Component {
 			else if (serverUpdate && serverUpdate.type == "view-lobbies") {
 				// console.log("Updating lobby view");
 				if (this._isMounted) {
-					this.setState({ 
+					this.setState({
 						lobbies: serverUpdate.lobbies
 					});
 				}
-            }
+			}
 			// Created a lobby, receive the lobby id
 			else if (serverUpdate && serverUpdate.type == "new-lobby") {
 				if (this._isMounted) {
-					this.setState({ 
+					this.setState({
 						lobbies: serverUpdate.lobbies,
 						joinedLobbyId: serverUpdate.newLobbyId,
 					});
@@ -176,7 +177,7 @@ class LobbiesPage extends React.Component {
 			else if (serverUpdate && serverUpdate.type == "joined-lobby") {
 				// console.log("Setting state of lobbies");
 				if (this._isMounted) {
-					this.setState({ 
+					this.setState({
 						joinedLobbyId: serverUpdate.lobbyId
 					});
 				}
@@ -184,20 +185,20 @@ class LobbiesPage extends React.Component {
 			// User left their lobby successfully
 			else if (serverUpdate && serverUpdate.type == "left-lobby" && serverUpdate.status == "success") {
 				if (this._isMounted) {
-					this.setState({ 
-						joinedLobbyId: null 
+					this.setState({
+						joinedLobbyId: null
 					});
 				}
-            }
-            // Lobby owner deleted lobby successfully
-            else if (serverUpdate && serverUpdate.type == "deleted-lobby" && serverUpdate.status == "success") {
+			}
+			// Lobby owner deleted lobby successfully
+			else if (serverUpdate && serverUpdate.type == "deleted-lobby" && serverUpdate.status == "success") {
 				if (this._isMounted) {
 					this.setState({
 						lobbies: serverUpdate.lobbies,
 						joinedLobbyId: null
 					});
 				}
-            }
+			}
 			// Re-initialize the stage (user loss or won)
 			else if (serverUpdate && serverUpdate.type == "stage-termination") {
 				if (serverUpdate.lobbyID == this.state.joinedLobbyId) {
@@ -205,7 +206,7 @@ class LobbiesPage extends React.Component {
 					document.removeEventListener("keyup", this.handleKeyRelease);
 					document.removeEventListener("mousemove", this.handleMouseMove);
 					document.removeEventListener("mousedown", this.handleMouseDown);
-					
+
 					window.stopStageGame();
 
 					// Check if user won
@@ -250,15 +251,15 @@ class LobbiesPage extends React.Component {
 		// this.mobileCanvasRef.current.addEventListener('touchstart', (event) => { this.updateTouch("touchstart", event) ;});
 	}
 
-	updateTouch (eventType, event) {
+	updateTouch(eventType, event) {
 		if (eventType == "touchmove") {
 			this.healPlayer(this.state.playerId, this.state.joinedLobbyId);
 		}
 		event.preventDefault();
 	}
 
-    
-    // A player can join a preexisting lobby on the server
+
+	// A player can join a preexisting lobby on the server
 	handleJoinLobby(lobbyId) {
 		// console.log("Client tries to join lobby with id " + lobbyId);
 
@@ -270,16 +271,16 @@ class LobbiesPage extends React.Component {
 		this.state.clientSocket.send(clientUpdate);
 	}
 
-    // A player can leave the lobby they are in
+	// A player can leave the lobby they are in
 	handleLeaveLobby(playerId, lobbyNumber) {
-        // console.log("Client tries to leave lobby with id " + lobbyNumber);
+		// console.log("Client tries to leave lobby with id " + lobbyNumber);
 
-        let clientUpdate = JSON.stringify({
-            pid: playerId,
-            type: "leave-lobby",
-            lobbyId: lobbyNumber,
-        });
-        this.state.clientSocket.send(clientUpdate);
+		let clientUpdate = JSON.stringify({
+			pid: playerId,
+			type: "leave-lobby",
+			lobbyId: lobbyNumber,
+		});
+		this.state.clientSocket.send(clientUpdate);
 	}
 
 	// A player creates a lobby on the server. That player automatically joins the lobby as well
@@ -294,32 +295,32 @@ class LobbiesPage extends React.Component {
 	// A player deletes the lobby he is in 
 	handleDeleteLobby(playerId, lobbyId) {
 		let clientUpdate = JSON.stringify({
-            type: "delete-lobby",
-            pid: playerId,
-            lobbyId: lobbyId
-        })
-        this.state.clientSocket.send(clientUpdate);
+			type: "delete-lobby",
+			pid: playerId,
+			lobbyId: lobbyId
+		})
+		this.state.clientSocket.send(clientUpdate);
 	}
 
 	// A lobby owner attempts to starts a game on a lobby on the server
 	handleStartGame(ownerId, lobbyId) {
-		 // Note that only the owner of a valid lobby may start a game
-        let clientUpdate = JSON.stringify({
-            pid: ownerId,
-            type: "start-game",
-            lobbyId: lobbyId,
-        });
-        this.state.clientSocket.send(clientUpdate);
+		// Note that only the owner of a valid lobby may start a game
+		let clientUpdate = JSON.stringify({
+			pid: ownerId,
+			type: "start-game",
+			lobbyId: lobbyId,
+		});
+		this.state.clientSocket.send(clientUpdate);
 	}
 
 	// User leaves game
 	handleLeaveGame(playerId, lobbyId) {
 		// Note that leaving a game also causes you to leave the lobby
-        let clientUpdate = JSON.stringify({
-            type: "leave-lobby",
-            pid: playerId,
-            lobbyId: lobbyId,
-        });
+		let clientUpdate = JSON.stringify({
+			type: "leave-lobby",
+			pid: playerId,
+			lobbyId: lobbyId,
+		});
 		this.state.clientSocket.send(clientUpdate);
 		window.stopStageGame();
 
@@ -328,7 +329,7 @@ class LobbiesPage extends React.Component {
 		document.removeEventListener("keyup", this.handleKeyRelease);
 		document.removeEventListener("mousemove", this.handleMouseMove);
 		document.removeEventListener("mousedown", this.handleMouseDown);
-		
+
 		this.returnToDashboard();
 	}
 
@@ -489,7 +490,7 @@ class LobbiesPage extends React.Component {
 	}
 
 	render() {
-        // console.log("State of joined lobby id is " + this.state.joinedLobbyId);
+		// console.log("State of joined lobby id is " + this.state.joinedLobbyId);
 		// Render the main lobby view
 		if (this.state.joinedLobbyId === null) {
 			return (
@@ -518,23 +519,23 @@ class LobbiesPage extends React.Component {
 													Ongoing Game
 												</p>
 											) : (
-												<p>
-													<Button
-														variant="outline-success"
-                                                        block
-                                                        onClick={() => {this.handleJoinLobby(lobby.id)}}
-													>
-														Join Lobby
+													<p>
+														<Button
+															variant="outline-success"
+															block
+															onClick={() => { this.handleJoinLobby(lobby.id) }}
+														>
+															Join Lobby
 													</Button>
-													<Button
-														variant="outline-success"
-														block
-														onClick={() => {this.handleMobileConnection(lobby.id)}}
-													>
-														Connect Mobile Device
+														<Button
+															variant="outline-success"
+															block
+															onClick={() => { this.handleMobileConnection(lobby.id) }}
+														>
+															Connect Mobile Device
 													</Button>
-												</p>
-											)}
+													</p>
+												)}
 										</td>
 									</tr>
 								);
@@ -552,13 +553,14 @@ class LobbiesPage extends React.Component {
 					>
 						Create Lobby
 					</Button>
-					<Button
-						variant="primary"
-						block
-						onClick={this.returnToDashboard}
-					>
-						Go back to Dashboard
-					</Button>
+					<Link to="/dashboard">
+						<Button
+							variant="primary"
+							block
+						>
+							Go back to Dashboard
+						</Button>
+					</Link>
 				</div>
 			);
 		}
@@ -571,7 +573,7 @@ class LobbiesPage extends React.Component {
 					<div className="clientGameUI">
 						<Container>
 							<Row>
-								<br/>
+								<br />
 								<canvas
 									ref={this.canvasRef}
 									id="stage"
@@ -584,22 +586,22 @@ class LobbiesPage extends React.Component {
 							<Row>
 								<Button
 									variant="danger"
-									onClick={() => {this.handleLeaveGame(this.state.playerId, this.state.joinedLobbyId)}}
+									onClick={() => { this.handleLeaveGame(this.state.playerId, this.state.joinedLobbyId) }}
 									className="leaveGameButton"
 									block
-									>
+								>
 									Quit game and lobby
 								</Button>
 							</Row>
-							{this.state.userWon && 
-							<Row>
-								<h1> You won! To play another game, click on the button above</h1>
-							</Row>
+							{this.state.userWon &&
+								<Row>
+									<h1> You won! To play another game, click on the button above</h1>
+								</Row>
 							}
 						</Container>
 					</div>
 				)
-			} 
+			}
 			// Render the game for a mobile player
 			else if (this.state.showGameView && this.state.isMobilePlayer === true) {
 				return (
@@ -608,10 +610,10 @@ class LobbiesPage extends React.Component {
 							variant="success"
 							block
 							disabled
-							>
+						>
 							Successfully connected to game
 						</Button>
-						<br/>
+						<br />
 						<center>
 							<canvas
 								ref={this.mobileCanvasRef}
@@ -622,7 +624,7 @@ class LobbiesPage extends React.Component {
 							>
 							</canvas>
 						</center>
-						<br/>
+						<br />
 						<Button
 							variant="light"
 							block
@@ -630,7 +632,7 @@ class LobbiesPage extends React.Component {
 							onClick={() => {
 								this.activateHealingCanvas();
 							}}
-							>
+						>
 							Activate Healing!
 						</Button>
 					</div>
@@ -649,31 +651,31 @@ class LobbiesPage extends React.Component {
 				return (
 					<div className="lobby-page">
 						<h1>You are in Lobby {this.state.joinedLobbyId}</h1>
-						{(isLobbyOwner) ? 
+						{(isLobbyOwner) ?
 							<p>
 								You are lobby owner (only you can start the game)
 								Note that if you start a game by yourself, you will automatically win. The game will then end shortly, so you won't be able to control your player (as the canvas is disabled). You will need to start a game with at least two players in the lobby.
 								<Button
 									variant="success"
 									block
-									onClick={() => {this.handleStartGame(this.state.playerId, this.state.joinedLobbyId)}}
+									onClick={() => { this.handleStartGame(this.state.playerId, this.state.joinedLobbyId) }}
 								>
 									Start Game
 								</Button>
 								<Button
 									variant="danger"
 									block
-									onClick={() => {this.handleDeleteLobby(this.state.playerId, this.state.joinedLobbyId)}}
+									onClick={() => { this.handleDeleteLobby(this.state.playerId, this.state.joinedLobbyId) }}
 								>
 									Delete Lobby
 								</Button>
 							</p>
-						:
+							:
 							<p> Welcome. Please wait for lobby owner to start game. Your game will automatically load once the lobby owner starts the game
 								<Button
 									variant="danger"
 									block
-									onClick={() => {this.handleLeaveLobby(this.state.playerId, this.state.joinedLobbyId)}}
+									onClick={() => { this.handleLeaveLobby(this.state.playerId, this.state.joinedLobbyId) }}
 								>
 									Leave Lobby
 								</Button>
