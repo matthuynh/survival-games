@@ -2,6 +2,7 @@ import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import '../css/UserInfo.css';
 
 class UserInfo extends React.Component {
@@ -155,7 +156,9 @@ class UserInfo extends React.Component {
                 <input type="password" className="form-control" placeholder="Re-enter Password" value={this.state.confirmPassword} onChange={this.handleConfirmPass} />
 
                 <Button variant="primary" value="login" className="login-button" onClick={this.handleEditUserInfo}>Change</Button>
-                <Button variant="primary" className="login-button" onClick={this.props.handleDash}>Go to Dashboard</Button>
+                <Link to="/dashboard">
+                    <Button variant="primary" className="login-button">Go to Dashboard</Button>
+                </Link>
             </div>
         );
     }

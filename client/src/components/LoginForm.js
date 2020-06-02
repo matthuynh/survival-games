@@ -2,6 +2,9 @@ import React from 'react';
 import axios from 'axios';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
+import { Link } from 'react-router-dom';
+import auth from "../Routing/auth";
+import Logo from '../assets/login.png';
 import '../css/LoginForm.css';
 
 class LoginForm extends React.Component {
@@ -19,40 +22,6 @@ class LoginForm extends React.Component {
         this.handleAlertClick = this.handleAlertClick.bind(this);
     }
 
-    componentDidMount() {
-        //fetch to verify
-        //if verified
-        if (document.cookie !== "") {
-            //getting jwtToken
-            const cookie = document.cookie;
-            const splitCookie = cookie.split("=");
-            const token = splitCookie[1];
-            let postData = {
-                cookies: token,
-            };
-
-            const that = this;
-            //fetch call for logging in user
-            axios.post('http://localhost:10421/ftd/api/verify', postData)
-                .then(response => {
-                    //checking if logged in user is verified
-                    if (response.data.verified == "Verified") {
-                        that.props.handleLoggedIn();
-                    }
-                })
-                .catch(error => {
-                    if (error.response) {
-                        //error is user is not verified
-                        if (error.response.status === 401) {
-                            that.setState({
-                                error: "Not authorized",
-                                alert: true
-                            });
-                        }
-                    }
-                })
-        }
-    }
 
     //handler for username field
     handleUsername(event) {
@@ -80,9 +49,12 @@ class LoginForm extends React.Component {
         axios.post('http://localhost:10421/ftd/api/login', postData)
             .then(response => {
                 //set jwt token for logged in user
-                document.cookie = "jwt=" + response.data.jwt;
-                that.props.getUser();
-                that.props.handleLoggedIn();
+                // document.cookie = "jwt=" + response.data.jwt;
+                // that.props.handleLoggedIn();
+                //redirect to dashboard and then private route verifies route and goes to dashboard
+                auth.login(response.data.jwt, () => {
+                    this.props.history.push("/dashboard");
+                });
             })
             .catch(error => {
                 //error status
@@ -118,15 +90,19 @@ class LoginForm extends React.Component {
         return (
             <div className="login-form">
                 {alert}
-                <p>🏹 Minecraft Survival Games 🔫</p>
-                <h1 id="login-text">Login</h1>
+                <img src={Logo} />
                 <hr />
                 <input type="text" className="form-control" placeholder="Username" value={this.state.username} onChange={this.handleUsername} />
                 <input type="password" className="form-control" placeholder="Password" value={this.state.password} onChange={this.handlePassword} />
 
                 <Button variant="primary" type="submit" onClick={this.handleLogInUser} className="login-button">Login</Button>
-                <Button variant="primary" type="submit" onClick={this.props.handleRegister} className="login-button">Register</Button>
-                <Button variant="primary" type="submit" onClick={this.props.handleLeaderBoard} className="login-button">LeaderBoards</Button>
+                <Link to="/register">
+                    <Button variant="primary" className="login-button">Register</Button>
+                </Link>
+
+                <Link to="/">
+                    <Button variant="primary" className="login-button">Home</Button>
+                </Link>
             </div>
         );
     }

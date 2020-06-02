@@ -1,12 +1,16 @@
 import React from 'react';
 import './App.css';
-import Control from './containers/Control';
+// import Control from './containers/Control';
+import { BrowserRouter } from 'react-router-dom';
+import Router from "./Routing/Router";
 
 function App() {
   return (
-    <div>
-      <Control />
-    </div>
+    <BrowserRouter>
+      <div>
+        <Router />
+      </div>
+    </BrowserRouter>
   );
 }
 
