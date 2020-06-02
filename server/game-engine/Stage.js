@@ -69,18 +69,18 @@ module.exports = class Stage {
             let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageHeight / 4);
             
             // Check to see if the would collide with another player
-            let collides = this.checkForGenerationCollisions(xSpawn, ySpawn);
+			const playerRadius = 30;
+            let collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
             let attemptsToMake = 3;
             while (collides || attemptsToMake > 0) {
                 xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
                 ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageWidth / 4);
                 attemptsToMake--;
-                collides = this.checkForGenerationCollisions(xSpawn, ySpawn);
+                collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
             }
             
             const playerStartingPosition = new Pair(xSpawn, ySpawn);
             const playerColour = getRandomColor(); // each player has a different color
-            const playerRadius = 30;
             const playerHP = 100;
             const playerMovementSpeed = 8; // default is 8; debug is 15
             let player = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, this.players[i].pid);
@@ -88,8 +88,8 @@ module.exports = class Stage {
         }
 
 		// Generate environment (bushes, crates, buffs) and add them to the corresponding actors lists
-		this.generateBushes(generationSettings.numBushes);
 		this.generateCrates(generationSettings.numCrates);
+		this.generateBushes(generationSettings.numBushes);
 		this.generateBuffs(generationSettings);
 
 		this.startTime = Math.round(new Date().getTime() / 1000);
@@ -190,15 +190,15 @@ module.exports = class Stage {
 		for (let i = 0; i < numBushes; i++) {
 			// console.log("Generating bush");
 			let validGeneration = false;
-			let attemptsToMake = 3;
+			let attemptsToMake = 5;
 			const colour = "rgba(0,61,17,0.95)", radius = 80;
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this bush would collide any other actors
-				let collides = this.checkForGenerationCollisions(startingX, startingY);
+				let collides = this.checkForGenerationCollisions(startingX, startingY, radius * 2);
 				if (!collides) {
 					let bush = new BushEnv(new Pair(startingX, startingY), colour, radius)
 					this.addActor(bush);
@@ -215,15 +215,17 @@ module.exports = class Stage {
 	generateCrates(numCrates) {
 		for (let i = 0; i < numCrates; i++) {
 			let validGeneration = false;
-			let attemptsToMake = 3; // after 3 attempts, stops trying to generate this crate
+			let attemptsToMake = 5; // after n attempts, stops trying to generate this crate
 			const colour = "rgb(128,128,128,1)";
+			let width = 220, height = 220;
+			const playerRadius = 30; // used so that crates don't spawn with small gaps that players can't access
 			while (!validGeneration && attemptsToMake > 0) {
-				let width = 220, height = 220;
-				let startingX = randInt(this.stageWidth - 200);
-				let startingY = randInt(this.stageHeight - 200);
+				let startingX = randInt(this.stageWidth - width);
+				let startingY = randInt(this.stageHeight - width);
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, width + playerRadius, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this crate would collide any other actors
-				let collides = this.checkForGenerationCollisions(startingX, startingY);
+				let collides = this.checkForGenerationCollisions(startingX, startingY, width * 2);
 				if (!collides) {
 					let crate = new Crate(startingX, startingY, colour, width, height)
 					this.addActor(crate);
@@ -240,15 +242,15 @@ module.exports = class Stage {
         // Generate RDS buffs
         for (let i = 0; i < generationSettings.numRDS; i++) {
             let validGeneration = false;
-            let attemptsToMake = 3;
+            let attemptsToMake = 5;
             let colour = "rgba(255,255,0,1)", radius = 20;
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this scope buff would collide any other actors
-                let collides = this.checkForGenerationCollisions(startingX, startingY);
+                let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
                 if (!collides) {
                     let scope = new ScopeEnv(new Pair(startingX, startingY), colour, radius)
                     this.addActor(scope);
@@ -263,15 +265,15 @@ module.exports = class Stage {
         // Generate speed buffs
         for (let i = 0; i < generationSettings.numSpeedBoost; i++) {
             let validGeneration = false;
-            let attemptsToMake = 3;
+            let attemptsToMake = 5;
             let colour = "rgba(0,0,255,1)", radius = 20;
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this speed buff would collide any other actors
-                let collides = this.checkForGenerationCollisions(startingX, startingY);
+                let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
                 if (!collides) {
                     let speedBoost = new SpeedBoostEnv(new Pair(startingX, startingY), colour, radius)
                     this.addActor(speedBoost);
@@ -285,15 +287,15 @@ module.exports = class Stage {
         // Generate small guns
         for (let i = 0; i < generationSettings.numSmallGun; i++) {
             let validGeneration = false;
-            let attemptsToMake = 3;
+            let attemptsToMake = 5;
             let colour = "rgba(255,255,0,1)", radius = 20;
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this small gun would collide any other actors
-                let collides = this.checkForGenerationCollisions(startingX, startingY);
+                let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
                 if (!collides) {
                     let smallGun = new PistolEnv(new Pair(startingX, startingY), colour, radius)
                     this.addActor(smallGun);
@@ -307,15 +309,15 @@ module.exports = class Stage {
         // Generate big guns
         for (let i = 0; i< generationSettings.numBigGun; i++) {
             let validGeneration = false;
-            let attemptsToMake = 3;
+            let attemptsToMake = 5;
             let colour = "rgba(255,255,0,1)", radius = 20;
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
-                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
     
                 // Check if this big gun would collide any other actors
-                let collides = this.checkForGenerationCollisions(startingX, startingY);
+                let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
                 if (!collides) {
                     let bigGun = new BurstRifleEnv(new Pair(startingX, startingY), colour, radius)
                     this.addActor(bigGun);
@@ -329,15 +331,15 @@ module.exports = class Stage {
 		// Generate numBuffs number of ammo
 		for (let i = 0; i < generationSettings.numAmmo; i++) {
 			let validGeneration = false;
-			let attemptsToMake = 3;
+			let attemptsToMake = 5;
 			const colour = "rgba(0,0,0,1)", radius = 20;
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this ammo would collide any other actors
-				let collides = this.checkForGenerationCollisions(startingX, startingY);
+				let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
 				if (!collides) {
 					let ammo = new AmmoEnv(new Pair(startingX, startingY), colour, radius)
 					this.addActor(ammo);
@@ -351,15 +353,15 @@ module.exports = class Stage {
 		// Generate numBuffs number of HP pots
 		for (let i = 0; i < generationSettings.numHPPots; i++) {
 			let validGeneration = false;
-			let attemptsToMake = 3;
+			let attemptsToMake = 5;
 			const colour = "rgba(255,0,0,1)", radius = 20;
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
-				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, 40, this.stageWidth, this.stageHeight)) { continue; }
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this HP pot would collide any other actors
-				let collides = this.checkForGenerationCollisions(startingX, startingY);
+				let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
 				if (!collides) {
 					let hpPot = new HealthPotEnv(new Pair(startingX, startingY), colour, radius)
 					this.addActor(hpPot);
@@ -372,7 +374,7 @@ module.exports = class Stage {
 	}
 
 	// Check for generation collisions 
-	checkForGenerationCollisions(destinationX, destinationY) {
+	checkForGenerationCollisions(destinationX, destinationY, objectRadius) {
 		// Check if our structure will collide with other players
 		let playersList = this.getPlayerActors();
 		for (let i = 0; i < playersList.length; i++) {
@@ -382,7 +384,7 @@ module.exports = class Stage {
 			let distance = Math.sqrt(dx * dx + dy * dy);
 
 			// Player collides with another player
-			if (distance < playersList[i].getRadius()) {
+			if (distance < playersList[i].getRadius() + objectRadius) {
 				return true;
 			}
 		}
@@ -400,26 +402,25 @@ module.exports = class Stage {
 				let distance = Math.sqrt(dx * dx + dy * dy);
 
 				// Player collides with crate
-				if (distance < 300) {
+				if (distance < crateList[i].getWidth() + objectRadius) {
 					return true;
 				}
 			}
 		}
 
-		// Check generation collision with ammo, etc.
-		let actorsList = this.getBulletActors();
+		// Check generation collision with environment objects, etc.
+		let actorsList = this.getEnvironmentActors();
 		for (let i = 0; i < actorsList.length; i++) {
-			// Players do not collide with Bushes
-			if (actorsList[i] instanceof BushEnv) {
-				let bushPosition = actorsList[i].getStartingPosition();
-				let dx = destinationX - bushPosition.x;
-				let dy = destinationY - bushPosition.y;
-				let distance = Math.sqrt(dx * dx + dy * dy);
+			if (actorsList[i] instanceof Line) { continue; }
+			
+			let envPosition = actorsList[i].getStartingPosition();
+			let dx = destinationX - envPosition.x;
+			let dy = destinationY - envPosition.y;
+			let distance = Math.sqrt(dx * dx + dy * dy);
 
-				// player collides with the player
-				if (distance < actorsList[i].getRadius()) {
-					return true;
-				}
+			// player collides with the player
+			if (distance < actorsList[i].getRadius() + objectRadius) {
+				return true;
 			}
 		}
 		return false;

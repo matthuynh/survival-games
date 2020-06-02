@@ -12,7 +12,7 @@ const GunRifle = require("./environment/GunRifle.js");
 const Line = require("./environment/Line.js");
 
 const Stage = require("./Stage.js");
-const CollisionEngine = require("./CollisionEngine.js");
+// const CollisionEngine = require("./CollisionEngine.js");
 
 // Return a random integer between 0 and n, inclusive
 function randInt(n) { return Math.round(Math.random() * n); }
