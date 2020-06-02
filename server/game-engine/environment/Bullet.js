@@ -1,6 +1,5 @@
 const Circle = require("./Circle.js");
-const Crate = require("./Crate.js");
-const CollisionEngine = require("../CollisionEngine.js");
+// const CollisionEngine = require("../CollisionEngine.js");
 
 // Return the distance between two points, given the x and y coordinate of each point
 function distanceBetweenTwoPoints(startingX, startingY, endingX, endingY) {
@@ -68,7 +67,7 @@ module.exports = class Bullet extends Circle {
 		}
 		else {
 			// Check if the bullet will collide with other players
-			let collidesPlayer = CollisionEngine.checkBulletToPlayerCollision(destinationX, destinationY, stage.getPlayerActors(), this.radius, this.owner);
+			let collidesPlayer = CollisionEngine.checkBulletToPlayerCollision(destinationX, destinationY, stage.getPlayerActors(), this.radius, this.owner, this.bulletDamage);
 			if (collidesPlayer) {
 				stage.removeActor(this);
 			} 
@@ -76,7 +75,6 @@ module.exports = class Bullet extends Circle {
 			// Check if the bullet will collide with a crate
 			else {
 				let collidesCrate = CollisionEngine.checkBulletToCrateCollision(destinationX, destinationY, stage.getCrateActors(), this.radius);
-				let crateList = stage.getCrateActors();
 				if (collidesCrate) {
 					stage.removeActor(this);
 				} 

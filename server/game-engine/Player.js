@@ -1,15 +1,12 @@
 const Pair = require("./environment/Pair.js");
 const Circle = require("./environment/Circle.js");
-const Crate = require("./environment/Crate.js");
 const BushEnv = require("./environment/BushEnv.js");
 const AmmoEnv = require("./environment/AmmoEnv.js");
-const SmallGunEnv = require("./environment/SmallGunEnv.js");
-const BigGunEnv = require("./environment/BigGunEnv.js");
+const PistolEnv = require("./environment/PistolEnv.js");
+const BurstRifleEnv = require("./environment/BurstRifleEnv.js");
 const SpeedBoostEnv = require("./environment/SpeedBoostEnv.js");
 const HealthPotEnv = require("./environment/HealthPotEnv.js");
 const ScopeEnv = require("./environment/ScopeEnv.js");
-const Bullet = require("./environment/Bullet.js");
-const Gun = require("./environment/Gun.js");
 const GunPistol = require("./environment/GunPistol.js");
 const GunRifle = require("./environment/GunRifle.js");
 const Line = require("./environment/Line.js");
@@ -44,6 +41,9 @@ module.exports = class Player extends Circle {
 		this.dx = 0; // displacement in x and y direction
 		this.dy = 0;
 
+		// The coordinates of where this player's hands are located
+		this.handX = 0;
+		this.handY = 0;
 		// Stores where the cursor is currently pointing at
 		this.cursorX = 0;
 		this.cursorY = 0;
@@ -52,9 +52,6 @@ module.exports = class Player extends Circle {
 
 		this.velocity = new Pair(0, 0);
 		this.cursorDirection = new Pair(0, 1); // represents the cursor direction, aka. where the player is facing
-		// The coordinates of where this player's hands are located
-		this.handX = 0;
-		this.handY = 0;
 
 		
 		// Stores the player's buffs
@@ -192,6 +189,7 @@ module.exports = class Player extends Circle {
 			firingVector.normalize();
 
 			this.weapons[this.currentWeapon].shoot(this.position, this.cursorDirection, firingVector, "rgba(0,0,0,1)");
+			// this.weapons[this.currentWeapon].shoot(new Pair(this.handX, this.handY), this.cursorDirection, firingVector, "rgba(0,0,0,1)");
 		}
 	}
 
@@ -277,7 +275,7 @@ module.exports = class Player extends Circle {
 					this.setMovementSpeed(12);
 					this.stage.removeActor(collidedObj.type);
 				}
-				else if (collidedObj.type instanceof SmallGunEnv) { 
+				else if (collidedObj.type instanceof PistolEnv) { 
 					// console.log("player collision detected -- Player with Small gun"); 
 					// Pick this up only if player doesn't already have the pistol
 					if (this.weapons[1] == null) {
@@ -298,7 +296,7 @@ module.exports = class Player extends Circle {
 					}
 
 				}
-				else if (collidedObj.type instanceof BigGunEnv) {
+				else if (collidedObj.type instanceof BurstRifleEnv) {
 					// console.log("player collision detected -- Player with big gun");
 					// Pick this up only if the player doens't already own the rifle
 					if (this.weapons[2] == null) {

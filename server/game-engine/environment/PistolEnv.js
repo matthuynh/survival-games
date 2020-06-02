@@ -1,7 +1,7 @@
 const Circle = require("./Circle.js");
 
-// A big gun that Players can use to pick up
-module.exports = class BigGunEnv extends Circle {
+// A small gun that Players can use to pick up
+module.exports = class PistolEnv extends Circle {
 	constructor(position, colour, radius) {
 		super(position, colour, radius);
 		this.x = Math.round(this.position.x);
@@ -12,14 +12,14 @@ module.exports = class BigGunEnv extends Circle {
 	step() {
     }
     
-    // Return a JSON representation of this big gun
+    // Return a JSON representation of this small gun
     getJSONRepresentation() {
         return {
-            type: "BigGunEnv",
+            type: "PistolEnv",
             x: this.x,
             y: this.y,
             radius: this.radius,
             colour: this.colour
         }
-    }   
+    }
 }

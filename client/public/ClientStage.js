@@ -499,7 +499,7 @@ class Stage {
 					textY
 				);
 				break;
-			case "SmallGunEnv":
+			case "PistolEnv":
 				textX = e.x - e.radius / 2 - 8;
 				textY = e.y + 1;
 				this.drawObject(
@@ -511,7 +511,7 @@ class Stage {
 					textY
 				);
 				break;
-			case "BigGunEnv":
+			case "BurstRifleEnv":
 				textX = e.x - e.radius / 2 - 7;
 				textY = e.y + 2;
 				this.drawObject(

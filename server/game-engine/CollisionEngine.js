@@ -3,8 +3,8 @@ const Circle = require("./environment/Circle.js");
 const Crate = require("./environment/Crate.js");
 const BushEnv = require("./environment/BushEnv.js");
 const AmmoEnv = require("./environment/AmmoEnv.js");
-const SmallGunEnv = require("./environment/SmallGunEnv.js");
-const BigGunEnv = require("./environment/BigGunEnv.js");
+const PistolEnv = require("./environment/PistolEnv.js");
+const BurstRifleEnv = require("./environment/BurstRifleEnv.js");
 const SpeedBoostEnv = require("./environment/SpeedBoostEnv.js");
 const HealthPotEnv = require("./environment/HealthPotEnv.js");
 const ScopeEnv = require("./environment/ScopeEnv.js");
@@ -201,24 +201,24 @@ module.exports = CollisionEngine = {
 	},
 
 	// Used by class Bullet to check for collisions between a bullet and player
-	checkBulletToPlayerCollision(destinationX, destinationY, playerList, bulletRadius, bulletOwner) {
-		for (let i = 0; i < playersList.length; i++) {
+	checkBulletToPlayerCollision(destinationX, destinationY, playerList, bulletRadius, bulletOwner, bulletDamage) {
+		for (let i = 0; i < playerList.length; i++) {
 			// Check if the player is shooting ANOTHER player (not the one shooting the bullet) -- player can't shoot itself
-			if (playersList[i] == bulletOwner) {
+			if (playerList[i] == bulletOwner) {
 				continue;
 			}
 
-			let playerPosition = playersList[i].getPlayerPosition();
+			let playerPosition = playerList[i].getPlayerPosition();
 			let dx = destinationX - playerPosition.x;
 			let dy = destinationY - playerPosition.y;
 			let distance = Math.sqrt(dx * dx + dy * dy);
 
 			// Bullet collides with the player
-			if (distance < bulletRadius + playersList[i].getRadius()) {
+			if (distance < bulletRadius + playerList[i].getRadius()) {
 				// console.log("Bullet collision detected -- Bullet with player");
 
 				// Decrease the player's HP
-				playersList[i].decreaseHP(this.bulletDamage);
+				playerList[i].decreaseHP(bulletDamage);
 				// console.log("players HP: " + playersList[i].HP);
 				return true;
 			}
@@ -252,7 +252,7 @@ module.exports = CollisionEngine = {
 			let distanceY = Math.abs(destinationY - cratePosition.y - crateObject.getHeight() / 2);
 
 			// If the distance between the player and Crate is longer than the player radius + half(Crate Width), we know they are not colliding
-			if ((distanceX > ((crateObject.getWidth() / 2) + playerRadius)) || (distanceY > ((crateObject.getHeight() / 2) + playerRadius))) {
+			if ((distanceX > ((crateObject.getWidth() / 2) + bulletRadius)) || (distanceY > ((crateObject.getHeight() / 2) + bulletRadius))) {
 				continue;
 			}
 
@@ -264,7 +264,7 @@ module.exports = CollisionEngine = {
 			else {
 				let dx = distanceX - crateObject.getWidth() / 2;
 				let dy = distanceY - crateObject.getHeight() / 2;
-				if (dx * dx + dy * dy <= (playerRadius * playerRadius)) {
+				if (dx * dx + dy * dy <= (bulletRadius * bulletRadius)) {
 					// console.log("player collision detected -- player with Crate");
 					return true;
 				}

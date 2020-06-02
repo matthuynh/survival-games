@@ -3,8 +3,8 @@ const Circle = require("./environment/Circle.js");
 const Crate = require("./environment/Crate.js");
 const BushEnv = require("./environment/BushEnv.js");
 const AmmoEnv = require("./environment/AmmoEnv.js");
-const SmallGunEnv = require("./environment/SmallGunEnv.js");
-const BigGunEnv = require("./environment/BigGunEnv.js");
+const PistolEnv = require("./environment/PistolEnv.js");
+const BurstRifleEnv = require("./environment/BurstRifleEnv.js");
 const SpeedBoostEnv = require("./environment/SpeedBoostEnv.js");
 const HealthPotEnv = require("./environment/HealthPotEnv.js");
 const ScopeEnv = require("./environment/ScopeEnv.js");
@@ -295,7 +295,7 @@ module.exports = class Stage {
                 // Check if this small gun would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
                 if (!collides) {
-                    let smallGun = new SmallGunEnv(new Pair(startingX, startingY), colour, radius)
+                    let smallGun = new PistolEnv(new Pair(startingX, startingY), colour, radius)
                     this.addActor(smallGun);
                     validGeneration = true;
                     // console.log(`Small gun generated at (${startingX}, ${startingY})`);
@@ -317,7 +317,7 @@ module.exports = class Stage {
                 // Check if this big gun would collide any other actors
                 let collides = this.checkForGenerationCollisions(startingX, startingY);
                 if (!collides) {
-                    let bigGun = new BigGunEnv(new Pair(startingX, startingY), colour, radius)
+                    let bigGun = new BurstRifleEnv(new Pair(startingX, startingY), colour, radius)
                     this.addActor(bigGun);
                     validGeneration = true;
                     // console.log(`Big gun generated at (${startingX}, ${startingY})`);
