@@ -107,7 +107,7 @@ class LobbiesPage extends React.Component {
 		this.clientSocket.close();
 
 		//change to dashboard here----------------------------------------------------------
-		this.props.handleDash();
+		// this.props.handleDash();
 		this.setState({
 			showGameView: false,
 			userWon: false,
@@ -599,7 +599,6 @@ class LobbiesPage extends React.Component {
 					lobbies={this.state.lobbies}
 					joinLobby={this.handleJoinLobby}
 					createLobby={this.handleCreateLobby}
-					returnToDashboard={this.returnToDashboard}
 				/>
 			);
 		}

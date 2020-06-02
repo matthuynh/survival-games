@@ -1,6 +1,7 @@
 import React from "react";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
+import { Link } from 'react-router-dom';
 import "../../css/Lobby.css";
 
 // Display a list of lobbies currently stored on the server
@@ -61,28 +62,28 @@ class LobbyList extends React.Component {
 											{lobby.gameInProgress === true ? (
 												<p>Ongoing Game</p>
 											) : lobby.numPlayers >=
-											  lobby.maxLobbySize ? (
-												<Button
-													variant="danger"
-													disabled
-													block
-													className="disable-cursor"
-												>
-													Lobby Full
-												</Button>
-											) : (
-												<Button
-													variant="outline-success"
-													block
-													onClick={() => {
-														this.props.joinLobby(
-															lobby.id
-														);
-													}}
-												>
-													Join Lobby
-												</Button>
-											)}
+												lobby.maxLobbySize ? (
+														<Button
+															variant="danger"
+															disabled
+															block
+															className="disable-cursor"
+														>
+															Lobby Full
+														</Button>
+													) : (
+														<Button
+															variant="outline-success"
+															block
+															onClick={() => {
+																this.props.joinLobby(
+																	lobby.id
+																);
+															}}
+														>
+															Join Lobby
+														</Button>
+													)}
 										</td>
 									</tr>
 								);
@@ -105,13 +106,14 @@ class LobbyList extends React.Component {
 				>
 					Create Lobby
 				</Button>
-				<Button
-					variant="primary"
-					block
-					onClick={this.props.returnToDashboard}
-				>
-					Go back to Dashboard
-				</Button>
+				<Link to="/dashboard">
+					<Button
+						variant="primary"
+						block
+					>
+						Go back to Dashboard
+					</Button>
+				</Link>
 			</div>
 		);
 	}
