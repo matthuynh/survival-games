@@ -4,6 +4,7 @@ import Table from "react-bootstrap/Table";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import { Link } from 'react-router-dom';
+import auth from "../Routing/auth";
 import "../css/LobbiesPage.css";
 
 import LobbyList from "./lobby_components/LobbyList";
@@ -38,7 +39,7 @@ class LobbiesPage extends React.Component {
 		super(props);
 		this.state = {
 			showGameView: false,
-			playerId: props.playerId,
+			playerId: auth.getUser(),
 			userWon: false,
 			userLost: false,
 			joinedLobbyId: null,
@@ -57,6 +58,8 @@ class LobbiesPage extends React.Component {
 			width: 0,
 			height: 0
 		};
+
+		//set playerid
 
 		// Send username when connecting to server
 		this.clientSocket = new WebSocket(`${wssServerURL}?connectingUID=${this.state.playerId}`);

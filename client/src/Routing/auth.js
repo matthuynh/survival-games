@@ -2,13 +2,37 @@ import axios from 'axios';
 class Auth {
     constructor() {
         this.authenticated = false;
+        this.username = "";
     }
 
     login(token, cb) {
         this.authenticated = true;
         document.cookie = "jwt=" + token;
         localStorage.setItem('isAuth', this.authenticated);
-        cb();
+        if (document.cookie !== "") {
+            // Getting jwtToken
+            const cookie = document.cookie;
+            const splitCookie = cookie.split("=");
+            const token = splitCookie[1];
+            let postData = {
+                cookies: token,
+            };
+
+            const that = this;
+            axios.post('http://localhost:10421/ftd/api/username', postData)
+                .then(response => {
+                    if (response.data.verified == "Verified") {
+                        that.username = response.data.username;
+                        cb();
+                    }
+
+                })
+                .catch(error => {
+                    //error status
+                    console.log('Request failed', error);
+                })
+
+        }
     }
 
     logout(cb) {
@@ -39,6 +63,10 @@ class Auth {
         this.authenticated = false;
         localStorage.removeItem('isAuth');
         cb();
+    }
+
+    getUser() {
+        return this.username;
     }
 }
 
