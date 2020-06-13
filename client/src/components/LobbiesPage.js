@@ -39,7 +39,7 @@ class LobbiesPage extends React.Component {
 		super(props);
 		this.state = {
 			showGameView: false,
-			playerId: auth.getUser(),
+			playerId: this.props.User,
 			userWon: false,
 			userLost: false,
 			joinedLobbyId: null,
@@ -58,6 +58,8 @@ class LobbiesPage extends React.Component {
 			width: 0,
 			height: 0
 		};
+
+		console.log(this.props.User);
 
 		//set playerid
 

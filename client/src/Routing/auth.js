@@ -23,6 +23,7 @@ class Auth {
                 .then(response => {
                     if (response.data.verified == "Verified") {
                         that.username = response.data.username;
+                        localStorage.setItem('Username', response.data.username);
                         cb();
                     }
 
@@ -67,6 +68,39 @@ class Auth {
 
     getUser() {
         return this.username;
+    }
+
+    async getUsername() {
+        try {
+            if (document.cookie !== "") {
+                // Getting jwtToken
+                const cookie = document.cookie;
+                const splitCookie = cookie.split("=");
+                const token = splitCookie[1];
+                let postData = {
+                    cookies: token,
+                };
+
+                const that = this;
+                await axios.post('http://localhost:10421/ftd/api/username', postData)
+                    .then(response => {
+                        if (response.data.verified == "Verified") {
+                            console.log(response.data.username);
+                            return response.data.username;
+                        }
+
+                    })
+                    .catch(error => {
+                        //error status
+                        console.log('Request failed', error);
+                    })
+
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+
     }
 }
 
