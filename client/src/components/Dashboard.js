@@ -15,29 +15,29 @@ class Dashboard extends React.Component {
     }
 
     componentDidMount() {
-        if (document.cookie !== "") {
-            // Getting jwtToken
-            const cookie = document.cookie;
-            const splitCookie = cookie.split("=");
-            const token = splitCookie[1];
-            let postData = {
-                cookies: token,
-            };
+        // if (document.cookie !== "") {
+        //     // Getting jwtToken
+        //     const cookie = document.cookie;
+        //     const splitCookie = cookie.split("=");
+        //     const token = splitCookie[1];
+        //     let postData = {
+        //         cookies: token,
+        //     };
 
-            const that = this;
-            axios.post('http://localhost:10421/ftd/api/username', postData)
-                .then(response => {
-                    if (response.data.verified == "Verified") {
-                        that.setState({ username: response.data.username });
-                    }
+        //     const that = this;
+        //     axios.post('http://localhost:10421/ftd/api/username', postData)
+        //         .then(response => {
+        //             if (response.data.verified == "Verified") {
+        //                 that.setState({ username: response.data.username });
+        //             }
 
-                })
-                .catch(error => {
-                    //error status
-                    console.log('Request failed', error);
-                })
+        //         })
+        //         .catch(error => {
+        //             //error status
+        //             console.log('Request failed', error);
+        //         })
 
-        }
+        // }
     }
 
 
@@ -49,7 +49,7 @@ class Dashboard extends React.Component {
                     <h1 id="dashboard-greeting">{'Welcome ' + this.state.username}</h1>
                     <p id="text">Select from one of the following options below</p>
                     <hr />
-                    <Link to="/lobbies">
+                    <Link to="/play">
                         <Button variant="primary" block >View Lobbies</Button>
                     </Link>
 

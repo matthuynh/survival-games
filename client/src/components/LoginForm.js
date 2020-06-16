@@ -48,9 +48,6 @@ class LoginForm extends React.Component {
         const that = this;
         axios.post('http://localhost:10421/ftd/api/login', postData)
             .then(response => {
-                //set jwt token for logged in user
-                // document.cookie = "jwt=" + response.data.jwt;
-                // that.props.handleLoggedIn();
                 //redirect to dashboard and then private route verifies route and goes to dashboard
                 auth.login(response.data.jwt, () => {
                     this.props.history.push("/dashboard");

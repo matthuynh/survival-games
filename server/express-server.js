@@ -329,7 +329,8 @@ app.post("/ftd/api/verify", async (req, res) => {
 	}
 });
 
-//get username of the user logged in
+// TODO: This is a duplicate method of the one above
+// Get username of the user logged in
 app.post("/ftd/api/username", async (req, res) => {
 	try {
 		// Verify JWT Token
