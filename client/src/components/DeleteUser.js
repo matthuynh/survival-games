@@ -1,11 +1,10 @@
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import auth from "../Routing/auth";
+import Auth from "../Routing/Auth";
 import { Link } from 'react-router-dom';
 import '../css/DeleteUser.css';
 import Axios from 'axios';
-
 
 class DeleteUser extends React.Component {
 
@@ -50,7 +49,7 @@ class DeleteUser extends React.Component {
         })
             .then(response => {
                 //delete user and redirect to login screen
-                auth.delete(() => {
+                Auth.delete(() => {
                     this.props.history.push("/login");
                 })
             })

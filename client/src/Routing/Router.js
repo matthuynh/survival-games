@@ -28,7 +28,7 @@ class Router extends React.Component {
                 <Route path="/landing" component={LandingPage} />
 
                 {/* Protected Routes */}
-                <ProtectedRoute path="/dashboard" component={Dashboard} />
+                <ProtectedRoute path="/dashboard" render={(props) => <Dashboard {...props}/> } component={Dashboard}  />
                 <ProtectedRoute path="/deleteuser" component={DeleteUser} />
                 <ProtectedRoute path="/play" render={(props) => <LobbiesPage {...props} User={"hoolahoop"} />} component={LobbiesPage} />
                 <ProtectedRoute path="/userinfo" component={UserInfo} />

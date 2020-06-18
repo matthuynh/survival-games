@@ -1,48 +1,19 @@
 import axios from 'axios';
+import { withRouter } from 'react-router-dom';
+
 class Auth {
     constructor() {
+        // TODO: Do we still need this?
         this.authenticated = false;
-        this.username = "";
     }
 
     // Called when the user successfully logs into the server
     login(token, cb) {
-        const loginTime = new Date();
-        const timeToLive = 14400; // time in seconds
-        const authTime = {
-            loginTime: loginTime,
-            ttl: timeToLive
-        }
+        console.log("Logging in the user")
         this.authenticated = true;
         document.cookie = "jwt=" + token;
         localStorage.setItem('isAuth', this.authenticated);
-        localStorage.setItem('authTime', authTime);
-
-        // const cookie = document.cookie;
-        // const splitCookie = cookie.split("=");
-        // const token = splitCookie[1];
-        let postData = {
-            cookies: document.cookie.split("=")[1],
-        };
-
-        // Get username corresponding to the JWT
-        const that = this;
-        axios.post('http://localhost:10421/ftd/api/username', postData)
-            .then(response => {
-                if (response.data.verified === "Verified") {
-                    that.username = response.data.username;
-                    localStorage.setItem('Username', response.data.username);
-                    cb();
-                } else {
-                    that.logout();
-                }
-
-            })
-            .catch(error => {
-                //error status
-                console.log('Request failed', error);
-                that.logout();
-            });
+        cb();
     }
 
     // Logs out user, and then calls the callback
@@ -71,6 +42,7 @@ class Auth {
             })
     }
 
+    // TODO: Check if this is fine
     // Remove login state when user deletes their account
     delete(cb) {
         this.authenticated = false;
@@ -78,11 +50,7 @@ class Auth {
         cb();
     }
 
-    // Return logged-in user's username
-    getUser() {
-        return this.username;
-    }
-
+    // Return the user's username if exists, else empty string
     async getUsername() {
         try {
             if (document.cookie !== "") {
@@ -94,45 +62,27 @@ class Auth {
                     cookies: token,
                 };
 
-                const that = this;
-                await axios.post('http://localhost:10421/ftd/api/username', postData)
-                    .then(response => {
-                        if (response.data.verified == "Verified") {
-                            console.log(response.data.username);
-                            return response.data.username;
-                        }
-
-                    })
-                    .catch(error => {
-                        //error status
-                        console.log('Request failed', error);
-                    })
-
+                const response = await axios.post('http://localhost:10421/ftd/api/username', postData);
+                if (response && response.data && response.data.verified === "Verified") {
+                    return response.data.username;
+                }
             }
-
-        } catch (error) {
-            console.log(error);
+            return "";   
+        } catch {
+            console.log("Bruh2");
+            return "";
         }
-
     }
 
-    // Return true if the user is currently logged in (login expires after 4 hours)
+    // Return true if the user is currently logged in (sends JWT to server, server checks TTL)
     async isValidLoginSession() {
-        console.log("checking..");
         const postData = {
             cookies: document.cookie.split("=")[1]
         }
         try {
-            let response = await axios.post("http://localhost:10421/ftd/api/verify", postData);
-            console.log(response);
-            if (response && response.data.verified === "Verified") {
-                console.log("Yes, the user is verified. Their username is " + response.data.username);
-                return true;
-            }
-            console.log("No, the user is not verified")
-            return false;
+            const response = await axios.post("http://localhost:10421/ftd/api/verify", postData);
+            return (response && response.data && response.data.verified === "Verified")
         } catch {
-            console.log("LUL");
             return false;
         }
     }

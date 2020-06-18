@@ -1,8 +1,8 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
-import auth from "./auth";
+import Auth from "./Auth";
 
-// Check to see if the user is still authenticated before allowing them to access page
+// Check to see if the user is still authenticated before allowing them to access
 class ProtectedRoute extends React.Component {
     state = {
         loading: true,
@@ -11,7 +11,7 @@ class ProtectedRoute extends React.Component {
 
     // Each time the user accesses a ProtectedRoute, we check if their login session is still valid
     async componentDidMount() {
-        let isValidLoginSession = await auth.isValidLoginSession();
+        let isValidLoginSession = await Auth.isValidLoginSession();
         this.setState({
             loading: false,
             isAuthenticated: isValidLoginSession

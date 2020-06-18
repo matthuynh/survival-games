@@ -3,7 +3,7 @@ import axios from 'axios';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import { Link } from 'react-router-dom';
-import auth from "../Routing/auth";
+import Auth from "../Routing/Auth";
 import Logo from '../assets/login.png';
 import '../css/LoginForm.css';
 
@@ -49,7 +49,7 @@ class LoginForm extends React.Component {
         axios.post('http://localhost:10421/ftd/api/login', postData)
             .then(response => {
                 //redirect to dashboard and then private route verifies route and goes to dashboard
-                auth.login(response.data.jwt, () => {
+                Auth.login(response.data.jwt, () => {
                     this.props.history.push("/dashboard");
                 });
             })

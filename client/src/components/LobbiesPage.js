@@ -4,7 +4,7 @@ import Table from "react-bootstrap/Table";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import { Link } from 'react-router-dom';
-import auth from "../Routing/auth";
+import Auth from "../Routing/Auth";
 import "../css/LobbiesPage.css";
 
 import LobbyList from "./lobby_components/LobbyList";
