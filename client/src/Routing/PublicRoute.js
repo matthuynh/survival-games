@@ -2,19 +2,20 @@ import React from "react";
 import { Route, Redirect } from "react-router-dom";
 import Auth from "./auth";
 
-// If user is authorized, render the component for the given route. Otherwise, render the Login component
-export const ProtectedRoute = ({ component: Component, ...rest }) => {
+// If user is already authorized, render the Dashboard component. Otherwise, render the component for the given route
+// For example, if user is already authorized, going to /login should redirect to /dashboard
+export const PublicRoute = ({ component: Component, ...rest }) => {
 	return (
 		<Route
 			{...rest}
 			render={ (props) => {
-                if (localStorage.isAuth) {
+                if (!localStorage.isAuth) {
                     return <Component {...props} />;
                 }
                 else {
                     return <Redirect to={
                         {
-                            pathname: "/login",
+                            pathname: "/dashboard",
                             state: {
                                 from: props.location
                             }
@@ -26,4 +27,4 @@ export const ProtectedRoute = ({ component: Component, ...rest }) => {
 	);
 };
 
-export default ProtectedRoute;
+export default PublicRoute;

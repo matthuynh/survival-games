@@ -103,9 +103,12 @@ class LobbiesPage extends React.Component {
 	// Return to dashboard, close sockets, and reset state
 	returnToDashboard() {
 		this.clientSocket.close();
+		window.stopStageGame();
+		document.removeEventListener("keydown", this.handleKeyPress);
+		document.removeEventListener("keyup", this.handleKeyRelease);
+		document.removeEventListener("mousemove", this.handleMouseMove);
+		document.removeEventListener("mousedown", this.handleMouseDown);
 
-		//change to dashboard here----------------------------------------------------------
-		// this.props.handleDash();
 		this.setState({
 			showGameView: false,
 			userWon: false,
@@ -132,11 +135,11 @@ class LobbiesPage extends React.Component {
 	async componentDidMount() {
 		this._isMounted = true;
 		
-		// TODO: Prevent page from loading when login session is invalid -- redirect to some other page?
 		try {
 			// Check user authentication status and username to connect to socket server
 			let playerId = await Auth.getUsername();
 			if (playerId === "") {
+				// Unable to get username, handled in catch statement
 				throw Error("Unable to get player ID -- cannot connect to socket server");
 			}
 			this.clientSocket = new WebSocket(`${wssServerURL}?connectingUID=${playerId}`);
@@ -150,12 +153,6 @@ class LobbiesPage extends React.Component {
 	
 			this.clientSocket.onclose = (event) => {
 				console.log("Front-end closing connectiong to web server");
-	
-				// TODO: Will also need to remove all event listeners (this happens when the user is in a game, but the socket server is forcibly closed from the server side) -- make a helper method that checks to see if the listeners are mounted first before removing them
-				document.removeEventListener("keydown", this.handleKeyPress);
-				document.removeEventListener("keyup", this.handleKeyRelease);
-				document.removeEventListener("mousemove", this.handleMouseMove);
-				document.removeEventListener("mousedown", this.handleMouseDown);
 				this.returnToDashboard();
 			};
 	
@@ -310,6 +307,11 @@ class LobbiesPage extends React.Component {
 			};
 		} catch (error) {
 			console.log(error);
+			if (Auth.isValidLoginSession()) {
+				this.props.history.push("/dashboard");
+			} else {
+				this.props.history.push("/login");
+			}
 		}
 	}
 

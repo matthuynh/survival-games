@@ -526,8 +526,8 @@ module.exports = class Stage {
             }
             
 			// Game ends (only one person is left)
-			// NOTE: Set this value to be 0 for single player mode
-            if (this.numAlive <= 0) {
+			// NOTE: Set this value to be 0 for single player mode, and 1 for multiplayer mode. Setting the incorrect value will BUG OUT THE GAME!! (specifically the intervals in socket-server.js)
+            if (this.numAlive <= 1) {
                 this.gameHasEnded = true;
                 
                 // TODO: Insert this record into the leaderboards 

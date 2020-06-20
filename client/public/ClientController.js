@@ -40,6 +40,7 @@ function setupStageModel(
 
 // Starts looping the setInterval() function
 function startStageModel() {
+	stopStageGame(); 
 	if (!(stage == null)) {
 		// Every 20 milliseconds, takes a "step" for animation and also redraws the canvas
 		interval = setInterval(function () {

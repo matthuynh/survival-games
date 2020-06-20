@@ -1,6 +1,7 @@
 import React from 'react';
 import { Route, Switch } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
+import PublicRoute from "./PublicRoute";
 
 import Dashboard from "../components/Dashboard";
 import DeleteUser from "../components/DeleteUser";
@@ -20,10 +21,10 @@ class Router extends React.Component {
         return (
             <Switch>
                 {/* Public Routes */}
-                <Route path="/" exact component={LandingPage} />
-                <Route path="/login" exact component={LoginForm} />
-                <Route path="/register" component={RegistrationForm} />
-                <Route path="/landing" component={LandingPage} />
+                <PublicRoute path="/" exact component={LandingPage} />
+                <PublicRoute path="/login" component={LoginForm} />
+                <PublicRoute path="/register" component={RegistrationForm} />
+                <PublicRoute path="/landing" component={LandingPage} />
 
                 {/* Protected Routes */}
                 <ProtectedRoute path="/dashboard" render={(props) => <Dashboard {...props}/> } component={Dashboard} />
