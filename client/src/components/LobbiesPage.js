@@ -11,6 +11,7 @@ import LobbyList from "./lobby_components/LobbyList";
 import Lobby from "./lobby_components/Lobby";
 import CloseLobby from "./lobby_components/CloseLobby";
 import GameView from "./lobby_components/GameView";
+import Auth from "../Routing/auth";
 
 import UIFx from 'uifx';
 import revolverSoundImport from "../assets/audio/revolver.mp3";
@@ -39,7 +40,7 @@ class LobbiesPage extends React.Component {
 		super(props);
 		this.state = {
 			showGameView: false,
-			playerId: this.props.User,
+			playerId: null,
 			userWon: false,
 			userLost: false,
 			joinedLobbyId: null,
@@ -58,13 +59,6 @@ class LobbiesPage extends React.Component {
 			width: 0,
 			height: 0
 		};
-
-		console.log(this.props.User);
-
-		//set playerid
-
-		// Send username when connecting to server
-		this.clientSocket = new WebSocket(`${wssServerURL}?connectingUID=${this.state.playerId}`);
 
 		// Set ref for canvas (alternative to document.getElementById(...))
 		this.canvasRef = React.createRef();
@@ -135,174 +129,188 @@ class LobbiesPage extends React.Component {
 	}
 
 	// Runs when the page loads
-	componentDidMount() {
+	async componentDidMount() {
 		this._isMounted = true;
-		// console.log("This client's player ID is " + this.state.playerId);
-
-		this.clientSocket.onopen = () => {
-			console.log("Front-end connected to the web server");
-		};
-
-		this.clientSocket.onclose = (event) => {
-			console.log("Front-end closing connectiong to web server");
-
-			// TODO: Will also need to remove all event listeners (this happens when the user is in a game, but the socket server is forcibly closed from the server side) -- make a helper method that checks to see if the listeners are mounted first before removing them
-			document.removeEventListener("keydown", this.handleKeyPress);
-			document.removeEventListener("keyup", this.handleKeyRelease);
-			document.removeEventListener("mousemove", this.handleMouseMove);
-			document.removeEventListener("mousedown", this.handleMouseDown);
-			this.returnToDashboard();
-		};
-
-		// When the client receives a message from the server, we will update our client accordingly
-		this.clientSocket.onmessage = (event) => {
-			let serverUpdate = JSON.parse(event.data);
-			// console.log(serverUpdate);
-			if (serverUpdate && this._isMounted) {
-				switch (serverUpdate.type) {
-					// Update the client's game model state
-					case "stage-update":
-						window.updateStageModel(
-							serverUpdate.playerActors,
-							serverUpdate.bulletActors,
-							serverUpdate.environmentActors,
-							serverUpdate.numAlive,
-							serverUpdate.hasEnded
-						);
-						break;
-
-					// Initialize client game model state by receiving initial model state from server
-					case "stage-initialization":
-						this.setState({ showGameView: true });
-						console.log("Starting client stage model");
-
-						// Initialize state of the client model
-						window.setupStageModel(
-							this.canvasRef.current,
-							serverUpdate.stageWidth,
-							serverUpdate.stageHeight,
-							serverUpdate.playerActors,
-							serverUpdate.bulletActors,
-							serverUpdate.crateActors,
-							serverUpdate.environmentActors,
-							serverUpdate.startTime,
-							serverUpdate.numAlive,
-							serverUpdate.numPlayers,
-							this.state.playerId
-						);
-
-						// Start the client model interval (for re-drawing)
-						window.startStageModel();
-						document.addEventListener("keydown", this.handleKeyPress);
-						document.addEventListener("keyup", this.handleKeyRelease);
-						document.addEventListener("mousemove", this.handleMouseMove);
-						document.addEventListener("mousedown", this.handleMouseDown);
-						break;
-
-					// Receive list of updated lobbies state from socket server
-					case "view-lobbies":
-						console.log("Updating lobby view");
-						// console.log(serverUpdate.lobbies);
-						this.setState({
-							lobbies: serverUpdate.lobbies
-						});
-						break;
-
-					// Created a lobby, receive the lobby id
-					case "new-lobby":
-						this.setState({
-							lobbies: serverUpdate.lobbies,
-							joinedLobbyId: serverUpdate.newLobbyId
-						});
-						break;
-
-					// User joined a lobby successfully
-					case "joined-lobby":
-						// console.log("joined-lobby");
-						// console.log("Setting state of lobbies");
-						// console.log("Reached");
-						this.setState({
-							lobbies: serverUpdate.lobbies,
-							joinedLobbyId: serverUpdate.lobbyId
-						});
-						// console.log(serverUpdate.lobbies);
-						break;
-
-					// User left their lobby successfully
-					case "left-lobby":
-						if (serverUpdate.status === "success") {
+		
+		// TODO: Prevent page from loading when login session is invalid -- redirect to some other page?
+		try {
+			// Check user authentication status and username to connect to socket server
+			let playerId = await Auth.getUsername();
+			if (playerId === "") {
+				throw Error("Unable to get player ID -- cannot connect to socket server");
+			}
+			this.clientSocket = new WebSocket(`${wssServerURL}?connectingUID=${playerId}`);
+			if (this._isMounted) { 
+				this.setState({ playerId: playerId });
+			}
+			
+			this.clientSocket.onopen = () => {
+				console.log("Front-end connected to the web server");
+			};
+	
+			this.clientSocket.onclose = (event) => {
+				console.log("Front-end closing connectiong to web server");
+	
+				// TODO: Will also need to remove all event listeners (this happens when the user is in a game, but the socket server is forcibly closed from the server side) -- make a helper method that checks to see if the listeners are mounted first before removing them
+				document.removeEventListener("keydown", this.handleKeyPress);
+				document.removeEventListener("keyup", this.handleKeyRelease);
+				document.removeEventListener("mousemove", this.handleMouseMove);
+				document.removeEventListener("mousedown", this.handleMouseDown);
+				this.returnToDashboard();
+			};
+	
+			// When the client receives a message from the server, we will update our client accordingly
+			this.clientSocket.onmessage = (event) => {
+				let serverUpdate = JSON.parse(event.data);
+				// console.log(serverUpdate);
+				if (serverUpdate && this._isMounted) {
+					switch (serverUpdate.type) {
+						// Update the client's game model state
+						case "stage-update":
+							window.updateStageModel(
+								serverUpdate.playerActors,
+								serverUpdate.bulletActors,
+								serverUpdate.environmentActors,
+								serverUpdate.numAlive,
+								serverUpdate.hasEnded
+							);
+							break;
+	
+						// Initialize client game model state by receiving initial model state from server
+						case "stage-initialization":
+							this.setState({ showGameView: true });
+							console.log("Starting client stage model");
+	
+							// Initialize state of the client model
+							window.setupStageModel(
+								this.canvasRef.current,
+								serverUpdate.stageWidth,
+								serverUpdate.stageHeight,
+								serverUpdate.playerActors,
+								serverUpdate.bulletActors,
+								serverUpdate.crateActors,
+								serverUpdate.environmentActors,
+								serverUpdate.startTime,
+								serverUpdate.numAlive,
+								serverUpdate.numPlayers,
+								this.state.playerId
+							);
+	
+							// Start the client model interval (for re-drawing)
+							window.startStageModel();
+							document.addEventListener("keydown", this.handleKeyPress);
+							document.addEventListener("keyup", this.handleKeyRelease);
+							document.addEventListener("mousemove", this.handleMouseMove);
+							document.addEventListener("mousedown", this.handleMouseDown);
+							break;
+	
+						// Receive list of updated lobbies state from socket server
+						case "view-lobbies":
+							console.log("Updating lobby view");
+							// console.log(serverUpdate.lobbies);
 							this.setState({
-								joinedLobbyId: null
+								lobbies: serverUpdate.lobbies
 							});
-						}
-						break;
-
-					// User (who is also the lobby owner) deleted lobby successfully
-					case "deleted-lobby":
-						if (serverUpdate.status === "success") {
+							break;
+	
+						// Created a lobby, receive the lobby id
+						case "new-lobby":
 							this.setState({
 								lobbies: serverUpdate.lobbies,
+								joinedLobbyId: serverUpdate.newLobbyId
+							});
+							break;
+	
+						// User joined a lobby successfully
+						case "joined-lobby":
+							// console.log("joined-lobby");
+							// console.log("Setting state of lobbies");
+							// console.log("Reached");
+							this.setState({
+								lobbies: serverUpdate.lobbies,
+								joinedLobbyId: serverUpdate.lobbyId
+							});
+							// console.log(serverUpdate.lobbies);
+							break;
+	
+						// User left their lobby successfully
+						case "left-lobby":
+							if (serverUpdate.status === "success") {
+								this.setState({
+									joinedLobbyId: null
+								});
+							}
+							break;
+	
+						// User (who is also the lobby owner) deleted lobby successfully
+						case "deleted-lobby":
+							if (serverUpdate.status === "success") {
+								this.setState({
+									lobbies: serverUpdate.lobbies,
+									joinedLobbyId: null
+								});
+							}
+							break;
+	
+						// Re-initialize the stage (user loss or won)
+						case "stage-termination":
+							console.log("Trying to terminate stage");
+							document.removeEventListener("keydown", this.handleKeyPress);
+							document.removeEventListener("keyup", this.handleKeyRelease);
+							document.removeEventListener("mousemove", this.handleMouseMove);
+							document.removeEventListener("mousedown", this.handleMouseDown);
+							window.stopStageGame();
+	
+							if (serverUpdate.isForced) {
+								this.setState({
+									showGameView: false,
+									userWon: false,
+									userLost: false,
+									joinedLobbyId: null,
+									lobbyClosed: true,
+									movingUp: false,
+									movingLeft: false,
+									movingDown: false,
+									movingRight: false,
+									horizontalDirection: 0,
+									verticalDirection: 0
+								});
+							} else if (serverUpdate.winningPID === this.state.playerId) {
+								this.setState({
+									userWon: true
+								});
+							}
+	
+							break;
+	
+						// The lobby owner (not this user) closed the lobby
+						case "kicked-lobby":
+							this.setState({
+								lobbyClosed: true,
 								joinedLobbyId: null
 							});
-						}
-						break;
-
-					// Re-initialize the stage (user loss or won)
-					case "stage-termination":
-						console.log("Trying to terminate stage");
-						document.removeEventListener("keydown", this.handleKeyPress);
-						document.removeEventListener("keyup", this.handleKeyRelease);
-						document.removeEventListener("mousemove", this.handleMouseMove);
-						document.removeEventListener("mousedown", this.handleMouseDown);
-						window.stopStageGame();
-
-						if (serverUpdate.isForced) {
+							break;
+	
+	
+						// TODO: Add this (?)
+						case "left-game":
+	
+							break;
+	
+						case "lost-game":
 							this.setState({
-								showGameView: false,
-								userWon: false,
-								userLost: false,
-								joinedLobbyId: null,
-								lobbyClosed: true,
-								movingUp: false,
-								movingLeft: false,
-								movingDown: false,
-								movingRight: false,
-								horizontalDirection: 0,
-								verticalDirection: 0
+								userLost: true
 							});
-						} else if (serverUpdate.winningPID === this.state.playerId) {
-							this.setState({
-								userWon: true
-							});
-						}
-
-						break;
-
-					// The lobby owner (not this user) closed the lobby
-					case "kicked-lobby":
-						this.setState({
-							lobbyClosed: true,
-							joinedLobbyId: null
-						});
-						break;
-
-
-					// TODO: Add this (?)
-					case "left-game":
-
-						break;
-
-					case "lost-game":
-						this.setState({
-							userLost: true
-						});
-						break;
-
-					default:
-						console.log("Received unknown update from socket server");
+							break;
+	
+						default:
+							console.log("Received unknown update from socket server");
+					}
 				}
-			}
-		};
+			};
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	// A player can join a preexisting lobby on the server
@@ -594,6 +602,7 @@ class LobbiesPage extends React.Component {
 					lobbies={this.state.lobbies}
 					joinLobby={this.handleJoinLobby}
 					createLobby={this.handleCreateLobby}
+					returnToDashboard={this.returnToDashboard}
 				/>
 			);
 		}

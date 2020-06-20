@@ -110,6 +110,7 @@ class LobbyList extends React.Component {
 					<Button
 						variant="primary"
 						block
+						onClick={this.props.returnToDashboard}
 					>
 						Go back to Dashboard
 					</Button>

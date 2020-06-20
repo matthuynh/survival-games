@@ -20,10 +20,10 @@ class Dashboard extends React.Component {
             if (username) {
                 this.setState({ username: username});
             } else {
-                console.log("Must login first");
+                this.props.history.push("/login")
             }
         } catch {
-            console.log("Must login first");
+            this.props.history.push("/login")
         }
     }
 
@@ -52,9 +52,6 @@ class Dashboard extends React.Component {
                     Auth.logout(() =>
                         this.props.history.push("/login")
                     );
-                    // Auth.logout();
-                    // console.log(this.props);
-                    // this.props.history.push("/login");
                 }}>Log Out</Button>
             </div>
         );

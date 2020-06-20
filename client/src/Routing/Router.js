@@ -1,9 +1,6 @@
 import React from 'react';
-import axios from 'axios';
-//react-router-dom imports
 import { Route, Switch } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
-import Auth from "./auth";
 
 import Dashboard from "../components/Dashboard";
 import DeleteUser from "../components/DeleteUser";
