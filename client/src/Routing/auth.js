@@ -3,16 +3,15 @@ import { withRouter } from 'react-router-dom';
 
 class Auth {
     constructor() {
-        // TODO: Do we still need this?
-        this.authenticated = false;
+        this.isAuthenticated = false;
     }
 
     // Called when the user successfully logs into the server
     login(token, cb) {
         console.log("Logging in the user")
-        this.authenticated = true;
+        this.isAuthenticated = true;
         document.cookie = "jwt=" + token;
-        localStorage.setItem('isAuth', this.authenticated);
+        localStorage.setItem('isAuth', this.isAuthenticated);
         cb();
     }
 
@@ -32,7 +31,8 @@ class Auth {
             .then(response => {
                 //logout user
                 if (response.data.loggedOut == "LoggedOut") {
-                    that.authenticated = false;
+                    console.log("trying to log out user");
+                    that.isAuthenticated = false;
                     localStorage.removeItem('isAuth');
                     cb();
                 }
@@ -45,7 +45,7 @@ class Auth {
     // TODO: Check if this is fine
     // Remove login state when user deletes their account
     delete(cb) {
-        this.authenticated = false;
+        this.isAuthenticated = false;
         localStorage.removeItem('isAuth');
         cb();
     }
@@ -74,18 +74,28 @@ class Auth {
         }
     }
 
-    // Return true if the user is currently logged in (sends JWT to server, server checks TTL)
+    // Checks login session, and returns true if the user is currently logged in
+    // This makes a call to the server (sends JWT to server, server checks TTL)
     async isValidLoginSession() {
         const postData = {
             cookies: document.cookie.split("=")[1]
         }
         try {
             const response = await axios.post("http://localhost:10421/ftd/api/verify", postData);
-            return (response && response.data && response.data.verified === "Verified")
+            const isAuthenticated = (response && response.data && response.data.verified === "Verified");
+            this.isAuthenticated = isAuthenticated;
+            console.log("Setting authenticated status to " + isAuthenticated);
+            return isAuthenticated;
         } catch {
+            this.isAuthenticated = false;
             return false;
         }
     }
+
+    isAuthenticated() {
+        return this.isAuthenticated;
+    }
+
 }
 
 export default new Auth();

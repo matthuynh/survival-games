@@ -3,7 +3,7 @@ import axios from 'axios';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import { Link } from 'react-router-dom';
-import Auth from "../Routing/Auth";
+import Auth from "../Routing/auth";
 import Logo from '../assets/login.png';
 import '../css/LoginForm.css';
 

@@ -1,42 +1,29 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
-import Auth from "./Auth";
+import Auth from "./auth";
 
-// Check to see if the user is still authenticated before allowing them to access
-class ProtectedRoute extends React.Component {
-    state = {
-        loading: true,
-        isAuthenticated: false
-    }
-
-    // Each time the user accesses a ProtectedRoute, we check if their login session is still valid
-    async componentDidMount() {
-        let isValidLoginSession = await Auth.isValidLoginSession();
-        this.setState({
-            loading: false,
-            isAuthenticated: isValidLoginSession
-        })
-    }
-
-    render() {
-        const { component: Component, ...rest } = this.props;
-        if (this.state.loading) {
-            // TODO: Make an actual loading page
-            return <div> LOADING </div>;
-        } else {
-            // Render the protected page if authenticated, otherwise redirect to login page
-            return (
-                <Route {...rest} render={props => (
-                    // TODO: Add an error message that is displayed on login page that tells user their session expired
-                    <div>
-                      {!this.state.isAuthenticated && <Redirect to={{ pathname: '/login', state: { from: this.props.location } }} />}
-                      <Component {...this.props} />
-                    </div>
-                    )}
-                  />
-            );
-        }
-    }
-}
+export const ProtectedRoute = ({ component: Component, isAuthed, ...rest }) => {
+    console.log("Inside ProtectedRoute, props.isAuthed is " + isAuthed);
+	return (
+		<Route
+			{...rest}
+			render={ (props) => {
+                if (isAuthed) {
+                    return <Component {...props} />;
+                }
+                else {
+                    return <Redirect to={
+                        {
+                            pathname: "/",
+                            state: {
+                                from: props.location
+                            }
+                        }
+                    } />
+                }
+			}}
+		/>
+	);
+};
 
 export default ProtectedRoute;

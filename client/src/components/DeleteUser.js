@@ -1,7 +1,7 @@
 import React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import Auth from "../Routing/Auth";
+import Auth from "../Routing/auth";
 import { Link } from 'react-router-dom';
 import '../css/DeleteUser.css';
 import Axios from 'axios';

@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
-import Auth from "../Routing/Auth";
+import Auth from "../Routing/auth";
 import { Link, withRouter } from 'react-router-dom';
 import '../css/Dashboard.css';
 
