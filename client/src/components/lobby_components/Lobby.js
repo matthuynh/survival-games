@@ -26,7 +26,7 @@ class Lobby extends React.Component {
 		// console.log(this.state.lobbiess);
 		if (this.state.lobbies) {
 			for (let i = 0; i < this.state.lobbies.length; i++) {
-				if (this.state.lobbies[i].id == this.state.lobbyId) {
+				if (this.state.lobbies[i].id === this.state.lobbyId) {
 					let thisLobby = this.state.lobbies[i];
 
 					// Check if lobby is ready
@@ -128,14 +128,14 @@ class Lobby extends React.Component {
 								<tr
 									key={index}
 									style={
-										this.state.playerId == lobbyPlayer.pid
+										this.state.playerId === lobbyPlayer.pid
 											? { color: "blue" }
 											: {}
 									}
 								>
 									<td>{lobbyPlayer.pid}</td>
 									<td>
-										{this.state.lobbyOwnerId ==
+										{this.state.lobbyOwnerId ===
 										lobbyPlayer.pid ? (
 											<p> Yes </p>
 										) : (
@@ -149,7 +149,7 @@ class Lobby extends React.Component {
 					</tbody>
 				</Table>
 
-				{this.state.lobbyOwnerId == this.state.playerId ? (
+				{this.state.lobbyOwnerId === this.state.playerId ? (
 					// Lobby view for the lobby owner
 					<p>
 						You are lobby owner! You must have at least two players,
@@ -157,9 +157,9 @@ class Lobby extends React.Component {
 						<Button
 							variant="success"
 							block
-							disabled={this.state.lobbyReady == false}
+							disabled={this.state.lobbyReady === false}
 							className={
-								this.state.lobbyReady == true
+								this.state.lobbyReady === true
 									? ""
 									: "disable-cursor"
 							}

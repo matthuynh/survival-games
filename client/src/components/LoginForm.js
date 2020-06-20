@@ -87,7 +87,7 @@ class LoginForm extends React.Component {
         return (
             <div className="login-form">
                 {alert}
-                <img src={Logo} />
+                <img src={Logo} alt={"WarCry-Logo"}/>
                 <hr />
                 <input type="text" className="form-control" placeholder="Username" value={this.state.username} onChange={this.handleUsername} />
                 <input type="password" className="form-control" placeholder="Password" value={this.state.password} onChange={this.handlePassword} />

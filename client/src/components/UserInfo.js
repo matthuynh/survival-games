@@ -136,7 +136,7 @@ class UserInfo extends React.Component {
 
     render() {
         let alert;
-        if (this.state.success == "information modified" && this.state.alert) {
+        if (this.state.success === "information modified" && this.state.alert) {
             alert = <Alert variant="success" onClose={this.handleAlertClick} dismissible>{this.state.success}</Alert>;
         } else if (this.state.alert) {
             alert = <Alert variant="danger" onClose={this.handleAlertClick} dismissible>{this.state.error}</Alert>;

@@ -15,7 +15,7 @@ function LandingPage() {
             </div>
             <div className="header-overlay"></div>
             <div className="header-content">
-                <img src={Logo} />
+                <img src={Logo} alt={"WarCry-Logo"} />
                 <p>
                     Welcome to WarCry, a battle royale game by Matthew and Rahul
                 </p>

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { withRouter } from 'react-router-dom';
 
 class Auth {
     constructor() {
@@ -30,7 +29,7 @@ class Auth {
         })
             .then(response => {
                 //logout user
-                if (response.data.loggedOut == "LoggedOut") {
+                if (response.data.loggedOut === "LoggedOut") {
                     console.log("trying to log out user");
                     that.isAuthenticated = false;
                     localStorage.removeItem('isAuth');

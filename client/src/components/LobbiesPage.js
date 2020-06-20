@@ -1,10 +1,10 @@
 import React from "react";
-import Button from "react-bootstrap/Button";
-import Table from "react-bootstrap/Table";
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import { Link } from 'react-router-dom';
-import Auth from "../Routing/auth";
+// import Button from "react-bootstrap/Button";
+// import Table from "react-bootstrap/Table";
+// import Container from 'react-bootstrap/Container';
+// import Row from 'react-bootstrap/Row';
+// import { Link } from 'react-router-dom';
+// import Auth from "../Routing/auth";
 import "../css/LobbiesPage.css";
 
 import LobbyList from "./lobby_components/LobbyList";
@@ -230,7 +230,7 @@ class LobbiesPage extends React.Component {
 
 					// User left their lobby successfully
 					case "left-lobby":
-						if (serverUpdate.status == "success") {
+						if (serverUpdate.status === "success") {
 							this.setState({
 								joinedLobbyId: null
 							});
@@ -239,7 +239,7 @@ class LobbiesPage extends React.Component {
 
 					// User (who is also the lobby owner) deleted lobby successfully
 					case "deleted-lobby":
-						if (serverUpdate.status == "success") {
+						if (serverUpdate.status === "success") {
 							this.setState({
 								lobbies: serverUpdate.lobbies,
 								joinedLobbyId: null
@@ -270,7 +270,7 @@ class LobbiesPage extends React.Component {
 								horizontalDirection: 0,
 								verticalDirection: 0
 							});
-						} else if (serverUpdate.winningPID == this.state.playerId) {
+						} else if (serverUpdate.winningPID === this.state.playerId) {
 							this.setState({
 								userWon: true
 							});
@@ -453,19 +453,19 @@ class LobbiesPage extends React.Component {
 
 			// Check which key(s) were pressed; calculate movement direction
 			if ("wasd".includes(key)) {
-				if (key == "a") {
+				if (key === "a") {
 					this.setState({ movingLeft: true });
 					this.setState({ horizontalDirection: -1 });
 				}
-				if (key == "d") {
+				if (key === "d") {
 					this.setState({ movingRight: true });
 					this.setState({ horizontalDirection: 1 });
 				}
-				if (key == "w") {
+				if (key === "w") {
 					this.setState({ movingUp: true });
 					this.setState({ verticalDirection: -1 });
 				}
-				if (key == "s") {
+				if (key === "s") {
 					this.setState({ movingDown: true });
 					this.setState({ verticalDirection: 1 });
 				}
@@ -493,7 +493,7 @@ class LobbiesPage extends React.Component {
 
 			// A movement key is released; calculate new movement direction
 			if ("wasd".includes(key)) {
-				if (key == "a") {
+				if (key === "a") {
 					this.setState({ movingLeft: false });
 					if (this.state.movingRight) {
 						this.setState({ horizontalDirection: 1 });
@@ -501,7 +501,7 @@ class LobbiesPage extends React.Component {
 						this.setState({ horizontalDirection: 0 });
 					}
 				}
-				if (key == "d") {
+				if (key === "d") {
 					this.setState({ movingRight: false });
 					if (this.state.movingLeft) {
 						this.setState({ horizontalDirection: -1 });
@@ -509,7 +509,7 @@ class LobbiesPage extends React.Component {
 						this.setState({ horizontalDirection: 0 });
 					}
 				}
-				if (key == "w") {
+				if (key === "w") {
 					this.setState({ movingUp: false });
 					if (this.state.movingDown) {
 						this.setState({ verticalDirection: 1 });
@@ -517,7 +517,7 @@ class LobbiesPage extends React.Component {
 						this.setState({ verticalDirection: 0 });
 					}
 				}
-				if (key == "s") {
+				if (key === "s") {
 					this.setState({ movingDown: false });
 					if (this.state.movingUp) {
 						this.setState({ verticalDirection: -1 });
@@ -555,6 +555,8 @@ class LobbiesPage extends React.Component {
 					break;
 				case -1:
 					emptyGunSound.play();
+					break;
+				default:
 					break;
 			}
 		}

@@ -60,7 +60,7 @@ class DeleteUser extends React.Component {
                         error: "Your current password is incorrect",
                         alert: true
                     });
-                } else if (error.response.status == 500) {
+                } else if (error.response.status === 500) {
                     that.setState({
                         error: "Oops! Internal server error",
                         alert: true

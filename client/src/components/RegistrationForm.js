@@ -56,7 +56,7 @@ class RegistrationForm extends React.Component {
     //handles register fetch call
     handleRegisterUser(e) {
 
-        if (this.state.password != this.state.confirmPassword) {
+        if (this.state.password !== this.state.confirmPassword) {
             this.setState({ error: "Passwords must match to create Account!" });
 
         } else {
@@ -99,7 +99,7 @@ class RegistrationForm extends React.Component {
 
     render() {
         let alert;
-        if ((this.state.error == "Account Created! Please go Home and log in") && (this.state.alert)) {
+        if ((this.state.error === "Account Created! Please go Home and log in") && (this.state.alert)) {
             alert = <Alert variant="success" onClose={this.handleAlertClick} dismissible>{this.state.error}</Alert>;
         } else if (this.state.alert) {
             alert = <Alert variant="danger" onClose={this.handleAlertClick} dismissible>{this.state.error}</Alert>;
@@ -109,7 +109,7 @@ class RegistrationForm extends React.Component {
         return (
             <div className="register-form">
                 {alert}
-                <img src={Logo} />
+                <img src={Logo} alt={"WarCry-Logo"}/>
                 <hr />
 
                 <input type="text" className="form-control" placeholder="Username" value={this.state.username} onChange={this.handleUsername} required />
