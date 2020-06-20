@@ -20,11 +20,11 @@ function LandingPage() {
                     Welcome to WarCry, a battle royale game by Matthew and Rahul
                 </p>
                 <Link to="/login">
-                    <Button variant="primary" className="btn" size="lg" block >Login</Button>
+                    <Button variant="primary" className="btn" size="lg" block >Play</Button>
                 </Link>
-                <Link to="/register">
-                    <Button variant="dark" size="lg" block >SignUp</Button>
-                </Link>
+                {/* <Link to="/register">
+                    <Button variant="dark" size="lg" block >Register</Button>
+                </Link> */}
             </div>
         </header>
     );

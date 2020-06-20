@@ -86,19 +86,21 @@ class LoginForm extends React.Component {
 
         return (
             <div className="login-form">
-                {alert}
                 <img src={Logo} alt={"WarCry-Logo"}/>
                 <hr />
-                <input type="text" className="form-control" placeholder="Username" value={this.state.username} onChange={this.handleUsername} />
-                <input type="password" className="form-control" placeholder="Password" value={this.state.password} onChange={this.handlePassword} />
 
-                <Button variant="primary" type="submit" onClick={this.handleLogInUser} className="login-button">Login</Button>
+                <div className="login-fields">
+                    {alert}
+                    <input type="text" className="form-control" placeholder="Username" value={this.state.username} onChange={this.handleUsername} />
+                    <input type="password" className="form-control" placeholder="Password" value={this.state.password} onChange={this.handlePassword} />
+                    <Button variant="primary" type="submit" onClick={this.handleLogInUser} className="login-button">Log In</Button>
+                </div>
+
                 <Link to="/register">
-                    <Button variant="primary" className="login-button">Register</Button>
+                    <Button variant="dark" className="login-button">Register</Button>
                 </Link>
-
                 <Link to="/">
-                    <Button variant="primary" className="login-button">Home</Button>
+                    <Button variant="dark" className="login-button">Landing Page</Button>
                 </Link>
             </div>
         );

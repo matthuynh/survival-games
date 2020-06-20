@@ -1,0 +1,21 @@
+.page-not-found-container {
+    width: 360px;
+    padding: 40px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    border: 2px solid #D3D3D3;
+    border-radius: 15px;
+    box-shadow: 2px 2px 2px 2px;
+    color: #D3D3D3;
+}
+
+.text {
+    color: black;
+}
+
+.title {
+    color: black;
+}

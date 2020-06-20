@@ -108,10 +108,10 @@ class RegistrationForm extends React.Component {
         }
         return (
             <div className="register-form">
-                {alert}
                 <img src={Logo} alt={"WarCry-Logo"}/>
                 <hr />
 
+                {alert}
                 <input type="text" className="form-control" placeholder="Username" value={this.state.username} onChange={this.handleUsername} required />
                 <input type="email" className="form-control" placeholder="Email" value={this.state.email} onChange={this.handleEmail} required />
                 <input type="password" className="form-control" placeholder="Password" value={this.state.password} onChange={this.handlePassword} />
@@ -119,7 +119,7 @@ class RegistrationForm extends React.Component {
 
                 <Button variant="primary" type="submit" onClick={this.handleRegisterUser} className="register-button">Register</Button>
                 <Link to="/login">
-                    <Button variant="primary" className="register-button">Login</Button>
+                    <Button variant="dark" className="register-button">Home</Button>
                 </Link>
             </div>
         );
