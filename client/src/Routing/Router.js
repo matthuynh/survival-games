@@ -21,13 +21,14 @@ class Router extends React.Component {
         return (
             <Switch>
                 {/* Public Routes */}
+                {/* <Route path="/" exact component={LandingPage} /> */}
                 <PublicRoute path="/" exact component={LandingPage} />
                 <PublicRoute path="/login" component={LoginForm} />
                 <PublicRoute path="/register" component={RegistrationForm} />
                 <PublicRoute path="/landing" component={LandingPage} />
 
                 {/* Protected Routes */}
-                <ProtectedRoute path="/dashboard" render={(props) => <Dashboard {...props}/> } component={Dashboard} />
+                <ProtectedRoute path="/dashboard" render={(props) => <Dashboard {...props} />} component={Dashboard} />
                 <ProtectedRoute path="/deleteuser" component={DeleteUser} />
                 <ProtectedRoute path="/play" render={(props) => <LobbiesPage {...props} />} component={LobbiesPage} />
                 <ProtectedRoute path="/userinfo" component={UserInfo} />
