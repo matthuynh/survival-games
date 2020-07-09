@@ -1,7 +1,4 @@
-// WEB SERVER CODE 
-// const process = require("process");
-// const port = parseInt(process.argv[2]);
-const port = 10421;
+const PORT = process.env.PORT || 10421; // If on production, Heroku will automatically select a port. Else if on local environemnt, defaults to 10421
 const express = require("express");
 const app = express();
 
@@ -28,10 +25,12 @@ const db = new sqlite3.Database("db/database.db", err => {
 	console.log("Connected to the database.");
 });
 
-// When the client connects to this server, they receive all the client files from the static_files directory they will need to run the application on the client-side
-// app.use("/", express.static("static_files"));
-// TODO: See if we should still have the static_files part here
-app.use("/", express.static("static_files"), function (req, res, next) {
+// In production, when the client connects to this server they receive all needed front-end files from React's build folder
+if (process.env.NODE_ENV === "production") {
+	app.use(express.static('../client/build'));
+}
+
+app.use("/", function (req, res, next) {
 	res.header("Access-Control-Allow-Origin", "http://localhost:3000");
 	res.header("Access-Control-Allow-Credentials", true);
 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -97,8 +96,6 @@ app.post("/ftd/api/login", async (req, res) => {
 	try {
 		let result = {};
 		let username = req.body.username.toLowerCase();
-		console.log('Ha');
-		console.log(username);
 		let plaintextPassword = req.body.password;
 
 		// Input validation for password and username
@@ -134,6 +131,7 @@ app.post("/ftd/api/login", async (req, res) => {
 					result.jwt = token;
 
 					// Send the JWT back to the user
+					console.log(`${username} logged in`);
 					res.status(200).json(result);
 					return;
 				}
@@ -477,6 +475,6 @@ app.get("/ftd/api/leaderboard", async (req, res) => {
 	}
 });
 
-app.listen(port, function () {
-	console.log(`Express server listening on port ${port}`);
+app.listen(PORT, function () {
+	console.log(`Express server listening on port ${PORT}`);
 });

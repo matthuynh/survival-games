@@ -1,7 +1,7 @@
-const wssport = 10000;
+const WSSPORT = process.env.PORT || 10000;
 const WebSocketServer = require("ws").Server;
-const wss = new WebSocketServer({ port: wssport });
-console.log(`WebSocket server listening on port ${wssport}`);
+const wss = new WebSocketServer({ port: WSSPORT });
+console.log(`WebSocket server listening on port ${WSSPORT}`);
 
 // Import the MultiplayerGame (this allows the server access to the game)
 const MultiplayerGame = require("./game-engine/MultiplayerGame.js");
