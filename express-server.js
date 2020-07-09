@@ -1,6 +1,7 @@
 const PORT = process.env.PORT || 10421; // If on production, Heroku will automatically select a port. Else if on local environemnt, defaults to 10421
 const express = require("express");
 const app = express();
+const path = require('path');
 
 let bodyParser = require("body-parser");
 let cookieParser = require("cookie-parser");
@@ -22,21 +23,32 @@ const db = new sqlite3.Database("db/database.db", err => {
 	if (err) {
 		console.error(err.message);
 	}
-	console.log("Connected to the database.");
+	console.log("[INFO] express-server.js is now connected to the SQLite database");
 });
 
-// In production, when the client connects to this server they receive all needed front-end files from React's build folder
-if (process.env.NODE_ENV === "production") {
-	app.use(express.static('../client/build'));
+// In production, front-end files are served from client/build. Test by going to localhost:10421
+if (process.env.NODE_ENV === "production" || true) {
+	console.log("[INFO] express-server.js is serving files from React build folder");
+	// app.use(express.static('./client/build'));
+	app.use('/static', express.static(path.join(__dirname, './client/build//static')));
+	app.get('*', function(req, res) {
+		res.sendFile('index.html', { 
+			root: path.join(__dirname, './client/build/')
+		});
+	});
+} 
+// In development, front-end are served from CRA dev server
+else {
+	console.log("[INFO] express-server.js is using local React dev server");
+	app.use("/", function (req, res, next) {
+		res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+		res.header("Access-Control-Allow-Credentials", true);
+		res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+		res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
+		next();
+	});
 }
 
-app.use("/", function (req, res, next) {
-	res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-	res.header("Access-Control-Allow-Credentials", true);
-	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-	res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
-	next();
-});
 
 // Register (create) a new user with the given credentials
 app.post("/ftd/api/users", async (req, res) => {
@@ -476,5 +488,5 @@ app.get("/ftd/api/leaderboard", async (req, res) => {
 });
 
 app.listen(PORT, function () {
-	console.log(`Express server listening on port ${PORT}`);
+	console.log(`[INFO] express-server.js is listening on port ${PORT}`);
 });

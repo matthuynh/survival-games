@@ -9,10 +9,7 @@ export const PublicRoute = ({ component: Component, ...rest }) => {
         <Route
             {...rest}
             render={(props) => {
-                console.log("In");
-                console.log(localStorage);
                 if (localStorage.isAuth) {
-                    console.log("In if");
                     return <Redirect to={
                         {
                             pathname: "/dashboard",
@@ -22,7 +19,6 @@ export const PublicRoute = ({ component: Component, ...rest }) => {
                         }
                     } />
                 } else {
-                    console.log("In else");
                     return <Component {...props} />;
                 }
             }}

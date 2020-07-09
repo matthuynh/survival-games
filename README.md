@@ -1,6 +1,6 @@
-Steps to Run:
+## Running Locally (development environment):
 - Install server dependencies:
-    - `cd server && npm install`
+    - `npm install`
 
 - Setup database
     - `cd server/db`
@@ -8,11 +8,11 @@ Steps to Run:
     - `sqlite3 database.db < schema.sql`
 
 - Run Express Server:
-    - From root directory, do `npx nodemon ./server/express-server.js`
+    - Do `npx nodemon express-server.js`
     - We have specified the express server to run on port 10421
 
 - Run Web Socket Server:
-    - From server directory, do `npx nodemon socket-server.js`
+    - Do `npx nodemon socket-server.js`
     - The web socket server runs on port 10000
     
 - Install client dependencies (for Create-React-App):
@@ -22,39 +22,42 @@ Steps to Run:
     - `cd client && npm start`
 
 - On your browser navigate to `http://localhost:3000`
-
-- The process of getting this working on mobile is explained in features.txt
-
-
-
-----------------------------------------------------
-** TODO
-- Improve directory structure of back-end (eg. use config/.env, separate route JS files)
-- Add a bash script for re-installing everything
-
-- In game-engine, remove unnecessary imports and extra functions (left them in for now for development purposes)
-
-** Known Bugs and Issues
-- Recreate: on the same browser, have two tabs on the log-in page. Login to User A on one tab, and then to User B on another tab. This shows as User B being logged-in. This should not happen, and User B shouldn't be alloewd to login
+    - This connects to the local React dev server
+    - Alternatively, you may navigate to `http://localhost:10421` if your express-server.js is configured to serve files from the `build` folder
 
 ---
 
-## Deploying
+## Deploying to Heroku (production environment)
 
 ### Initial Setup
-- CRA Production Build:
+- Create React App Production Build:
     - This builds the React client code so that it can be served by express-server.js
-    - `cd client && npm run build`
+    - Read https://create-react-app.dev/docs/deployment/
+        - `cd client && npm run build`
+    - This generates a `build` directory that contains all front-end client files
+    - We want `express-server.js` to be serve front-end files from `build` when the user visits the site
 
 - Heroku Build:
-    - 1. https://devcenter.heroku.com/articles/git#creating-a-heroku-remote
-    - 2. https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
-    - 3. https://devcenter.heroku.com/articles/getting-started-with-nodejs?singlepage=true
-    - Notes:
-        - We want to deploy from the server directory
+    - General docs: https://devcenter.heroku.com/articles/getting-started-with-nodejs?singlepage=true
+    - 1. Set-up a Heroku app (you may do this on the site or through the command line) and connect this app to Heroku's remote Git repository
+        - https://devcenter.heroku.com/articles/git#creating-a-heroku-remote
+    - 2. Prepare the codebase for Heroku deployment
+        - https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
+    - 3. Deploying to Heroku means pushing to Heroku's remote Git repo
+        - The client directory is only used for local dev
+        - ~~From project root, `git subtree push --prefix server heroku master`~~
+        - From project root, `git push heroku master`
+
+    - 4. Sockets
+
+### Useful Heroku Commands
+- Check if an instance of the Heroku app is up
+    - From root, do `heroku ps:scale web=1`
+    - Visit the app by doing `heroku open` or by visiting the actual URL of the app
 
 ### Pushing updates to production (after initial setup)
 - Whenever new changes are made to be made live, we will need to re-deploy the app
 - We do this by pushing to Heroku's remote Git repostory
-    - `cd server`
-    - `git push heroku`
+    - We only need to push the server directory
+    - ~~From project root, `git subtree push --prefix server heroku master`~~
+    - From project root, `git push heroku master`
