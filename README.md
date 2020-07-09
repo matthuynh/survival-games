@@ -54,6 +54,12 @@
 - Check if an instance of the Heroku app is up
     - From root, do `heroku ps:scale web=1`
     - Visit the app by doing `heroku open` or by visiting the actual URL of the app
+- Viewing logs
+    - `heroku logs --tail`
+- Connecting to Heroku bash
+    - `heroku run bash`
+    - You can check out the deployed files here `ls`
+    - `exit` to exit
 
 ### Pushing updates to production (after initial setup)
 - Whenever new changes are made to be made live, we will need to re-deploy the app
