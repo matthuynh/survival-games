@@ -50,3 +50,8 @@
     transition: 0.10s;
     cursor: pointer;
 }
+
+button:disabled {
+    cursor: not-allowed;
+    pointer-events: all !important;
+}

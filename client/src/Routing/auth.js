@@ -3,7 +3,7 @@ import axios from "axios";
 class Auth {
 	// Called when the user successfully logs into the server
 	login(token, cb) {
-		console.log("Successfully authenticated user");
+		// console.log("Successfully authenticated user");
 		document.cookie = "jwt=" + token;
 		localStorage.setItem("isAuth", true);
 		cb();
@@ -11,7 +11,7 @@ class Auth {
 
 	// Logs out user, and then calls the callback
 	async logout(cb) {
-        console.log("Logging out user");
+        // console.log("Logging out user");
         try {
             let response = await axios({
                 method: "POST",

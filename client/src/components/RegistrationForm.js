@@ -1,7 +1,9 @@
 import React from "react";
-import Alert from "react-bootstrap/Alert";
-import Button from "react-bootstrap/Button";
 import axios from "axios";
+import Button from "react-bootstrap/Button";
+import Alert from "react-bootstrap/Alert";
+import Tooltip from "react-bootstrap/Tooltip"
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import { Link } from "react-router-dom";
 import Logo from "../assets/register.png";
 import "../css/LoginForm.css";
@@ -9,7 +11,6 @@ import "../css/LoginForm.css";
 class RegistrationForm extends React.Component {
 	constructor(props) {
 		super(props);
-
 		this.state = {
 			username: "",
 			email: "",
@@ -18,159 +19,207 @@ class RegistrationForm extends React.Component {
 			error: "",
 			alert: false,
 		};
-
 		this.handleRegisterUser = this.handleRegisterUser.bind(this);
 		this.handleUsername = this.handleUsername.bind(this);
 		this.handlePassword = this.handlePassword.bind(this);
 		this.handleConfirmPassword = this.handleConfirmPassword.bind(this);
-		this.handleEmail = this.handleEmail.bind(this);
-		this.handleAlertClick = this.handleAlertClick.bind(this);
-	}
+        this.handleEmail = this.handleEmail.bind(this);
+		this.areFieldsInvalid = this.areFieldsInvalid.bind(this);
+        this.renderTooltip = this.renderTooltip.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
+    }
+    
+    // Attaches event listener for key press
+    componentDidMount() {
+        document.addEventListener("keydown", this.handleKeyPress, false);
+    }
 
-	// Handler for username input
+    // Removes event listener for key press
+    componentWillUnmount() {
+        document.addEventListener("keydown", this.handleKeyPress, false);
+    }
+
+    // Handles key press for "Esc" button
+    handleKeyPress = (event) => {
+        if (event.keyCode === 27) {
+            this.props.history.push("/login");
+        }
+    }
+
+    // Front-end validation for form fields
+    areFieldsInvalid() {
+        return (this.state.username.length < 6 || this.state.username.length > 50 || this.state.password.length < 6 || this.state.password.length > 50 || this.state.confirmPassword.length < 6 || this.state.confirmPassword.length > 50);
+    }
+
 	handleUsername(event) {
 		this.setState({ username: event.target.value });
 	}
 
-	// Handler for password input
 	handlePassword(event) {
 		this.setState({ password: event.target.value });
 	}
 
-	// Handler for password confirmation
 	handleConfirmPassword(event) {
 		this.setState({ confirmPassword: event.target.value });
 	}
 
-	// Handler for email input
 	handleEmail(event) {
 		this.setState({ email: event.target.value });
 	}
 
-    // Handler for alert box
-	handleAlertClick() {
-		this.setState({ alert: false });
-	}
-
 	// Handles register API call
-	handleRegisterUser(e) {
-        // Check if passwords are the same
-		if (this.state.password !== this.state.confirmPassword) {
-			this.setState({ error: "Oops! Please ensure your passwords match" });
-        }
-        // Register user 
-        else {
-			let postData = {
-				username: this.state.username,
-				password: this.state.password,
-				email: this.state.email
-			};
+	async handleRegisterUser(e) {
+        e.preventDefault();
+        this.setState({ alert: false, error: "" }); // Clear alerts
 
-			const that = this;
-			axios
-				.post("/ftd/api/users", postData)
-				.then((response) => {
-					that.setState({
-						error: "Account Created! Please go Home and log in",
-						alert: true,
+        // Front-end validation
+		if (this.state.password !== this.state.confirmPassword) {
+			this.setState({ 
+				error: "Oops! Please ensure your passwords match",
+				alert: true
+			});
+        } else if (this.areFieldsInvalid()) {
+            this.setState({
+                error: "Please fill in all the required fields",
+                alert: true
+            });
+        } 
+        // Attempt to register user
+        else {
+			try {
+				let postData = {
+					username: this.state.username,
+					password: this.state.password,
+					email: this.state.email
+				};
+				let response = await axios.post("/ftd/api/users", postData);
+				if (response) {
+					this.props.history.push("/login", { response: "successful-registration", username: this.state.username });
+				} else {
+					this.setState({
+                        error: "Oops! Internal server error",
+                        alert: true
+                    });
+				}
+			} 
+			// Unsuccessful registration
+			catch (err) {
+				console.log(err.response);
+				if (err.response && err.response.status === 400) {
+					this.setState({
+						error: "Please ensure you filled in all fields correctly",
+						alert: true
 					});
-				})
-				.catch((error) => {
-					//error check
-					if (error.response.status === 403) {
-						that.setState({
-							error: "That username or email already exists",
-							alert: true,
-						});
-					} else if (error.response.status === 400) {
-						that.setState({
-							error:
-								"Your password and username must be between 6 to 50 (inclusive) characters long",
-							alert: true,
-						});
-					} else if (error.response.status === 500) {
-						that.setState({
-							error: "Oops! Internal server error",
-							alert: true,
-						});
-					}
-				});
+				} else if (err.response && err.response.status === 403) {
+					this.setState({
+						error: "That username or email is already being used for another account",
+						alert: true
+					});
+				} else if (err.response && err.response.status === 500) {
+					this.setState({
+						error: "Oops! Internal server error",
+						alert: true
+					});
+				}
+			}
 		}
 	}
 
+    // Renders a Tooltip with the given text
+	renderTooltip(text) {
+        return (
+            <Tooltip id="button-tooltip">
+                {text}
+            </Tooltip>
+        );
+    }
+
 	render() {
-		let alert;
-		if (
-			this.state.error === "Account Created! Please go Home and log in" &&
-			this.state.alert
-		) {
-			alert = (
-				<Alert
-					variant="success"
-					onClose={this.handleAlertClick}
-					dismissible
-				>
-					{this.state.error}
-				</Alert>
-			);
-		} else if (this.state.alert) {
+		// Create alert box
+		let alert = null;
+		if (this.state.alert) {
 			alert = (
 				<Alert
 					variant="danger"
-					onClose={this.handleAlertClick}
-					dismissible
 				>
 					{this.state.error}
 				</Alert>
 			);
-		} else {
-			alert = null;
 		}
+
 		return (
 			<div className="form">
 				<img src={Logo} alt={"WarCry-Logo"} />
 				<hr />
 
-				{alert}
-				<input
-					type="text"
-					className="form-control"
-					placeholder="Username"
-					value={this.state.username}
-					onChange={this.handleUsername}
-					required
-				/>
-				<input
-					type="email"
-					className="form-control"
-					placeholder="Email"
-					value={this.state.email}
-					onChange={this.handleEmail}
-					required
-				/>
-				<input
-					type="password"
-					className="form-control"
-					placeholder="Password"
-					value={this.state.password}
-					onChange={this.handlePassword}
-				/>
-				<input
-					type="password"
-					className="form-control"
-					placeholder="Re-enter Password"
-					value={this.state.confirmPassword}
-					onChange={this.handleConfirmPassword}
-				/>
+				<form onSubmit={this.handleRegisterUser}>
+					{alert}
+					<OverlayTrigger
+                        placement="right"
+                        delay={{ show: 250, hide: 100 }}
+                        overlay={this.renderTooltip("Must be between 6 and 50 characters long")}
+                    >
+						<input
+							type="text"
+							className="form-control"
+							placeholder="Username"
+							value={this.state.username}
+                            onChange={this.handleUsername}
+                            required
+						/>
+					</OverlayTrigger>
+					<OverlayTrigger
+                        placement="right"
+                        delay={{ show: 250, hide: 100 }}
+                        overlay={this.renderTooltip("Must be between 6 and 50 characters long")}
+                    >
+						<input
+							type="password"
+							className="form-control"
+							placeholder="Password"
+							value={this.state.password}
+                            onChange={this.handlePassword}
+                            required
+						/>
+					</OverlayTrigger>
+					<OverlayTrigger
+                        placement="right"
+                        delay={{ show: 250, hide: 100 }}
+                        overlay={this.renderTooltip("Must be between 6 and 50 characters long")}
+                    >
+						<input
+							type="password"
+							className="form-control"
+							placeholder="Re-enter password"
+							value={this.state.confirmPassword}
+                            onChange={this.handleConfirmPassword}
+                            required
+						/>
+					</OverlayTrigger>
+                    <OverlayTrigger
+                        placement="right"
+                        delay={{ show: 250, hide: 100 }}
+                        overlay={this.renderTooltip("Feel free to use a fake email address (eg. 10minutemail.com or mailinator.com")}
+                    >
+						<input
+							type="email"
+							className="form-control"
+							placeholder="Email"
+							value={this.state.email}
+                            onChange={this.handleEmail}
+                            required
+						/>
+					</OverlayTrigger>
 
-				<Button
-					variant="primary"
-					type="submit"
-					onClick={this.handleRegisterUser}
-					className="form-button"
-				>
-					Register
-				</Button>
+					<Button
+						variant="primary"
+						type="submit"
+                        className="form-button"
+					>
+						Create my Account!
+					</Button>
+				</form>
+
 				<Link to="/login" style={{ textDecoration: "none" }}>
 					<Button variant="dark" className="form-button">
 						Home
