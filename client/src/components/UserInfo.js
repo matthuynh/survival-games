@@ -39,7 +39,7 @@ class UserInfo extends React.Component {
         };
 
         const that = this;
-        axios.post('http://localhost:10421/ftd/api/getUserInfo', postData)
+        axios.post('/ftd/api/getUserInfo', postData)
             .then(response => {
                 //setting state
                 that.setState({ email: response.data.email });
@@ -106,7 +106,7 @@ class UserInfo extends React.Component {
 
         //api call to change usr info
         const that = this;
-        axios.put('http://localhost:10421/ftd/api/users', postData)
+        axios.put('/ftd/api/users', postData)
             .then(response => {
                 that.setState({
                     success: "information modified",

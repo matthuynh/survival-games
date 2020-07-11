@@ -1,14 +1,10 @@
 {
-  "name": "a3group15",
+  "name": "survival-games",
   "version": "1.0.0",
   "description": "",
   "main": "express-server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "ssh://huynhmat@142.1.200.148:2222/var/git/a3group15.git"
   },
   "author": "",
   "license": "ISC",

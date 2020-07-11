@@ -55,7 +55,7 @@ class Control extends React.Component {
 
             const that = this;
             // Fetch call for logging in user
-            fetch('http://localhost:10421/ftd/api/username', {
+            fetch('/ftd/api/username', {
                 method: 'post',
                 headers: {
                     'Content-Type': 'application/json',

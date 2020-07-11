@@ -16,7 +16,7 @@ class Auth {
             let response = await axios({
                 method: "POST",
                 withCredentials: true,
-                url: "http://localhost:10421/ftd/api/logout",
+                url: "/ftd/api/logout",
                 data: {},
             });
             
@@ -51,7 +51,7 @@ class Auth {
 				};
 
 				const response = await axios.post(
-					"http://localhost:10421/ftd/api/username",
+					"/ftd/api/username",
 					postData
 				);
 				if (
@@ -78,7 +78,7 @@ class Auth {
 		};
 		try {
 			const response = await axios.post(
-				"http://localhost:10421/ftd/api/verify",
+				"/ftd/api/verify",
 				postData
 			);
 			return (

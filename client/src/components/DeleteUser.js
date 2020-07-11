@@ -44,7 +44,7 @@ class DeleteUser extends React.Component {
         Axios({
             method: 'delete',
             withCredentials: true,
-            url: 'http://localhost:10421/ftd/api/users',
+            url: '/ftd/api/users',
             data: postData
         })
             .then(response => {

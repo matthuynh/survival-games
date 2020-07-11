@@ -13,10 +13,6 @@ import LandingPage from "../components/LandingPage";
 import NotFoundPage from "../components/NotFoundPage";
 
 class Router extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         return (
             <Switch>

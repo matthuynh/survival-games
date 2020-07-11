@@ -1,6 +1,5 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
-import Auth from "./auth";
 
 // If user is already authorized, render the Dashboard component. Otherwise, render the component for the given route
 // For example, if user is already authorized, going to /login should redirect to /dashboard

@@ -1,6 +1,5 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
-import Auth from "./auth";
 
 // If user is authorized, render the component for the given route. Otherwise, render the Login component
 export const ProtectedRoute = ({ component: Component, ...rest }) => {

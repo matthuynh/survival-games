@@ -68,7 +68,7 @@ class RegistrationForm extends React.Component {
 
             //api call to register user
             const that = this;
-            axios.post('http://localhost:10421/ftd/api/users', postData)
+            axios.post('/ftd/api/users', postData)
                 .then(response => {
                     that.setState({
                         error: "Account Created! Please go Home and log in",

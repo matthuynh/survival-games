@@ -21,7 +21,7 @@ class LeaderBoard extends React.Component {
         // const that = this;
         // //what url do we put??
         // //fetch call for logging in user
-        // fetch('http://localhost:10421/ftd/api/leaderboard')
+        // fetch('/ftd/api/leaderboard')
         //     .then(function (response) {
         //         //error checking status codes
         //         if (response.status === 500) {

@@ -1,29 +1,29 @@
 ## Running Locally (development environment):
-- Install server dependencies:
+1. Install server dependencies:
     - `npm install`
 
-- Setup database
+2. Setup database
     - `cd server/db`
     - `sqlite3 database.db < schema.sql`
     - `sqlite3 database.db < schema.sql`
 
-- Run Express Server:
+3. Run Express Server:
     - Do `npx nodemon express-server.js`
     - We have specified the express server to run on port 10421
 
-- Run Web Socket Server:
+4. Run Web Socket Server:
     - Do `npx nodemon socket-server.js`
     - The web socket server runs on port 10000
     
-- Install client dependencies (for Create-React-App):
+5. Install client dependencies (for Create-React-App):
     - `cd client && npm install`
 
-- Running client code:
+6. Running client code:
     - `cd client && npm start`
 
-- On your browser navigate to `http://localhost:3000`
+7. On your browser navigate to `http://localhost:3000`
     - This connects to the local React dev server
-    - Alternatively, you may navigate to `http://localhost:10421` if your express-server.js is configured to serve files from the `build` folder
+    - Alternatively, you may navigate to `http://localhost:10421` to serve files directly from the `build` folder
 
 ---
 
@@ -39,16 +39,14 @@
 
 - Heroku Build:
     - General docs: https://devcenter.heroku.com/articles/getting-started-with-nodejs?singlepage=true
-    - 1. Set-up a Heroku app (you may do this on the site or through the command line) and connect this app to Heroku's remote Git repository
+    1. Set-up a Heroku app (you may do this on the site or through the command line) and connect this app to Heroku's remote Git repository
         - https://devcenter.heroku.com/articles/git#creating-a-heroku-remote
-    - 2. Prepare the codebase for Heroku deployment
+    2. Prepare the codebase for Heroku deployment
         - https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
-    - 3. Deploying to Heroku means pushing to Heroku's remote Git repo
-        - The client directory is only used for local dev
-        - ~~From project root, `git subtree push --prefix server heroku master`~~
+    3. Deploying to Heroku means pushing to Heroku's remote Git repo
+        - The client directory is only used for local dev env
         - From project root, `git push heroku master`
-
-    - 4. Sockets
+    4. Sockets
 
 ### Useful Heroku Commands
 - Check if an instance of the Heroku app is up
@@ -63,7 +61,8 @@
 
 ### Pushing updates to production (after initial setup)
 - Whenever new changes are made to be made live, we will need to re-deploy the app
-- We do this by pushing to Heroku's remote Git repostory
-    - We only need to push the server directory
-    - ~~From project root, `git subtree push --prefix server heroku master`~~
-    - From project root, `git push heroku master`
+    - Prepare front-end for deployment:
+        - if any changes were made to the `client` folder, rebuild it: `npm run build`
+    - Push to Heroku's remote Git repostory
+        - Make your changes and then commit them `git commit`
+        - From project root, `git push heroku master`
