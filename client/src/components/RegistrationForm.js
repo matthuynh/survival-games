@@ -216,7 +216,7 @@ class RegistrationForm extends React.Component {
 						type="submit"
                         className="form-button"
 					>
-						Create my Account!
+						Register!
 					</Button>
 				</form>
 

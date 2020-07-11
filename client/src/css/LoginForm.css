@@ -46,6 +46,7 @@
     text-align: center;
     padding: 14px 40px;
     width: 200px;
+    height: 50px;
     outline: none;
     transition: 0.10s;
     cursor: pointer;

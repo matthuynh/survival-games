@@ -181,7 +181,7 @@ class LoginForm extends React.Component {
 
                 <Link to="/register" style={{ textDecoration: "none" }}>
                     <Button variant="dark" className="form-button">
-                        Create an Account
+                        Sign Up
                     </Button>
                 </Link>
             </div>
