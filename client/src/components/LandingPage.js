@@ -7,26 +7,25 @@ import '../css/LandingPage.css';
 
 function LandingPage() {
     return (
-        <header className="v-header container">
-            <div className="video-container">
-                <video src={Vid} type="video/mp4" autoPlay loop muted>
-                </video>
+        <div>  
+            <header className="v-header container">
+                <div className="video-container">
+                    <video src={Vid} type="video/mp4" autoPlay loop muted>
+                    </video>
+                </div>
 
-            </div>
-            <div className="header-overlay"></div>
-            <div className="header-content">
-                <img src={Logo} alt={"WarCry-Logo"} />
-                <p>
-                    Welcome to WarCry, a battle royale game by Matthew and Rahul
-                </p>
-                <Link to="/login">
-                    <Button variant="primary" className="btn" size="lg" block >Play</Button>
-                </Link>
-                {/* <Link to="/register">
-                    <Button variant="dark" size="lg" block >Register</Button>
-                </Link> */}
-            </div>
-        </header>
+                <div className="header-overlay"></div>
+                <div className="header-content">
+                    <img src={Logo} alt={"WarCry-Logo"} />
+                    <p>
+                        Welcome to WarCry, a battle royale game made by Matthew and Rahul!
+                    </p>
+                    <Link to="/login" style={{ textDecoration: "none" }}>
+                        <Button variant="primary" className="btn" size="lg" block>Play</Button>
+                    </Link>
+                </div>
+            </header>
+        </div>
     );
 }
 

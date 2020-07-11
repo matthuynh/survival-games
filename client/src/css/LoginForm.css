@@ -1,4 +1,4 @@
-.login-form{
+.form {
     width: 360px;
     padding: 40px;
     position: absolute;
@@ -12,7 +12,16 @@
     color: #D3D3D3;
 }
 
-.login-form input[type= "text"],.login-form input[type= "password"]{
+.form > p {
+    color: black;
+    font-size: 40px;
+}
+
+.form > h1 {
+    color: black;
+}
+
+.form input[type="text"], .form input[type="password"], .form input[type="email"] {
     border: 0;
     background: #E8F5FF;
     display: block;
@@ -22,38 +31,22 @@
     padding: 14px 10px 14px 10px;
     width: 200px;
     outline: none;
-    transition: 0.25s;
+    transition: 0.10s;
 }
 
-.login-form input[type= "text"]:focus,.login-form input[type= "password"]:focus{
+.form input[type="text"]:focus, .form input[type="password"]:focus, .form input[type="email"]:focus {
     width: 280px;
     border-color: #1eb2a6;
 }
 
-.login-fields {
-    margin-bottom: 20px;
-}
-
-#login-text{
-    font-size: 40px;
-    font-weight: bold;
-    color: black;
-}
-
-.login-button{
+.form-button {
     border: 0;
-    background: none;
     display: block;
     margin: 5px auto;
     text-align: center;
     padding: 14px 40px;
     width: 200px;
     outline: none;
-    transition: 0.25s;
+    transition: 0.10s;
     cursor: pointer;
-}
-
-.login-form > p{
-    color: black;
-    font-size: 40px;
 }
