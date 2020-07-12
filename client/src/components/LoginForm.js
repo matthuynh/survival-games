@@ -22,10 +22,15 @@ class LoginForm extends React.Component {
 		this.handleUsername = this.handleUsername.bind(this);
         this.handlePassword = this.handlePassword.bind(this);
         this.renderTooltip = this.renderTooltip.bind(this);
+        this.renderAlert = this.renderAlert.bind(this);
 
         // Checks to see if user was redirected from the Registration page to Login page
         if (props.location && props.location.state && props.location.state.response === "successful-registration") {
-            this.state.alertMessage = "Successfully registered user!";
+            this.state.alertMessage = `Successfully registered ${props.location.state.username}`;
+            this.state.alert = "success";
+            props.history.replace({ state: "" });
+        } else if (props.location && props.location.state && props.location.state.response === "successful-deletion") {
+            this.state.alertMessage = "Successfully deleted account";
             this.state.alert = "success";
             props.history.replace({ state: "" });
         }
@@ -38,7 +43,7 @@ class LoginForm extends React.Component {
 
     // Removes event listener for key press
     componentWillUnmount() {
-        document.addEventListener("keydown", this.handleKeyPress, false);
+        document.removeEventListener("keydown", this.handleKeyPress, false);
     }
 
     // Handles key press for "Esc" button
@@ -63,6 +68,24 @@ class LoginForm extends React.Component {
                 {text}
             </Tooltip>
         );
+    }
+    
+    // Render any Alerts
+    renderAlert() {
+        if (this.state.alert === "warning") {
+			return (
+				<Alert variant="danger">
+					{this.state.alertMessage}
+				</Alert>
+			);
+		} else if (this.state.alert === "success") {
+            return (
+				<Alert variant="success">
+					{this.state.alertMessage}
+				</Alert>
+			);
+        }
+        return null;
     }
 
 	// Handles login API call
@@ -119,29 +142,13 @@ class LoginForm extends React.Component {
 	}
 
 	render() {
-        // Create alert box
-		let alert = null;
-		if (this.state.alert === "warning") {
-			alert = (
-				<Alert variant="danger">
-					{this.state.alertMessage}
-				</Alert>
-			);
-		} else if (this.state.alert === "success") {
-            alert = (
-				<Alert variant="success">
-					{this.state.alertMessage}
-				</Alert>
-			);
-        }
-
 		return (
             <div className="form">
                 <img src={Logo} alt={"WarCry-Logo"} />
                 <hr />
 
                 <form onSubmit={this.handleLogInUser}>
-                    {alert}    
+                    {this.renderAlert()}    
                     <OverlayTrigger
                         placement="right"
                         delay={{ show: 250, hide: 100 }}

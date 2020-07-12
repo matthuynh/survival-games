@@ -1,98 +1,139 @@
-import React from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
+import React from "react";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
 import Auth from "../Routing/auth";
-import { Link } from 'react-router-dom';
-import '../css/DeleteUser.css';
-import Axios from 'axios';
+import Tooltip from "react-bootstrap/Tooltip";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import { Link } from "react-router-dom";
+import "../css/DeleteUser.css";
+import axios from "axios";
 
 class DeleteUser extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			password: "",
+			errorMessage: "",
+			alert: false,
+		};
+		this.handleDeleteUser = this.handleDeleteUser.bind(this);
+		this.handlePassword = this.handlePassword.bind(this);
+		this.renderTooltip = this.renderTooltip.bind(this);
+		this.renderAlert = this.renderAlert.bind(this);
+		this.handleKeyPress = this.handleKeyPress.bind(this);
+	}
 
-    constructor(props) {
-        super(props);
+	// Attaches event listener for key press
+	componentDidMount() {
+		document.addEventListener("keydown", this.handleKeyPress, false);
+	}
 
-        this.state = {
-            password: "",
-            error: "",
-            alert: false
-        }
-        this.handleDeleteUser = this.handleDeleteUser.bind(this);
-        this.handlePassword = this.handlePassword.bind(this);
-        this.handleAlertClick = this.handleAlertClick.bind(this);
-    }
+	// Removes event listener for key press
+	componentWillUnmount() {
+		document.removeEventListener("keydown", this.handleKeyPress, false);
+	}
 
-    handlePassword(event) {
-        this.setState({ password: event.target.value });
-    }
+	// Handles key press for "Esc" button
+	handleKeyPress = (event) => {
+		if (event.keyCode === 27) {
+			this.props.history.push("/settings");
+		}
+	};
 
-    handleAlertClick() {
-        this.setState({ alert: false });
-    }
+	handlePassword(event) {
+		this.setState({ password: event.target.value });
+	}
 
-    handleDeleteUser() {
-        //fetch code goes here
-        const cookie = document.cookie;
-        const splitCookie = cookie.split("=");
-        const token = splitCookie[1];
-        let postData = {
-            cookies: token,
-            password: this.state.password,
+	// Renders a Tooltip with the given text
+	renderTooltip(text) {
+		return <Tooltip id="button-tooltip">{text}</Tooltip>;
+	}
+
+	// Render any Alerts
+    renderAlert() {
+		if (this.state.alert) {
+			return <Alert variant="danger">{this.state.errorMessage}</Alert>;
+		}
+		return null;
+	}
+
+    // Attempts to delete user from server
+	async handleDeleteUser() {
+		// Get JWT for authenticated request
+		const cookie = document.cookie;
+		const splitCookie = cookie.split("=");
+		const token = splitCookie[1];
+		let data = {
+			cookies: token,
+			password: this.state.password
         };
 
-        //api call to delete user
-        const that = this;
-        Axios({
-            method: 'delete',
-            withCredentials: true,
-            url: '/ftd/api/users',
-            data: postData
-        })
-            .then(response => {
-                //delete user and redirect to login screen
+        // Authenticated request to delete user
+        try {
+            const res = await axios({ method: 'delete', withCredentials: true, url: '/ftd/api/users', data: data });
+            if (res) {
                 Auth.delete(() => {
-                    this.props.history.push("/login");
-                })
-            })
-            .catch(error => {
-                //error checking api call
-                if (error.response.status === 401) {
-                    that.setState({
-                        error: "Your current password is incorrect",
-                        alert: true
-                    });
-                } else if (error.response.status === 500) {
-                    that.setState({
-                        error: "Oops! Internal server error",
-                        alert: true
-                    });
-                }
-            })
-
-    }
-
-    render() {
-        let alert;
-        if (this.state.alert) {
-            alert = <Alert variant="danger" onClose={this.handleAlertClick} dismissible>{this.state.error}</Alert>;
-        } else {
-            alert = null;
+                    this.props.history.push("/login", { response: "successful-deletion" });
+				});
+            } else {
+                this.setState({
+                    errorMessage: "Oops! Internal server error",
+                    alert: true
+                });
+            }
+        } catch(err) {
+            if (err.response.status === 401) {
+                this.setState({
+                    errorMessage: "Your current password is incorrect",
+                    alert: true
+                });
+            } else {
+                this.setState({
+                    errorMessage: "Oops! Internal server error",
+                    alert: true
+                });
+            }
         }
+	}
 
-        return (
-            <div className="delete-user">
-                {alert}
-                <p>Want to delete your account? Enter your password below and then click "Delete". Sorry to see you go :(</p>
-                <hr />
-                <input type="password" className="form-control" placeholder="enter Password" value={this.state.password} onChange={this.handlePassword} />
-                <Button variant="danger" className="delete-button" onClick={this.handleDeleteUser}>Delete Me Forever</Button>
-                <Link to="/dashboard">
-                    <Button variant="primary" className="delete-button">Go to Dashboard</Button>
-                </Link>
-            </div>
-        );
-    }
-
-
+	render() {
+		return (
+			<div className="delete-user">
+                <h3 className="text">You want to delete your account?</h3>
+                <p>
+                    Sorry to see you go :(
+                </p>
+				<hr />
+                {this.renderAlert()}
+				<OverlayTrigger
+					placement="right"
+					delay={{ show: 250, hide: 100 }}
+					overlay={this.renderTooltip("This action cannot be reversed!")}
+				>
+					<input
+						type="password"
+						className="form-control"
+						placeholder="Password"
+						value={this.state.password}
+						onChange={this.handlePassword}
+					/>
+				</OverlayTrigger>
+				<Link to="/settings" style={{ textDecoration: "none" }}>
+					<Button variant="primary" className="delete-button">
+						Back to Safety
+					</Button>
+				</Link>
+				<Button
+					variant="danger"
+					className="delete-button"
+					onClick={this.handleDeleteUser}
+					disabled={this.state.password.length < 6 || this.state.password.length > 50}
+				>
+					Delete Me Forever
+				</Button>
+			</div>
+		);
+	}
 }
 
 export default DeleteUser;

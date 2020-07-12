@@ -5,8 +5,7 @@ DROP TABLE scores;
 
 CREATE TABLE users (
 	username VARCHAR(50) PRIMARY KEY CHECK (length(username) >= 6),
-	password VARCHAR(255) NOT NULL CHECK (length(password) >= 6),
-	email VARCHAR(50) NOT NULL UNIQUE
+	password VARCHAR(255) NOT NULL CHECK (length(password) >= 6)
 );
 
 CREATE TABLE scores (

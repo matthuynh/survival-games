@@ -1,4 +1,4 @@
-.delete-user {
+.user-info {
 	width: 360px;
 	padding: 40px;
 	position: absolute;
@@ -12,11 +12,7 @@
 	color: #d3d3d3;
 }
 
-.delete-user > p {
-	color: black;
-}
-
-.delete-user input[type="password"] {
+.user-info input[type="password"] {
 	border: 0;
 	background: #e8f5ff;
 	display: block;
@@ -29,12 +25,16 @@
 	transition: 0.1s;
 }
 
-.delete-user input[type="password"]:focus {
+.user-info input[type="password"]:focus {
 	width: 280px;
 	border-color: #1eb2a6;
 }
 
-.delete-button {
+.text {
+	color: black;
+}
+
+.user-info-button {
 	border: 0;
 	display: block;
 	margin: 5px auto;

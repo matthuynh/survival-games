@@ -42,7 +42,7 @@ class Auth {
 	async getUsername() {
 		try {
 			if (document.cookie !== "") {
-				// Getting jwtToken
+				// Get JWT
 				const cookie = document.cookie;
 				const splitCookie = cookie.split("=");
 				const token = splitCookie[1];
@@ -54,11 +54,7 @@ class Auth {
 					"/ftd/api/username",
 					postData
 				);
-				if (
-					response &&
-					response.data &&
-					response.data.verified === "Verified"
-				) {
+				if (response && response.data && response.data.verified === "Verified") {
 					return response.data.username;
 				}
 			}

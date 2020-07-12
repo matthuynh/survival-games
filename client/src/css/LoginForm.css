@@ -1,58 +1,60 @@
 .form {
-    width: 360px;
-    padding: 40px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    border: 2px solid #D3D3D3;
-    border-radius: 15px;
-    box-shadow: 2px 2px 2px 2px;
-    color: #D3D3D3;
+	width: 360px;
+	padding: 40px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	text-align: center;
+	border: 2px solid #d3d3d3;
+	border-radius: 15px;
+	box-shadow: 2px 2px 2px 2px;
+	color: #d3d3d3;
 }
 
 .form > p {
-    color: black;
-    font-size: 40px;
+	color: black;
+	font-size: 40px;
 }
 
 .form > h1 {
-    color: black;
+	color: black;
 }
 
-.form input[type="text"], .form input[type="password"], .form input[type="email"] {
-    border: 0;
-    background: #E8F5FF;
-    display: block;
-    margin: 20px auto;
-    text-align: center;
-    border: 2px solid #D3D3D3;
-    padding: 14px 10px 14px 10px;
-    width: 200px;
-    outline: none;
-    transition: 0.10s;
+.form input[type="text"],
+.form input[type="password"] {
+	border: 0;
+	background: #e8f5ff;
+	display: block;
+	margin: 20px auto;
+	text-align: center;
+	border: 2px solid #d3d3d3;
+	padding: 14px 10px 14px 10px;
+	width: 200px;
+	outline: none;
+	transition: 0.1s;
 }
 
-.form input[type="text"]:focus, .form input[type="password"]:focus, .form input[type="email"]:focus {
-    width: 280px;
-    border-color: #1eb2a6;
+.form input[type="text"]:focus,
+.form input[type="password"]:focus {
+	width: 280px;
+	border-color: #1eb2a6;
 }
 
 .form-button {
-    border: 0;
-    display: block;
-    margin: 5px auto;
-    text-align: center;
-    padding: 14px 40px;
-    width: 200px;
-    height: 50px;
-    outline: none;
-    transition: 0.10s;
-    cursor: pointer;
+	border: 0;
+	display: block;
+	margin: 5px auto;
+	text-align: center;
+	padding: 14px 40px;
+	width: 200px;
+	height: 50px;
+	outline: none;
+	transition: 0.1s;
+	cursor: pointer;
 }
 
 button:disabled {
-    cursor: not-allowed;
-    pointer-events: all !important;
+	cursor: not-allowed;
+	pointer-events: all !important;
 }

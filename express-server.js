@@ -35,17 +35,17 @@ if (process.env.NODE_ENV === "production" || true) {
 	const root = require('path').join(__dirname, 'client', 'build')
 	app.use(express.static(root));
 } 
-// In development, front-end are served from CRA dev server
-else {
-	console.log("[INFO] express-server.js is using local React dev server");
-	app.use("/", function (req, res, next) {
-		res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-		res.header("Access-Control-Allow-Credentials", true);
-		res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-		res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
-		next();
-	});
-}
+// // In development, front-end are served from CRA dev server
+// else {
+// 	console.log("[INFO] express-server.js is using local React dev server");
+// 	app.use("/", function (req, res, next) {
+// 		res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+// 		res.header("Access-Control-Allow-Credentials", true);
+// 		res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+// 		res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
+// 		next();
+// 	});
+// }
 
 
 // Register (create) a new user with the given credentials
@@ -55,17 +55,9 @@ app.post("/ftd/api/users", async (req, res) => {
 		// console.log(req.body);
 		let username = req.body.username.toLowerCase();
 		let plaintextPassword = req.body.password;
-		let email = req.body.email;
 
 		// Input validation for password and username
 		if (username.length < 6 || username.length > 50 || plaintextPassword.length < 6 || plaintextPassword.length > 50) {
-			res.status(400).send();
-			return;
-		}
-
-		//check email
-		const emailRE = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-		if (!emailRE.test(email)) {
 			res.status(400).send();
 			return;
 		}
@@ -74,9 +66,9 @@ app.post("/ftd/api/users", async (req, res) => {
 		let hashedPassword = await bcrypt.hash(plaintextPassword, saltRounds);
 
 		result["exists"] = "false";
-		sql = "INSERT INTO users(username, password, email) VALUES (?,?,?);";
-		db.run(sql, [username, hashedPassword, email], err => {
-			// Username or email already exists
+		sql = "INSERT INTO users(username, password) VALUES (?,?);";
+		db.run(sql, [username, hashedPassword], err => {
+			// Username already exists
 			if (err && err.errno == 19) {
 				res.status(403).json(result);
 				return;
@@ -141,7 +133,7 @@ app.post("/ftd/api/login", async (req, res) => {
 					result.jwt = token;
 
 					// Send the JWT back to the user
-					console.log(`${username} logged in`);
+					// console.log(`${username} logged in`);
 					res.status(200).json(result);
 					return;
 				}
@@ -168,7 +160,6 @@ app.put("/ftd/api/users", async (req, res) => {
 	try {
 		// Determine if the JWT cookie is a valid token
 		let decoded = jwt.verify(req.body.cookies, jwtSecretKey);
-		console.log("Token is valid");
 
 		// The user has a valid JWT token
 		if (decoded && decoded.humanUser.username) {
@@ -176,20 +167,9 @@ app.put("/ftd/api/users", async (req, res) => {
 			let plainPassword = req.body.password;
 			let plainNewPassword = req.body.newPassword;
 			let confirmPassword = req.body.confirmPassword;
-			let newEmail = req.body.email;
 			let newPassword = "";
 
 			let passwordChange = false;
-			let emailChange = false;
-
-			// Check if email is valid
-			const emailRE = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-			if (newEmail && !emailRE.test(newEmail)) {
-				res.status(400).send();
-				return;
-			} else if (newEmail) {
-				emailChange = true;
-			}
 
 			// Check if user wants to change password, if so, validate input
 			if (plainNewPassword.length != 0) {
@@ -219,9 +199,6 @@ app.put("/ftd/api/users", async (req, res) => {
 					// The username exists
 					if (row) {
 						// console.log(row);
-						if (!emailChange) {
-							newEmail = row.email;
-						}
 						if (!passwordChange) {
 							newPassword = row.password;
 						}
@@ -231,8 +208,8 @@ app.put("/ftd/api/users", async (req, res) => {
 
 						// Password matches, modify user data
 						if (passwordMatches) {
-							let sql = "UPDATE users SET email=?, password=? WHERE username=?;";
-							db.get(sql, [newEmail, newPassword, loggedInUsername], async (err, row) => {
+							let sql = "UPDATE users SET password=? WHERE username=?;";
+							db.get(sql, [newPassword, loggedInUsername], async (err, row) => {
 								// Database error; unable to update successfully
 								if (err) {
 									console.log(err);
@@ -272,6 +249,7 @@ app.put("/ftd/api/users", async (req, res) => {
 	}
 });
 
+// TODO: Check if we still need this
 // Send userProfile info to prefill input fields
 app.post("/ftd/api/getUserInfo", async (req, res) => {
 	try {
@@ -294,7 +272,6 @@ app.post("/ftd/api/getUserInfo", async (req, res) => {
 				// The username exists, send the users information back to the front-end
 				else if (!err) {
 					result = {
-						email: row.email,
 						username: loggedInUsername
 					};
 					res.status(200).send(result);
@@ -399,13 +376,14 @@ app.delete("/ftd/api/users", async (req, res) => {
 			}
 		});
 	} catch (err) {
-		// console.log(err);
-		res.status(401).send();
+		console.log(err);
+		res.status(500).send();
 		return;
 	}
 });
 
 
+// TODO: This isn't being used right now
 // Insert game record into leaderboard
 app.post("/ftd/api/leaderboard", async (req, res) => {
 	try {

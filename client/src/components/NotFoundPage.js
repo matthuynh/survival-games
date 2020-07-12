@@ -12,7 +12,7 @@ class NotFoundPage extends React.Component {
                 <p className="text">Oops! That page doesn't exist</p>
                 <hr />
 
-                <Link to="/dashboard">
+                <Link to="/dashboard" style={{ textDecoration: "none" }}>
                     <Button variant="primary" block >Go home</Button>
                 </Link>
             </div>

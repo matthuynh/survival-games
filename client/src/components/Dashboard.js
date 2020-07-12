@@ -1,60 +1,70 @@
-import React from 'react';
-import Button from 'react-bootstrap/Button';
+import React from "react";
+import Button from "react-bootstrap/Button";
 import Auth from "../Routing/auth";
-import { Link } from 'react-router-dom';
-import '../css/Dashboard.css';
+import { Link } from "react-router-dom";
+import Logo from "../assets/Warcry_logo.png";
+import "../css/Dashboard.css";
 
 class Dashboard extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            username: ""
-        };
-    }
+	constructor(props) {
+		super(props);
+		this.state = {
+			username: "",
+		};
+	}
 
-    // Get user's username to display on dashboard
-    async componentDidMount() {
-        try {
-            let username = await Auth.getUsername();
-            if (username) {
-                this.setState({ username: username});
-            } else {
-                this.props.history.push("/login")
-            }
-        } catch {
-            this.props.history.push("/login")
-        }
-    }
+	// Get user's username to display on dashboard
+	async componentDidMount() {
+		try {
+			let username = await Auth.getUsername();
+			if (username) {
+				this.setState({ username: username });
+			} else {
+				this.props.history.push("/login");
+			}
+		} catch {
+			this.props.history.push("/login");
+		}
+	}
 
-    render() {
-        return (
-            <div className="dashboard-container">
-                <h1 id="dashboard-greeting">{'Welcome ' + this.state.username}</h1>
-                <p id="text">Select from one of the following options below</p>
-                <hr />
+	render() {
+		return (
+			<div className="dashboard-container">
+				<img src={Logo} alt={"WarCry-Logo"} />
+                <h6 id="dashboard-greeting">
+					{"Logged in as " + this.state.username}
+				</h6>
+				{/* <p id="text">Select from one of the following options below</p> */}
+				<hr />
 
-                <Link to="/play">
-                    <Button variant="primary" block >View Lobbies</Button>
-                </Link>
+				<Link to="/play" style={{ textDecoration: "none" }}>
+					<Button variant="primary" className="dashboard-button" block>
+						PLAY
+					</Button>
+				</Link>
 
-                {/* <Button variant="primary" block onClick={this.props.handleLeaderBoard}>Show Leaderboard</Button> */}
-                <Link to="/userinfo">
-                    <Button variant="primary" block >Edit User Information</Button>
-                </Link>
-                
-                <Link to="/deleteuser">
-                    <Button variant="danger" block >Delete User</Button>
-                </Link>
+				{/* <Button variant="primary" block onClick={this.props.handleLeaderBoard}>Show Leaderboard</Button> */}
+				<Link to="/settings" style={{ textDecoration: "none" }}>
+					<Button variant="dark" className="dashboard-button"  block>
+						User Settings
+					</Button>
+				</Link>
 
-                {/* Handle logout from auth file */}
-                <Button variant="primary" block onClick={() => {
-                    Auth.logout(() =>
-                        this.props.history.push("/login")
-                    );
-                }}>Log Out</Button>
-            </div>
-        );
-    }
+				<hr />
+
+				<Button
+                    variant="dark"
+                    className="dashboard-button" 
+					block
+					onClick={() => {
+						Auth.logout(() => this.props.history.push("/login"));
+					}}
+				>
+					Log Out
+				</Button>
+			</div>
+		);
+	}
 }
 
 export default Dashboard;

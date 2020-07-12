@@ -13,19 +13,18 @@ class RegistrationForm extends React.Component {
 		super(props);
 		this.state = {
 			username: "",
-			email: "",
 			password: "",
 			confirmPassword: "",
-			error: "",
+			errorMessage: "",
 			alert: false,
 		};
 		this.handleRegisterUser = this.handleRegisterUser.bind(this);
 		this.handleUsername = this.handleUsername.bind(this);
 		this.handlePassword = this.handlePassword.bind(this);
 		this.handleConfirmPassword = this.handleConfirmPassword.bind(this);
-        this.handleEmail = this.handleEmail.bind(this);
 		this.areFieldsInvalid = this.areFieldsInvalid.bind(this);
         this.renderTooltip = this.renderTooltip.bind(this);
+        this.renderAlert = this.renderAlert.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
     }
     
@@ -36,7 +35,7 @@ class RegistrationForm extends React.Component {
 
     // Removes event listener for key press
     componentWillUnmount() {
-        document.addEventListener("keydown", this.handleKeyPress, false);
+        document.removeEventListener("keydown", this.handleKeyPress, false);
     }
 
     // Handles key press for "Esc" button
@@ -63,24 +62,20 @@ class RegistrationForm extends React.Component {
 		this.setState({ confirmPassword: event.target.value });
 	}
 
-	handleEmail(event) {
-		this.setState({ email: event.target.value });
-	}
-
 	// Handles register API call
 	async handleRegisterUser(e) {
         e.preventDefault();
-        this.setState({ alert: false, error: "" }); // Clear alerts
+        this.setState({ alert: false, errorMessage: "" }); // Clear alerts
 
         // Front-end validation
 		if (this.state.password !== this.state.confirmPassword) {
 			this.setState({ 
-				error: "Oops! Please ensure your passwords match",
+				errorMessage: "Oops! Please ensure your passwords match",
 				alert: true
 			});
         } else if (this.areFieldsInvalid()) {
             this.setState({
-                error: "Please fill in all the required fields",
+                errorMessage: "Please fill in all the required fields",
                 alert: true
             });
         } 
@@ -90,14 +85,13 @@ class RegistrationForm extends React.Component {
 				let postData = {
 					username: this.state.username,
 					password: this.state.password,
-					email: this.state.email
 				};
 				let response = await axios.post("/ftd/api/users", postData);
 				if (response) {
 					this.props.history.push("/login", { response: "successful-registration", username: this.state.username });
 				} else {
 					this.setState({
-                        error: "Oops! Internal server error",
+                        errorMessage: "Oops! Internal server error",
                         alert: true
                     });
 				}
@@ -107,17 +101,17 @@ class RegistrationForm extends React.Component {
 				console.log(err.response);
 				if (err.response && err.response.status === 400) {
 					this.setState({
-						error: "Please ensure you filled in all fields correctly",
+						errorMessage: "Please ensure you filled in all fields correctly",
 						alert: true
 					});
 				} else if (err.response && err.response.status === 403) {
 					this.setState({
-						error: "That username or email is already being used for another account",
+						errorMessage: "That username is already being used for another account",
 						alert: true
 					});
-				} else if (err.response && err.response.status === 500) {
+				} else {
 					this.setState({
-						error: "Oops! Internal server error",
+						errorMessage: "Oops! Internal server error",
 						alert: true
 					});
 				}
@@ -134,26 +128,28 @@ class RegistrationForm extends React.Component {
         );
     }
 
-	render() {
-		// Create alert box
-		let alert = null;
-		if (this.state.alert) {
-			alert = (
+    // Render any Alerts
+    renderAlert() {
+        if (this.state.alert) {
+			return (
 				<Alert
 					variant="danger"
 				>
-					{this.state.error}
+					{this.state.errorMessage}
 				</Alert>
 			);
-		}
+		} 
+        return null;
+    }
 
+	render() {
 		return (
 			<div className="form">
 				<img src={Logo} alt={"WarCry-Logo"} />
 				<hr />
 
 				<form onSubmit={this.handleRegisterUser}>
-					{alert}
+					{this.renderAlert()}
 					<OverlayTrigger
                         placement="right"
                         delay={{ show: 250, hide: 100 }}
@@ -193,20 +189,6 @@ class RegistrationForm extends React.Component {
 							placeholder="Re-enter password"
 							value={this.state.confirmPassword}
                             onChange={this.handleConfirmPassword}
-                            required
-						/>
-					</OverlayTrigger>
-                    <OverlayTrigger
-                        placement="right"
-                        delay={{ show: 250, hide: 100 }}
-                        overlay={this.renderTooltip("Feel free to use a fake email address (eg. 10minutemail.com or mailinator.com")}
-                    >
-						<input
-							type="email"
-							className="form-control"
-							placeholder="Email"
-							value={this.state.email}
-                            onChange={this.handleEmail}
                             required
 						/>
 					</OverlayTrigger>

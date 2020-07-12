@@ -106,7 +106,7 @@ class LobbyList extends React.Component {
 				>
 					Create Lobby
 				</Button>
-				<Link to="/dashboard">
+				<Link to="/dashboard" style={{ textDecoration: "none" }}>
 					<Button
 						variant="primary"
 						block

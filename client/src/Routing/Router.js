@@ -8,7 +8,7 @@ import DeleteUser from "../components/DeleteUser";
 import LobbiesPage from "../components/LobbiesPage";
 import LoginForm from "../components/LoginForm";
 import RegistrationForm from "../components/RegistrationForm";
-import UserInfo from "../components/UserInfo";
+import SettingsPage from "../components/SettingsPage";
 import LandingPage from "../components/LandingPage";
 import NotFoundPage from "../components/NotFoundPage";
 
@@ -25,9 +25,9 @@ class Router extends React.Component {
 
                 {/* Protected Routes */}
                 <ProtectedRoute path="/dashboard" render={(props) => <Dashboard {...props} />} component={Dashboard} />
-                <ProtectedRoute path="/deleteuser" component={DeleteUser} />
+                <ProtectedRoute path="/delete" component={DeleteUser} />
                 <ProtectedRoute path="/play" render={(props) => <LobbiesPage {...props} />} component={LobbiesPage} />
-                <ProtectedRoute path="/userinfo" component={UserInfo} />
+                <ProtectedRoute path="/settings" component={SettingsPage} />
 
                 {/* Redirect to 404 page */}
                 <Route component={NotFoundPage} />

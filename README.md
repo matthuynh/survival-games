@@ -3,7 +3,7 @@
     - `npm install`
 
 2. Setup database
-    - `cd server/db`
+    - `cd db`
     - `sqlite3 database.db < schema.sql`
     - `sqlite3 database.db < schema.sql`
 
@@ -22,8 +22,11 @@
     - `cd client && npm start`
 
 7. On your browser navigate to `http://localhost:3000`
-    - This connects to the local React dev server
-    - Alternatively, you may navigate to `http://localhost:10421` to serve files directly from the `build` folder
+    - This connects to the local React dev server, meaning any changes you make to front-end files will reflect automatically
+
+8. Optional - To simulate a prod environment, navigate to `http://localhost:10421` instead of `http://localhost:3000`
+    - This serve files directly from the `client/build` folder
+        - This only works if you have already done a prod build from CRA (see below)
 
 ---
 
@@ -48,6 +51,31 @@
         - From project root, `git push heroku master`
     4. Sockets
 
+### Workflow for deploying new builds to production
+VERY IMPORTANT: To keep our git log looking nice, please follow the steps below carefully when deploying!! You may follow this workflow after following the steps above (ie. you already have a working instance of this application up on Heroku). Whenever you want your changes are made to be made live, you will need to re-deploy the app
+0. Test your changes
+1. Add and commit your changes to Git `git add --all`, `git commit -m <message>`
+2. Build the front-end: `cd client && npm run build`
+    - This uses CRA's webpack to build our front-end files
+3. Notice that you will now have a `client/build` folder. Don't push this to `remote` (GitHub!)!!11!
+    - Create a temp commit: `git commit -m "Temporary Commit for Heroku"`
+    - Deploy to heroku: `git push heroku master`
+        - You will know if you successfully deployed the build if you see something like this:
+            ```
+            ...
+            remote: -----> Launching...
+            remote:        Released v8
+            remote:        https://your-app-name-here.herokuapp.com/ deployed to Heroku
+            remote:
+            remote: Verifying deploy... done.
+            ...
+            ```
+    - Now, we want to delete the temporary commit you made earlier: `git reset --soft HEAD~1`
+        - Careful! This removes your most RECENT commit! Your most recent commit should be the temp commit
+4. Do `git log` to see if you have successfully deleted your most recent commit
+    - The reason why we want to delete our most recent commit is because we don't want to push `client/build` to GitHub
+5. Push your changes to GitHub: `git push` or `git push remote`
+
 ### Useful Heroku Commands
 - Check if an instance of the Heroku app is up
     - From root, do `heroku ps:scale web=1`
@@ -58,11 +86,3 @@
     - `heroku run bash`
     - You can check out the deployed files here `ls`
     - `exit` to exit
-
-### Pushing updates to production (after initial setup)
-- Whenever new changes are made to be made live, we will need to re-deploy the app
-    - Prepare front-end for deployment:
-        - if any changes were made to the `client` folder, rebuild it: `npm run build`
-    - Push to Heroku's remote Git repostory
-        - Make your changes and then commit them `git commit`
-        - From project root, `git push heroku master`
