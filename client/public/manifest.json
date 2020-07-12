@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "WarCry",
+  "name": "WarCry - an online battle-royale",
   "icons": [
     {
       "src": "favicon.ico",

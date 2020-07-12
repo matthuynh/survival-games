@@ -5,6 +5,8 @@ let interval = null;
 function updateStageModel(playerActors, bulletActors, environmentActors, numAlive, hasEnded) {
 	if (stage) {
 		stage.applyServerUpdates(playerActors, bulletActors, environmentActors, numAlive, hasEnded);
+	} else {
+		console.log("Could not update Stage on client side -- it doesn't exist");
 	}
 }
 
@@ -36,11 +38,14 @@ function setupStageModel(
 		numPlayers,
 		playerId
 	);
+	console.log("Instantiated a new Stage on client side");
 }
 
 // Starts looping the setInterval() function
 function startStageModel() {
-	stopStageGame(); 
+	clearInterval(interval);
+	interval = null;
+	console.log("Starting interval for Stage on client side")
 	if (!(stage == null)) {
 		// Every 20 milliseconds, takes a "step" for animation and also redraws the canvas
 		interval = setInterval(function () {
@@ -51,13 +56,16 @@ function startStageModel() {
 
 // Quit a stage game
 function stopStageGame() {
-	clearInterval(interval);
+	console.log("Stopping Stage on client side");
+	clearInterval(interval); // clearInterval is a library function
 	interval = null;
 	stage = null;
 }
 
 // Called by LobbiesPage.js (React) for sound
 function getCurrentPlayerWeapon() {
+	console.log(stage);
+	console.log(stage.player);
 	if (stage.player && stage.player.currentWeapon) {
 		if (stage.player.currentAmmo > 1) { return stage.player.currentWeapon };
 		return -1;

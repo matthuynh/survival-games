@@ -1,7 +1,7 @@
 const WSSPORT = process.env.PORT || 10000;
 const WebSocketServer = require("ws").Server;
 const wss = new WebSocketServer({ port: WSSPORT });
-console.log(`WebSocket server listening on port ${WSSPORT}`);
+console.log(`[INFO] socket-server.js listening on port ${WSSPORT}`);
 
 // Import the MultiplayerGame (this allows the server access to the game)
 const MultiplayerGame = require("./game-engine/MultiplayerGame.js");
@@ -78,7 +78,7 @@ wss.broadcastToLobbyNonOwner = function (serverUpdate, lobbyId, lobbyOwnerId) {
 
 // Client connects to the web socket server
 wss.on("connection", function connection(ws, req) {
-	console.log("Client is starting to connect on server");
+	console.log("[INFO] Client is starting to connect to server");
 
 	// Add this newly-connected client to our clients list
 	let connectedUsername = req.url.split("=")[1];
@@ -91,7 +91,7 @@ wss.on("connection", function connection(ws, req) {
 		lobbyID: null,
 	});
 	console.log(
-		`Client with PID ${connectedUsername} connected. There are now ${connectedClients.length} connected clients`
+		`[INFO] Client with PID ${connectedUsername} connected. There are now ${connectedClients.length} connected clients`
 	);
 
 	// Send the current state of lobbies to the user
@@ -217,6 +217,8 @@ wss.on("connection", function connection(ws, req) {
 			// Client wants to start game. Only the lobby owner can do this.
 			// The game can only start if all players have status "In Lobby"
 			case "start-game":
+				console.log("Attempting to start game");
+
 				// Check to see if the lobby exists, and the user is the owner
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
@@ -586,6 +588,7 @@ class Lobby {
 		try {
 			// Run the multiplayer game on an interval
 			this.multiplayerGameInterval = setInterval(async () => {
+				// console.log("[GAME STATUS] SENDING UPDATES TO PLAYERS");
 				await this.multiplayerGame.calculateUpdates();
 				await this.multiplayerGame.sendPlayerUpdates(wss);
 
@@ -616,7 +619,7 @@ class Lobby {
 
 	// Ends the multiplayer game in this lobby
 	endGame(gameWinner) {
-		clearInterval(this.multiplayerGameInterval);
+		clearInterval(this.multiplayerGameInterval); // clearInterval is a library function
 		this.multiplayerGame = null;
 		this.gameWinner = gameWinner;
 		this.gameInProgress = false;
@@ -698,7 +701,7 @@ let serverInstance = new ServerInstance();
 const startGlobalInterval = (server) => {
 	// This does not need to run that frequently, as it only checks for lobbies where games have finished
 	globalInterval = setInterval(() => {
-		console.log(`Checking lobbies... there are ${serverInstance.getLobbiesJSON().length} lobbies`);
+		console.log(`[INFO] Checking lobbies... there are ${serverInstance.getLobbiesJSON().length} lobbies`);
 		// console.log(serverInstance.getLobbiesJSON());
 		server.checkLobbies();
 	}, 5000);

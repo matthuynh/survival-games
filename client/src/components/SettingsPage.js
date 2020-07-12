@@ -94,11 +94,13 @@ class SettingsPage extends React.Component {
                 if (response) {
                     this.setState({ 
                         successfulChange: true, 
-                        alert: "success" });
+                        alert: "success" 
+                    });
                 } else {
                     this.setState({ 
-                        alert: "warning", 
-                        errorMessage: "Oops! Internal server error" });
+                        alert: "danger", 
+                        errorMessage: "Oops! Internal server error" 
+                    });
                 }
             } catch (err) {
                 if (err.response && err.response.status === 400) {
@@ -108,12 +110,12 @@ class SettingsPage extends React.Component {
                     });
                 } else if (err.response && err.response.status === 401) {
                     this.setState({
-                        alert: "warning",
+                        alert: "danger",
                         errorMessage: "Your current password is not correct"
                     });
                 } else {
                     this.setState({
-                        alert: "warning",
+                        alert: "danger",
                         errorMessage: "Oops! Internal server error"
                     })
                 }
@@ -134,17 +136,13 @@ class SettingsPage extends React.Component {
     renderAlert() {
         if (this.state.successfulChange && this.state.alert === "success") {
 			return (
-				<Alert
-					variant="success"
-				>
+				<Alert variant="success">
 					Successfully changed settings
 				</Alert>
 			);
-		} else if (this.state.alert === "warning") {
+		} else if (this.state.alert) {
 			return (
-				<Alert
-					variant="danger"
-				>
+				<Alert variant={this.state.alert}>
 					{this.state.errorMessage}
 				</Alert>
 			);

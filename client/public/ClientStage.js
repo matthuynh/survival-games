@@ -13,6 +13,7 @@ class Stage {
 		numPlayers,
 		playerID
 	) {
+		console.log("Instantiating Stage on client side");
 		this.canvas = canvas; // canvas.width and canvas.height correspond to the user's own browser dimensions
 		this.graphicsContext = canvas.getContext("2d");
 

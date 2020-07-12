@@ -203,7 +203,7 @@ class Lobby extends React.Component {
 						{" "}
 						Welcome. Please wait for lobby owner to start game. Your
 						game will automatically load once the lobby owner starts
-						the game
+						the game.
 						<Button
 							variant="danger"
 							block

@@ -129,7 +129,13 @@ class GameView extends React.Component {
 						</Button>
 					</Modal.Body>
 					<Modal.Footer>
-						How to play: Use WASD to move around. Walk over weapons and powerups to pick them up. Press "H" to toggle GUI display
+						<h4> Controls </h4>
+						<ul>
+							<li><kbd>WASD</kbd> to move around</li>
+							<li><kbd>123</kbd> to switch weapons</li>
+							<li><kbd>Esc</kbd> to open game menu</li>
+							<li><kbd>H</kbd> to toggle GUI display</li>
+						</ul>
 					</Modal.Footer>
 				</Modal>
 			</div>

@@ -101,7 +101,7 @@ class LobbiesPage extends React.Component {
 	}
 
 	// Return to dashboard, close sockets, and reset state
-	returnToDashboard() {
+	returnToDashboard(reason) {
 		this.clientSocket.close();
 		window.stopStageGame();
 		document.removeEventListener("keydown", this.handleKeyPress);
@@ -123,6 +123,12 @@ class LobbiesPage extends React.Component {
 			horizontalDirection: 0,
 			verticalDirection: 0
 		});
+
+		if (reason == "socket-server-closed") {
+			this.props.history.push("/dashboard", { response: "socket-server-closed" });
+		} else {
+			this.props.history.push("/dashboard");
+		}
 	}
 
 	// Runs when the page unloads (eg. a game finishes)
@@ -153,7 +159,7 @@ class LobbiesPage extends React.Component {
 	
 			this.clientSocket.onclose = (event) => {
 				console.log("Front-end closing connectiong to web server");
-				this.returnToDashboard();
+				this.returnToDashboard("socket-server-closed");
 			};
 	
 			// When the client receives a message from the server, we will update our client accordingly
@@ -372,6 +378,7 @@ class LobbiesPage extends React.Component {
 			type: "start-game",
 			lobbyId: lobbyId,
 		});
+		console.log(clientUpdate);
 		this.clientSocket.send(clientUpdate);
 	}
 

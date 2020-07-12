@@ -27,7 +27,7 @@ const db = new sqlite3.Database("db/database.db", err => {
 });
 
 // In production, front-end files are served from client/build. Test by going to localhost:10421
-if (process.env.NODE_ENV === "production" || true) {
+if (process.env.NODE_ENV === "production") {
 	console.log("[INFO] express-server.js is serving files from React build folder");
 	// app.use(express.static('./client/build'));
 	// app.use('/static', express.static(path.join(__dirname, './client/build//static')));
@@ -35,17 +35,17 @@ if (process.env.NODE_ENV === "production" || true) {
 	const root = require('path').join(__dirname, 'client', 'build')
 	app.use(express.static(root));
 } 
-// // In development, front-end are served from CRA dev server
-// else {
-// 	console.log("[INFO] express-server.js is using local React dev server");
-// 	app.use("/", function (req, res, next) {
-// 		res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-// 		res.header("Access-Control-Allow-Credentials", true);
-// 		res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-// 		res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
-// 		next();
-// 	});
-// }
+// In development, front-end are served from CRA dev server
+else {
+	console.log("[INFO] express-server.js is using local React dev server");
+	app.use("/", function (req, res, next) {
+		res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+		res.header("Access-Control-Allow-Credentials", true);
+		res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+		res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
+		next();
+	});
+}
 
 
 // Register (create) a new user with the given credentials
@@ -465,7 +465,7 @@ app.get("/ftd/api/leaderboard", async (req, res) => {
 
 
 // In prod, catches any routes meant for React Router
-if (process.env.NODE_ENV === "production" || true) {
+if (process.env.NODE_ENV === "production") {
 	app.get('*', function(req, res) {
 		res.sendFile('index.html', { 
 			root: path.join(__dirname, './client/build/')

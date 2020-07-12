@@ -72,26 +72,20 @@ class LoginForm extends React.Component {
     
     // Render any Alerts
     renderAlert() {
-        if (this.state.alert === "warning") {
+        if (this.state.alert) {
 			return (
-				<Alert variant="danger">
+				<Alert variant={this.state.alert}>
 					{this.state.alertMessage}
 				</Alert>
 			);
-		} else if (this.state.alert === "success") {
-            return (
-				<Alert variant="success">
-					{this.state.alertMessage}
-				</Alert>
-			);
-        }
+		} 
         return null;
     }
 
 	// Handles login API call
 	async handleLogInUser(e) {
         e.preventDefault();
-        this.setState({ alert: false, error: "" }); // Clear alerts
+        this.setState({ alert: "", error: "" }); // Clear alerts
 
         // Front-end validation for username and password field
         if (this.state.username.length < 6 || this.state.username.length > 50 || this.state.password.length < 6 || this.state.password.length > 50) {
@@ -115,7 +109,7 @@ class LoginForm extends React.Component {
                 } else {
                     this.setState({
                         alertMessage: "Oops! Internal server error",
-                        alert: "warning"
+                        alert: "danger"
                     });
                 }
             } 
@@ -129,12 +123,12 @@ class LoginForm extends React.Component {
                 } else if (err.response && err.response.status === 401) {
                     this.setState({
                         alertMessage: "Either that username does not exist, or your password is incorrect (we won't specify which one for security!)",
-                        alert: "warning"
+                        alert: "danger"
                     });
                 } else {
                     this.setState({
                         alertMessage: "Oops! Internal server error",
-                        alert: "warning"
+                        alert: "danger"
                     });
                 }
             }

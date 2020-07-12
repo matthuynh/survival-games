@@ -14,7 +14,7 @@ class DeleteUser extends React.Component {
 		this.state = {
 			password: "",
 			errorMessage: "",
-			alert: false,
+			alert: "",
 		};
 		this.handleDeleteUser = this.handleDeleteUser.bind(this);
 		this.handlePassword = this.handlePassword.bind(this);
@@ -52,7 +52,7 @@ class DeleteUser extends React.Component {
 	// Render any Alerts
     renderAlert() {
 		if (this.state.alert) {
-			return <Alert variant="danger">{this.state.errorMessage}</Alert>;
+			return <Alert variant={this.state.alert}>{this.state.errorMessage}</Alert>;
 		}
 		return null;
 	}
@@ -78,19 +78,19 @@ class DeleteUser extends React.Component {
             } else {
                 this.setState({
                     errorMessage: "Oops! Internal server error",
-                    alert: true
+                    alert: "danger"
                 });
             }
         } catch(err) {
             if (err.response.status === 401) {
                 this.setState({
                     errorMessage: "Your current password is incorrect",
-                    alert: true
+                    alert: "danger"
                 });
             } else {
                 this.setState({
                     errorMessage: "Oops! Internal server error",
-                    alert: true
+                    alert: "danger"
                 });
             }
         }
@@ -129,7 +129,7 @@ class DeleteUser extends React.Component {
 					onClick={this.handleDeleteUser}
 					disabled={this.state.password.length < 6 || this.state.password.length > 50}
 				>
-					Delete Me Forever
+					Delete Me
 				</Button>
 			</div>
 		);

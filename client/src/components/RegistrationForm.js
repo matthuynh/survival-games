@@ -16,7 +16,7 @@ class RegistrationForm extends React.Component {
 			password: "",
 			confirmPassword: "",
 			errorMessage: "",
-			alert: false,
+			alert: ""
 		};
 		this.handleRegisterUser = this.handleRegisterUser.bind(this);
 		this.handleUsername = this.handleUsername.bind(this);
@@ -65,18 +65,18 @@ class RegistrationForm extends React.Component {
 	// Handles register API call
 	async handleRegisterUser(e) {
         e.preventDefault();
-        this.setState({ alert: false, errorMessage: "" }); // Clear alerts
+        this.setState({ alert: "", errorMessage: "" }); // Clear alerts
 
         // Front-end validation
 		if (this.state.password !== this.state.confirmPassword) {
 			this.setState({ 
 				errorMessage: "Oops! Please ensure your passwords match",
-				alert: true
+				alert: "warning"
 			});
         } else if (this.areFieldsInvalid()) {
             this.setState({
                 errorMessage: "Please fill in all the required fields",
-                alert: true
+                alert: "warning"
             });
         } 
         // Attempt to register user
@@ -92,7 +92,7 @@ class RegistrationForm extends React.Component {
 				} else {
 					this.setState({
                         errorMessage: "Oops! Internal server error",
-                        alert: true
+                        alert: "danger"
                     });
 				}
 			} 
@@ -102,17 +102,17 @@ class RegistrationForm extends React.Component {
 				if (err.response && err.response.status === 400) {
 					this.setState({
 						errorMessage: "Please ensure you filled in all fields correctly",
-						alert: true
+						alert: "warning"
 					});
 				} else if (err.response && err.response.status === 403) {
 					this.setState({
 						errorMessage: "That username is already being used for another account",
-						alert: true
+						alert: "warning"
 					});
 				} else {
 					this.setState({
 						errorMessage: "Oops! Internal server error",
-						alert: true
+						alert: "warning"
 					});
 				}
 			}
@@ -133,7 +133,7 @@ class RegistrationForm extends React.Component {
         if (this.state.alert) {
 			return (
 				<Alert
-					variant="danger"
+					variant={this.state.alert}
 				>
 					{this.state.errorMessage}
 				</Alert>
