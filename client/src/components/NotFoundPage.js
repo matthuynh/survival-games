@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
+import Logo from "../assets/warcry-logo-small.png";
 import '../css/PageNotFound.css';
 
 class NotFoundPage extends React.Component {
@@ -36,8 +37,13 @@ class NotFoundPage extends React.Component {
                 <hr />
 
                 <Link to="/dashboard" style={{ textDecoration: "none" }}>
-                    <Button variant="primary" block >Go home</Button>
+                    <Button variant="primary" block >Home</Button>
                 </Link>
+
+                {/* <hr />
+				<Link to="/dashboard" style={{ textDecoration: "none" }} >
+                	<img src={Logo} alt={"WarCry-Logo"} />
+				</Link> */}
             </div>
         );
     }

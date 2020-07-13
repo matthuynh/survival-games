@@ -26,8 +26,9 @@ const db = new sqlite3.Database("db/database.db", err => {
 	console.log("[INFO] express-server.js is now connected to the SQLite database");
 });
 
+// TODO: Set this to true to serve from build folder on localhost:10421..
 // In production, front-end files are served from client/build. Test by going to localhost:10421
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" || true) {
 	console.log("[INFO] express-server.js is serving files from React build folder");
 	// app.use(express.static('./client/build'));
 	// app.use('/static', express.static(path.join(__dirname, './client/build//static')));
@@ -37,6 +38,7 @@ if (process.env.NODE_ENV === "production") {
 } 
 // In development, front-end are served from CRA dev server
 else {
+	// TODO: This might not be needed anymore
 	console.log("[INFO] express-server.js is using local React dev server");
 	app.use("/", function (req, res, next) {
 		res.header("Access-Control-Allow-Origin", "http://localhost:3000");
@@ -464,8 +466,9 @@ app.get("/ftd/api/leaderboard", async (req, res) => {
 });
 
 
+// TODO: Set this to true to serve from build folder on localhost:10421..
 // In prod, catches any routes meant for React Router
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" || true) {
 	app.get('*', function(req, res) {
 		res.sendFile('index.html', { 
 			root: path.join(__dirname, './client/build/')

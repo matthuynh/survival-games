@@ -1,13 +1,10 @@
-* {
-	box-sizing: border-box;
-}
-
-body {
+.landing-page-body {
 	margin: 0;
 	font-size: 1rem;
 	line-height: 1.5;
 	color: #333;
 	overflow-x: hidden;
+	box-sizing: border-box;
 }
 
 .v-header {

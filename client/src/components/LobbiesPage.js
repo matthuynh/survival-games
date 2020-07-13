@@ -1,11 +1,8 @@
+/**
+ * This file renders other child components; it does not render anything by itself. As such, it is the "single source of truth" of state for these components
+ * This file contains websocket connection code to connect the UI to a lobby on the websocket server. It sends and receives websocket "commands" from this lobby
+ */
 import React from "react";
-// import Button from "react-bootstrap/Button";
-// import Table from "react-bootstrap/Table";
-// import Container from 'react-bootstrap/Container';
-// import Row from 'react-bootstrap/Row';
-// import { Link } from 'react-router-dom';
-// import Auth from "../Routing/auth";
-import "../css/LobbiesPage.css";
 
 import LobbyList from "./lobby_components/LobbyList";
 import Lobby from "./lobby_components/Lobby";
@@ -102,29 +99,19 @@ class LobbiesPage extends React.Component {
 
 	// Return to dashboard, close sockets, and reset state
 	returnToDashboard(reason) {
-		this.clientSocket.close();
 		window.stopStageGame();
 		document.removeEventListener("keydown", this.handleKeyPress);
 		document.removeEventListener("keyup", this.handleKeyRelease);
 		document.removeEventListener("mousemove", this.handleMouseMove);
 		document.removeEventListener("mousedown", this.handleMouseDown);
 
-		this.setState({
-			showGameView: false,
-			userWon: false,
-			userLost: false,
-			joinedLobbyId: null,
-			lobbies: [],
-			lobbyClosed: false,
-			movingUp: false,
-			movingLeft: false,
-			movingDown: false,
-			movingRight: false,
-			horizontalDirection: 0,
-			verticalDirection: 0
-		});
+		// This "reason" means that returnToDashboard was triggered by the socket closing, thus we don't need to call .close() on the socket
+		if (reason !== "socket-server-closed") {
+			this.clientSocket.close();
+		}
 
-		if (reason == "socket-server-closed") {
+		// TODO: Buggy logic. /dashboard gets pushed to history twice (eg. if user uses browser back button)
+		if (reason === "socket-server-closed") {
 			this.props.history.push("/dashboard", { response: "socket-server-closed" });
 		} else {
 			this.props.history.push("/dashboard");
@@ -133,8 +120,8 @@ class LobbiesPage extends React.Component {
 
 	// Runs when the page unloads (eg. a game finishes)
 	componentWillUnmount() {
-		// This variable is used to prevent unnecessary setstates on this unmounted component
-		this._isMounted = false;
+		this._isMounted = false; // This variable is used to prevent unnecessary setstates on this unmounted component
+		this.returnToDashboard();
 	}
 
 	// Runs when the page loads

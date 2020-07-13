@@ -5,8 +5,9 @@ import Auth from "../Routing/auth";
 import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import { Link } from "react-router-dom";
-import "../css/DeleteUser.css";
+import Logo from "../assets/warcry-logo-small.png";
 import axios from "axios";
+import "../css/SettingsPage.css";
 
 class DeleteUser extends React.Component {
 	constructor(props) {
@@ -98,16 +99,16 @@ class DeleteUser extends React.Component {
 
 	render() {
 		return (
-			<div className="delete-user">
-                <h3 className="text">You want to delete your account?</h3>
+			<div className="user-info">
+                <h3 className="text">Are you sure?</h3>
                 <p>
-                    Sorry to see you go :(
+                    Please enter your password to confirm
                 </p>
 				<hr />
                 {this.renderAlert()}
 				<OverlayTrigger
 					placement="right"
-					delay={{ show: 250, hide: 100 }}
+					delay={{ show: 150, hide: 100 }}
 					overlay={this.renderTooltip("This action cannot be reversed!")}
 				>
 					<input
@@ -119,18 +120,28 @@ class DeleteUser extends React.Component {
 					/>
 				</OverlayTrigger>
 				<Link to="/settings" style={{ textDecoration: "none" }}>
-					<Button variant="primary" className="delete-button">
+					<Button variant="primary" className="user-info-button">
 						Back to Safety
 					</Button>
 				</Link>
-				<Button
-					variant="danger"
-					className="delete-button"
-					onClick={this.handleDeleteUser}
-					disabled={this.state.password.length < 6 || this.state.password.length > 50}
+				<OverlayTrigger
+					placement="right"
+					delay={{ show: 150, hide: 100 }}
+					overlay={this.renderTooltip("Sorry to see you go :(")}
 				>
-					Delete Me
-				</Button>
+					<Button
+						variant="danger"
+						className="user-info-button"
+						onClick={this.handleDeleteUser}
+						disabled={this.state.password.length < 6 || this.state.password.length > 50}
+					>
+						Delete Me
+					</Button>
+				</OverlayTrigger>
+				{/* <hr />
+				<Link to="/dashboard" style={{ textDecoration: "none" }} >
+                	<img src={Logo} alt={"WarCry-Logo"} />
+				</Link> */}
 			</div>
 		);
 	}

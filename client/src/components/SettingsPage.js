@@ -1,11 +1,19 @@
 import React from "react";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
-import axios from "axios";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/row";
+import Col from "react-bootstrap/col";
 import Tooltip from "react-bootstrap/Tooltip"
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Popover from "react-bootstrap/Popover";
 import { Link } from "react-router-dom";
+import Image from "react-bootstrap/Image";
+import Logo from "../assets/warcry-logo-small.png";
+import HelpImg from "../assets/question-mark.png";
+import axios from "axios";
 import "../css/SettingsPage.css";
+
 
 class SettingsPage extends React.Component {
 	constructor(props) {
@@ -25,6 +33,7 @@ class SettingsPage extends React.Component {
         this.areFieldsInvalid = this.areFieldsInvalid.bind(this);
         this.renderTooltip = this.renderTooltip.bind(this);
         this.renderAlert = this.renderAlert.bind(this);
+        this.renderHelpPopover = this.renderHelpPopover.bind(this);
 		this.handleKeyPress = this.handleKeyPress.bind(this);
 	}
 
@@ -150,6 +159,18 @@ class SettingsPage extends React.Component {
         return null;
     }
 
+    // Displays when user hovers over help button
+	renderHelpPopover() {
+		return(
+			<Popover id="popover-basic">
+                <Popover.Title as="h3" style={{ textAlign: "center" }}>Info</Popover.Title>
+                <Popover.Content>
+                    More settings coming Soon™
+                </Popover.Content>
+			</Popover>
+		);
+	};
+
     // Front-end validation for form fields
     areFieldsInvalid() {
         return (this.state.currentPassword.length < 6 || this.state.currentPassword.length > 50 || this.state.newPassword.length < 6 || this.state.newPassword.length > 50 || this.state.confirmPassword.length < 6 || this.state.confirmPassword.length > 50);
@@ -158,7 +179,11 @@ class SettingsPage extends React.Component {
 	render() {
 		return (
 			<div className="user-info">
-				<h1 className="text">Settings</h1>
+                <Row className="align-items-center">
+                    <Col>
+                        <h1 className="text">Settings</h1>
+                    </Col>
+                </Row>
 				<p className="text">Change your password or delete your account</p>
 				<hr />
 
@@ -228,6 +253,16 @@ class SettingsPage extends React.Component {
 						Home
 					</Button>
 				</Link>
+
+                <Row className="settings-footer align-items-center">
+                    <Col xs={{ span: 3, offset: 10 }}>
+                        <OverlayTrigger trigger="click" placement="top" overlay={this.renderHelpPopover()}>
+                            <span id="settings-help-icon">
+                                <Image src={HelpImg} alt={"Help-Button-Image"} style={{maxHeight: "25px", maxWidth: "25px"}} />
+                            </span>
+                        </OverlayTrigger>
+                    </Col>
+                </Row>
 			</div>
 		);
 	}

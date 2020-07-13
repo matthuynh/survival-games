@@ -1,6 +1,6 @@
 import React from "react";
 import Button from "react-bootstrap/Button";
-import "../../css/CloseLobby.css";
+import "../../css/Lobby.css";
 
 // Display a detailed view about a specific lobby on the server
 class CloseLobby extends React.Component {
@@ -29,12 +29,13 @@ class CloseLobby extends React.Component {
 	render() {
 		return (
             <div className="lobby-page">
-                <h1> Lobby Closed! </h1>
-                <h4> The lobby owner closed this lobby. </h4>
+                <h1> Lobby Closed </h1>
+                <h5> The lobby owner closed this lobby </h5>
+				<p className="text">Press <kbd>Esc</kbd> or <kbd>Enter</kbd> to go back</p>
+                <hr />
         
                 <Button
-                    variant="success"
-                    block
+                    variant="dark"
                     onClick={() => {this.props.handleCloseLobbyDialog()}}
                 >
                     Go back

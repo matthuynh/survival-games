@@ -16,7 +16,7 @@
 	border: 0;
 	background: #e8f5ff;
 	display: block;
-	margin: 20px auto;
+	margin: 8px auto;
 	text-align: center;
 	border: 2px solid #d3d3d3;
 	padding: 14px 10px;
@@ -37,12 +37,20 @@
 .user-info-button {
 	border: 0;
 	display: block;
-	margin: 5px auto;
+	margin: 3px auto;
 	text-align: center;
-	padding: 14px 40px;
-	width: 200px;
-	height: 50px;
+	width: 200px !important;
+	height: 40px;
 	outline: none;
 	transition: 0.1s;
 	cursor: pointer;
+}
+
+#settings-help-icon {
+	cursor: pointer;
+}
+
+.settings-footer {
+	margin-top: 20px;
+	margin-bottom: -20px;
 }

@@ -18,3 +18,42 @@
 .disable-cursor {
     cursor: not-allowed !important;
 }
+
+.lobby-list-button {
+	border: 0;
+    margin: 2px auto;
+    margin-top: 7px;
+	text-align: center;
+	height: 40px;
+	outline: none;
+	transition: 0.1s;
+	cursor: pointer;
+}
+
+.lobby-list-left-button {
+    border: 0;
+    margin: 2px auto;
+    margin-right: 5px !important;
+	height: 70px;
+	outline: none;
+	cursor: pointer;
+}
+
+.lobby-list-right-button {
+    border: 0;
+    margin: 2px auto;
+    margin-left: 5px !important;
+	height: 70px;
+	outline: none;
+	cursor: pointer;
+}
+
+
+#lobby-help-icon {
+	cursor: pointer;
+}
+
+.lobby-list-footer {
+	margin-top: 20px;
+	margin-bottom: -20px;
+}

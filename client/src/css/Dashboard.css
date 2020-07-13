@@ -23,12 +23,10 @@
 
 .dashboard-button {
 	border: 0;
-	display: block;
-	margin: 5px auto;
+	margin: 3px auto;
 	text-align: center;
-	padding: 14px 40px;
 	width: 200px;
-	height: 50px;
+	height: 40px;
 	outline: none;
 	transition: 0.1s;
 	cursor: pointer;

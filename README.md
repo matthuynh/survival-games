@@ -53,13 +53,13 @@
 
 ### Workflow for deploying new builds to production
 VERY IMPORTANT: To keep our git log looking nice, please follow the steps below carefully when deploying!! You may follow this workflow after following the steps above (ie. you already have a working instance of this application up on Heroku). Whenever you want your changes are made to be made live, you will need to re-deploy the app
-0. Test your changes
+0. Test your changes. If you have the `client/build` folder, be sure to delete it `rm -rof build` before the next step
 1. Add and commit your changes to Git `git add --all`, `git commit -m <message>`
 2. Build the front-end: `cd client && npm run build`
     - This uses CRA's webpack to build our front-end files
 3. Notice that you will now have a `client/build` folder. Don't push this to `remote` (GitHub!)!!11!
     - Create a temp commit: `git commit -m "Temporary Commit for Heroku"`
-    - Deploy to heroku: `git push heroku master`
+    - Deploy to heroku: `git push heroku master --force`
         - You will know if you successfully deployed the build if you see something like this:
             ```
             ...
@@ -74,7 +74,8 @@ VERY IMPORTANT: To keep our git log looking nice, please follow the steps below 
         - Careful! This removes your most RECENT commit! Your most recent commit should be the temp commit
 4. Do `git log` to see if you have successfully deleted your most recent commit
     - The reason why we want to delete our most recent commit is because we don't want to push `client/build` to GitHub
-5. Push your changes to GitHub: `git push` or `git push remote`
+5. Do `git status` -- you may see that `build` is staged for commit. What you can do now is delete the `build` folder, `rm -rf build`. Or, you can unstage them (however they'll still appear in your `git status` as unstaged changes): `git reset HEAD <file>`
+6. Push your changes from Step 1 to GitHub: `git push` or `git push remote`
 
 ### Useful Heroku Commands
 - Check if an instance of the Heroku app is up

@@ -7,7 +7,7 @@ import '../css/LandingPage.css';
 
 function LandingPage() {
     return (
-        <div>  
+        <div className="landing-page-body">  
             <header className="v-header container">
                 <div className="video-container">
                     <video src={Vid} type="video/mp4" autoPlay loop muted>

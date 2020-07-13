@@ -1,6 +1,9 @@
 import React from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/row";
+import Col from "react-bootstrap/col";
 import Auth from "../Routing/auth";
 import { Link } from "react-router-dom";
 import Logo from "../assets/Warcry_logo.png";
@@ -17,7 +20,7 @@ class Dashboard extends React.Component {
 
 		// Checks to see if user was redirected from LobbiesPage
         if (props.location && props.location.state && props.location.state.response === "socket-server-closed") {
-            this.state.alertMessage = "Sorry! The game server is currently undergoing maintenance... Please contact the developers if this problem persists";
+            this.state.alertMessage = "Sorry! The game server is currently undergoing maintenance";
             this.state.alert = "danger";
             props.history.replace({ state: "" });
         }
@@ -58,25 +61,45 @@ class Dashboard extends React.Component {
 					{"Logged in as " + this.state.username}
 				</h6>
 				<hr />
- 
-				<Link to="/play" style={{ textDecoration: "none" }}>
-					<Button variant="primary" className="dashboard-button" block>
-						PLAY
-					</Button>
-				</Link>
 
-				<Link to="/settings" style={{ textDecoration: "none" }}>
-					<Button variant="dark" className="dashboard-button"  block>
-						User Settings
-					</Button>
-				</Link>
+				
+				<Container className="align-items-center">
+					<Row className="align-items-center">
+						<Col>
+							<Link to="/play" style={{ textDecoration: "none" }}>
+								<Button variant="primary" className="dashboard-button">
+									PLAY
+								</Button>
+							</Link>
+						</Col>
+					</Row>
+					<Row className="align-items-center">
+						<Col>
+							<Link to="/settings" style={{ textDecoration: "none" }}>
+								<Button variant="dark" className="dashboard-button" disabled>
+									How to Play
+								</Button>
+							</Link>
+						</Col>
+					</Row >
+					<Row className="align-items-center">
+						<Col>
+							<Link to="/settings" style={{ textDecoration: "none" }}>
+								<Button variant="dark" className="dashboard-button">
+									User Settings
+								</Button>
+							</Link>
+						</Col>
+					</Row>
+				</Container>
+
+
 
 				<hr />
 
 				<Button
                     variant="dark"
                     className="dashboard-button" 
-					block
 					onClick={() => {
 						Auth.logout(() => this.props.history.push("/login"));
 					}}
