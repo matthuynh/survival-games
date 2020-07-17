@@ -1,6 +1,13 @@
 import React from "react";
 import Button from "react-bootstrap/Button";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/row";
+import Col from "react-bootstrap/col";
+import ListGroup from "react-bootstrap/ListGroup";
 import Modal from "react-bootstrap/Modal";
+import Image from "react-bootstrap/Image";
+import AudioImg from "../../assets/audio-icon.png";
+import MuteAudioImg from "../../assets/mute-icon.png";
 import "../../css/GameView.css";
 
 // Display a detailed view about a specific lobby on the server
@@ -39,7 +46,7 @@ class GameView extends React.Component {
 
 	componentWillUnmount() {
 		window.removeEventListener("resize", this.updateWindowDimensions);
-		document.removeEventListener("keydown", this.handleKeyPress, false);
+		// document.removeEventListener("keydown", this.handleKeyPress, false);
 	}
 
 	// Update lobbies passed down from parent LobbiesPage
@@ -70,11 +77,22 @@ class GameView extends React.Component {
 
 	openMenuScreen() {
 		this.setState({ showMenuScreen: true });
+		// console.log("Modal opening");
+		// Disable user game UI controls
+		document.removeEventListener("keydown", this.props.handleGameKeyPress);
+		document.removeEventListener("keyup", this.props.handleGameKeyRelease);
+		document.removeEventListener("mousemove", this.props.handleGameMouseMove);
+		document.removeEventListener("mousedown", this.props.handleGameMouseDown);
 	}
 
 	closeMenuScreen() {
 		this.setState({ showMenuScreen: false });
-		console.log("inside line 78");
+		// console.log("Modal closing");
+		// Re-anble user game UI controls
+		document.addEventListener("keydown", this.props.handleGameKeyPress);
+		document.addEventListener("keyup", this.props.handleGameKeyRelease);
+		document.addEventListener("mousemove", this.props.handleGameMouseMove);
+		document.addEventListener("mousedown", this.props.handleGameMouseDown);
 	}
 
 	handleKeyPress(e) {
@@ -83,7 +101,7 @@ class GameView extends React.Component {
 		}
 	}
 
-	// TODO: Improve Modal styling. Consider disabling the ability to close the modal once the game ends
+	// TODO: Consider disabling the ability to close the modal once the game ends
 	// Alternative for canvas: set width and height to logical stage dimension, then use css to set width and height for player's browser size
 	render() {
 		return (
@@ -101,41 +119,64 @@ class GameView extends React.Component {
 					onHide={this.closeMenuScreen}
 					centered
 				>
-					<Modal.Header closeButton>
-						<Modal.Title>Game Menu</Modal.Title>
-						{this.state.userWon && <h1> You won! </h1>}
-						{this.state.userLost && <h1> You lost! </h1>}
+					<Modal.Header>
+						<Container>
+							<Row>
+								{/* TODO: Implement volume controls. Will probably need state in LobbiesPage.js */}
+								<span id="lobby-help-icon" style={{marginRight: "-25px"}}>
+									<Image src={AudioImg} alt={"Volume-Toggle"} style={{maxHeight: "25px", maxWidth: "25px"}} />
+								</span>
+								<Col>
+									{!this.state.userWon && !this.state.userLost && <h3> Game in Progress!</h3>}
+									{this.state.userWon && <h3> You won! </h3>}
+									{this.state.userLost && <h3> You lost! </h3>}
+								</Col>
+							</Row>
+						</Container>
 					</Modal.Header>
 					<Modal.Body>
-						<Button
-							variant="success"
-							onClick={this.closeMenuScreen}
-							block
-						>
-							Back to game
-						</Button>
-						<Button
-							variant="warning"
-							onClick={() => {
-								this.props.handleLeaveGame(
-									this.state.playerId,
-									this.state.joinedLobbyId
-								);
-							}}
-							className="leaveGameButton"
-							block
-						>
-							Leave game
-						</Button>
+						<Container>
+							<Row>
+								<Col>
+									<ListGroup variant="flush">
+										<ListGroup.Item><kbd>WASD</kbd> to move around</ListGroup.Item>
+										<ListGroup.Item>Walk over a weapon or power-up to pick it up</ListGroup.Item>
+										<ListGroup.Item><kbd>123</kbd> to switch weapons</ListGroup.Item>
+										<ListGroup.Item><kbd>Esc</kbd> to open and close game menu</ListGroup.Item>
+										<ListGroup.Item><kbd>H</kbd> to toggle GUI display</ListGroup.Item>
+									</ListGroup>
+								</Col>
+							</Row>
+						</Container>
 					</Modal.Body>
 					<Modal.Footer>
-						<h4> Controls </h4>
-						<ul>
-							<li><kbd>WASD</kbd> to move around</li>
-							<li><kbd>123</kbd> to switch weapons</li>
-							<li><kbd>Esc</kbd> to open game menu</li>
-							<li><kbd>H</kbd> to toggle GUI display</li>
-						</ul>
+						<Container>
+							<Row>
+								<Col xs={8}>
+									<Button
+										variant="primary"
+										block
+										onClick={this.closeMenuScreen}
+									>
+										Back to game
+									</Button>
+								</Col>
+								<Col xs={4}>
+									<Button
+										variant="dark"
+										block
+										onClick={() => {
+											this.props.handleLeaveGame(
+												this.state.playerId,
+												this.state.joinedLobbyId
+											);
+										}}
+									>
+										Leave game
+									</Button>
+								</Col>
+							</Row>
+						</Container>
 					</Modal.Footer>
 				</Modal>
 			</div>

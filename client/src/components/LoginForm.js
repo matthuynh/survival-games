@@ -185,6 +185,21 @@ class LoginForm extends React.Component {
                         Sign Up
                     </Button>
                 </Link>
+
+                <hr />
+                <OverlayTrigger
+                    placement="right"
+                    delay={{ show: 250, hide: 100 }}
+                    overlay={this.renderTooltip("If you choose to play as a Guest, you will not be able to customize any settings or save play statistics (features coming Soon™)")}
+                >
+                    <Button
+                        variant="dark"
+                        className="form-button"
+                        disabled
+                    >
+                        Play as Guest
+                    </Button>
+                </OverlayTrigger>
             </div>
 		);
 	}

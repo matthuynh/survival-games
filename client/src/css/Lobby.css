@@ -15,10 +15,6 @@
     color: black;
 }
 
-.disable-cursor {
-    cursor: not-allowed !important;
-}
-
 .lobby-list-button {
 	border: 0;
     margin: 2px auto;
@@ -56,4 +52,20 @@
 .lobby-list-footer {
 	margin-top: 20px;
 	margin-bottom: -20px;
+}
+
+.multiplayer-lobby-button {
+    border: 0;
+    margin: 2px auto;
+    margin-top: 7px;
+	text-align: center;
+    height: 40px;
+    width: 300px;
+	outline: none;
+	transition: 0.1s;
+	cursor: pointer;
+}
+
+.multiplayer-lobby-text {
+    margin-bottom: 12px;
 }

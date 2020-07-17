@@ -51,7 +51,6 @@ class LobbyList extends React.Component {
 			</Popover>
 		);
 	};
-	  
 
 	render() {
 		return (

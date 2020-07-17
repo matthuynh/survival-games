@@ -5,7 +5,7 @@
 import React from "react";
 
 import LobbyList from "./lobby_components/LobbyList";
-import Lobby from "./lobby_components/Lobby";
+import MultiplayerLobby from "./lobby_components/MultiplayerLobby";
 import CloseLobby from "./lobby_components/CloseLobby";
 import GameView from "./lobby_components/GameView";
 import Auth from "../Routing/auth";
@@ -614,6 +614,10 @@ class LobbiesPage extends React.Component {
 					userLost={this.state.userLost}
 					handleLeaveGame={this.handleLeaveGame}
 					updateDimensions={this.updateDimensions}
+					handleGameKeyPress={this.handleKeyPress}
+					handleGameKeyRelease={this.handleKeyRelease}
+					handleGameMouseMove={this.handleMouseMove}
+					handleGameMouseDown={this.handleMouseDown}
 				/>
 			)
 		}
@@ -621,7 +625,7 @@ class LobbiesPage extends React.Component {
 		// Render the lobby view
 		else if (this.state.joinedLobbyId !== null) {
 			return (
-				<Lobby
+				<MultiplayerLobby
 					lobbies={this.state.lobbies}
 					lobbyId={this.state.joinedLobbyId}
 					playerId={this.state.playerId}
