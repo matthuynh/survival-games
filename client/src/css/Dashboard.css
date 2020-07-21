@@ -31,3 +31,7 @@
 	transition: 0.1s;
 	cursor: pointer;
 }
+
+.logout-button {
+	margin-top: 20px;
+}

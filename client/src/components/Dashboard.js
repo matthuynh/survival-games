@@ -60,9 +60,7 @@ class Dashboard extends React.Component {
                 <h6 id="dashboard-greeting">
 					{"Logged in as " + this.state.username}
 				</h6>
-				<hr />
 
-				
 				<Container className="align-items-center">
 					<Row className="align-items-center">
 						<Col>
@@ -93,15 +91,11 @@ class Dashboard extends React.Component {
 					</Row>
 				</Container>
 
-
-
-				<hr />
-
 				<Button
                     variant="dark"
-                    className="dashboard-button" 
+                    className="dashboard-button logout-button" 
 					onClick={() => {
-						Auth.logout(() => this.props.history.push("/login"));
+						Auth.serverLogout(() => this.props.history.push("/login"));
 					}}
 				>
 					Log Out

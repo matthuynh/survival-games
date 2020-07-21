@@ -85,28 +85,26 @@ wss.broadcastToLobbyNonOwner = function (serverUpdate, lobbyId, lobbyOwnerId) {
 
 // Client connects to the web socket server
 wss.on("connection", function connection(ws, req) {
-	console.log("[SOCKET SERVER INFO] Client is starting to connect to server");
+	console.log("[WSS INFO] Client is starting to connect to server");
 
 	// Add this newly-connected client to our clients list
 	let connectedUsername = req.url.split("=")[1];
 	if (connectedUsername == null) {
-		console.log("WARNING: Unable to identify connecting client");
+		console.log("[WSS WARNING] Unable to identify connecting client");
 	}
 	connectedClients.push({
 		socket: ws,
 		PID: connectedUsername,
 		lobbyID: null,
 	});
-	console.log(
-		`[SOCKET SERVER INFO] Client with PID ${connectedUsername} connected. There are now ${connectedClients.length} connected clients`
-	);
+	console.log(`[WSS INFO] Client with PID ${connectedUsername} connected. There are now ${connectedClients.length} connected clients`);
 
 	// Send the current state of lobbies to the user
 	sendUpdatedLobbies(ws);
 
 	// Client closes socket connection on server; remove them from any lobbies and games
 	ws.on("close", function () {
-		console.log("Client closing socket connection to server");
+		console.log("[WSS INFO] Client closing socket connection to server");
 		let disconnectedClient;
 		let disconnectedClientIndex;
 		// console.log(connectedClients);
@@ -114,9 +112,7 @@ wss.on("connection", function connection(ws, req) {
 			if (connectedClients[i].socket === ws) {
 				disconnectedClient = connectedClients[i];
 				disconnectedClientIndex = i;
-				console.log(
-					`Client with PID ${disconnectedClient.PID} disconnected.`
-				);
+				console.log(`[WSS INFO] Client with PID ${disconnectedClient.PID} disconnected.`);
 				break;
 			}
 		}
@@ -124,7 +120,7 @@ wss.on("connection", function connection(ws, req) {
 		// Remove that client from any lobbies it is in
 		let lobby = serverInstance.getLobby(disconnectedClient.lobbyID);
 		if (lobby) {
-			console.log(`The disconnected client is in the lobby with ID ${disconnectedClient.lobbyID}, removing them`);
+			console.log(`[WSS INFO] The disconnected client is in the lobby with ID ${disconnectedClient.lobbyID}, removing them`);
 			
 			// If they are lobby owner, kick everyone else out
 			if (lobby.getLobbyOwnerId() === disconnectedClient.PID) {
@@ -141,9 +137,7 @@ wss.on("connection", function connection(ws, req) {
 
 		// Remove the disconnected client from the connected clients list
 		connectedClients.splice(disconnectedClientIndex, 1);
-		console.log(
-			`There are now ${connectedClients.length} connected clients \n`
-		);
+		console.log(`[WSS INFO] There are now ${connectedClients.length} connected clients \n`);
 	});
 
 	// When we receive an update from the client, take the appropriate action
@@ -224,7 +218,7 @@ wss.on("connection", function connection(ws, req) {
 			// Client wants to start game. Only the lobby owner can do this.
 			// The game can only start if all players have status "In Lobby"
 			case "start-game":
-				console.log("Attempting to start game");
+				console.log("[WSS INFO] Attempting to start game");
 
 				// Check to see if the lobby exists, and the user is the owner
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
@@ -354,7 +348,7 @@ wss.on("connection", function connection(ws, req) {
 
 			// All players in a lobby may choose to leave a game (but stay in the lobby)
 			case "leave-game":
-				console.log("Client tries to leave game on lobby on server");
+				console.log("[WSS INFO] Client tries to leave game on lobby on server");
 				// Check to see if the lobby exists
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
@@ -396,7 +390,7 @@ wss.on("connection", function connection(ws, req) {
 
 
 			default:
-				console.log("Server received unrecognized command from client");
+				console.log("[WSS INFO] Server received unrecognized command from client");
 		}
 	});
 });
@@ -578,7 +572,7 @@ class Lobby {
 			(playerId, status) => {
 				// function "name" is setPlayerStatus, handles changing player status (eg. dead, spectating)
 				// See Lobby for possible statuses ("In Lobby", "In Game", "Winner!", "Spectating")
-				console.log(`${playerId} either died or won, status is ${status}`);
+				console.log(`[WSS INFO] ${playerId} either died or won, status is ${status}`);
 				let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
 				this.lobbyPlayers[index].status = status;
 				if (status === "Spectating") {
@@ -607,7 +601,7 @@ class Lobby {
 				}
 			}, 20);
 		} catch (e) {
-			console.log(e);
+			console.log(`[WSS WARNING] ${e}`);
 		}
 
 		// Return initial game state
@@ -708,7 +702,10 @@ let serverInstance = new ServerInstance();
 const startGlobalInterval = (server) => {
 	// This does not need to run that frequently, as it only checks for lobbies where games have finished
 	globalInterval = setInterval(() => {
-		console.log(`[SOCKET SERVER INFO] Checking lobbies... there are ${serverInstance.getLobbiesJSON().length} lobbies`);
+		if (process.env.PORT) {
+			// We only print this on dev environment
+			console.log(`[WSS INFO] Checking lobbies... there are ${serverInstance.getLobbiesJSON().length} lobbies`);
+		}
 		// console.log(serverInstance.getLobbiesJSON());
 		server.checkLobbies();
 	}, 5000);
@@ -721,5 +718,5 @@ startGlobalInterval(serverInstance);
 
 // Creates a listener on the specified port
 server.listen(PORT, function() {
-	console.log(`[INFO] Express and WebSocket server listening on ${PORT}`)
+	console.log(`[WSS INFO] Express and WebSocket server listening on ${PORT}`)
 });

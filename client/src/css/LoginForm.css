@@ -53,6 +53,10 @@
 	cursor: pointer;
 }
 
+.guest-button {
+	margin-top: 20px;
+}
+
 /* This CSS affects all buttons on ALL pages */
 button:disabled {
 	cursor: not-allowed;

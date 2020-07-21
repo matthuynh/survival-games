@@ -146,7 +146,6 @@ class RegistrationForm extends React.Component {
 		return (
 			<div className="form">
 				<img src={Logo} alt={"WarCry-Logo"} />
-				<hr />
 
 				<form onSubmit={this.handleRegisterUser}>
 					{this.renderAlert()}

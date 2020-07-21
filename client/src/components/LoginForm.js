@@ -108,7 +108,7 @@ class LoginForm extends React.Component {
                     });
                 } else {
                     this.setState({
-                        alertMessage: "Oops! Internal server error",
+                        alertMessage: "Oops! Internal server error. Please try again. If this problem persists, contact the developers",
                         alert: "danger"
                     });
                 }
@@ -127,7 +127,7 @@ class LoginForm extends React.Component {
                     });
                 } else {
                     this.setState({
-                        alertMessage: "Oops! Internal server error",
+                        alertMessage: "Oops! Internal server error. Please try again. If this problem persists, contact the developers",
                         alert: "danger"
                     });
                 }
@@ -139,7 +139,6 @@ class LoginForm extends React.Component {
 		return (
             <div className="form">
                 <img src={Logo} alt={"WarCry-Logo"} />
-                <hr />
 
                 <form onSubmit={this.handleLogInUser}>
                     {this.renderAlert()}    
@@ -186,7 +185,6 @@ class LoginForm extends React.Component {
                     </Button>
                 </Link>
 
-                <hr />
                 <OverlayTrigger
                     placement="right"
                     delay={{ show: 250, hide: 100 }}
@@ -194,7 +192,7 @@ class LoginForm extends React.Component {
                 >
                     <Button
                         variant="dark"
-                        className="form-button"
+                        className="form-button guest-button"
                         disabled
                     >
                         Play as Guest

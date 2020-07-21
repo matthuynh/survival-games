@@ -23,13 +23,13 @@ const db = new sqlite3.Database("db/database.db", err => {
 	if (err) {
 		console.error(err.message);
 	}
-	console.log("[HTTP SERVER INFO] express-server.js is now connected to the SQLite database");
+	console.log("[EXPRESS INFO] express-server.js is now connected to the SQLite database");
 });
 
 // TODO: Set this to true to serve from build folder on localhost:10000..
 // In production, front-end files are served from client/build. Test by going to localhost:10000
 if (process.env.NODE_ENV === "production" || true) {
-	console.log("[HTTP SERVER INFO] express-server.js is serving files from React build folder");
+	console.log("[EXPRESS INFO] express-server.js is serving files from React build folder");
 	// app.use(express.static('./client/build'));
 	// app.use('/static', express.static(path.join(__dirname, './client/build//static')));
 	
@@ -39,7 +39,7 @@ if (process.env.NODE_ENV === "production" || true) {
 // In development, front-end are served from CRA dev server
 else {
 	// TODO: This might not be needed anymore
-	console.log("[HTTP SERVER INFO] express-server.js is using local React dev server");
+	console.log("[EXPRESS INFO] express-server.js is using local React dev server");
 	app.use("/", function (req, res, next) {
 		res.header("Access-Control-Allow-Origin", "http://localhost:3000");
 		res.header("Access-Control-Allow-Credentials", true);
@@ -135,7 +135,7 @@ app.post("/ftd/api/login", async (req, res) => {
 					result.jwt = token;
 
 					// Send the JWT back to the user
-					// console.log(`${username} logged in`);
+					console.log(`[EXPRESS SERVER INFO] ${username} logged in`);
 					res.status(200).json(result);
 					return;
 				}

@@ -1,6 +1,12 @@
 import axios from "axios";
 
 class Auth {
+	logout() {
+		// Deletes the JWT cookie and removes the isAuth local storage on the client
+		document.cookie = 'jwt=; expires=Thu, 01-Jan-1970 00:00:01 GMT;';
+		localStorage.removeItem('isAuth');
+	}
+
 	// Called when the user successfully logs into the server
 	login(token, cb) {
 		// console.log("Successfully authenticated user");
@@ -10,8 +16,9 @@ class Auth {
 	}
 
 	// Logs out user, and then calls the callback
-	async logout(cb) {
-        // console.log("Logging out user");
+	async serverLogout(cb) {
+		// console.log("Logging out user");
+		// Note: this request to the back-end isn't stricly necessary
         try {
             let response = await axios({
                 method: "POST",
@@ -22,19 +29,21 @@ class Auth {
             
             // Successfully logged out user
             if (response && response.data && response.data.loggedOut === "LoggedOut") {
-                localStorage.removeItem('isAuth');
-                cb();
+				console.log("Server logout caught by back-end")
             } else {
-                console.log("Request failed");
+				console.log("Request failed");
             }
         } catch (error) {
-            console.log("Request failed: ", error)
-        }
+			console.log("Request failed: ", error)
+		}
+		
+		this.logout();
+		cb();
 	}
 
 	// Remove login state when user deletes their account
 	delete(cb) {
-		localStorage.removeItem("isAuth");
+		this.logout();
 		cb();
 	}
 
@@ -61,7 +70,7 @@ class Auth {
 			return "";
 		} catch {
 			console.log("Unable to retrieve username, logging out user");
-			localStorage.removeItem("isAuth");
+			this.logout();
 			return "";
 		}
 	}
@@ -84,7 +93,7 @@ class Auth {
 			);
 		} catch {
 			console.log("Unable to retrieve username, logging out user");
-			localStorage.removeItem("isAuth");
+			this.logout();
 			return false;
 		}
 	}
