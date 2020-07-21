@@ -1,1 +1,1 @@
-web: node ./express-server.js
+web: node ./socket-server.js

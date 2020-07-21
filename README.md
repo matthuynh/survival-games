@@ -20,7 +20,7 @@
 6. On your browser navigate to `http://localhost:3000`
     - This connects to the local React dev server, meaning any changes you make to front-end files will reflect automatically
 
-7. Optional - To simulate a prod environment, navigate to `http://localhost:10421` instead of `http://localhost:3000`
+7. Optional - To simulate a prod environment, navigate to `http://localhost:10000` instead of `http://localhost:3000`
     - This serve files directly from the `client/build` folder
         - This only works if you have already done a prod build from CRA (see below)
 
@@ -49,12 +49,13 @@
 
 ### Workflow for deploying new builds to production
 VERY IMPORTANT: To keep our git log looking nice, please follow the steps below carefully when deploying!! You may follow this workflow after following the steps above (ie. you already have a working instance of this application up on Heroku). Whenever you want your changes are made to be made live, you will need to re-deploy the app
-0. Test your changes. If you have the `client/build` folder, be sure to delete it `rm -rof build` before the next step
+0. Test your changes. If you have the `client/build` folder, be sure to delete it `rm -rf build` before the next step
 1. Add and commit your changes to Git `git add --all`, `git commit -m <message>`
 2. Build the front-end: `cd client && npm run build`
     - This uses CRA's webpack to build our front-end files
 3. Notice that you will now have a `client/build` folder. Don't push this to `remote` (GitHub!)!!11!
-    - Create a temp commit: `git commit -m "Temporary Commit for Heroku"`
+    - Create a temp commit: `git add --all && git commit -m "Temporary Commit for Heroku"`
+        - We will be reverting this commit later
     - Deploy to heroku: `git push heroku master --force`
         - You will know if you successfully deployed the build if you see something like this:
             ```
