@@ -7,24 +7,20 @@
     - `sqlite3 database.db < schema.sql`
     - `sqlite3 database.db < schema.sql`
 
-3. Run Express Server:
-    - Do `npx nodemon express-server.js`
-    - We have specified the express server to run on port 10421
-
-4. Run Web Socket Server:
+3. Run Backend Server:
     - Do `npx nodemon socket-server.js`
-    - The web socket server runs on port 10000
-    
-5. Install client dependencies (for Create-React-App):
+    - This runs both the Express server and WebSocket server on port 10000 by default
+
+4. Install client dependencies (for Create-React-App):
     - `cd client && npm install`
 
-6. Running client code:
+5. Running client code:
     - `cd client && npm start`
 
-7. On your browser navigate to `http://localhost:3000`
+6. On your browser navigate to `http://localhost:3000`
     - This connects to the local React dev server, meaning any changes you make to front-end files will reflect automatically
 
-8. Optional - To simulate a prod environment, navigate to `http://localhost:10421` instead of `http://localhost:3000`
+7. Optional - To simulate a prod environment, navigate to `http://localhost:10421` instead of `http://localhost:3000`
     - This serve files directly from the `client/build` folder
         - This only works if you have already done a prod build from CRA (see below)
 

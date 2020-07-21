@@ -1,7 +1,14 @@
-const WSSPORT = process.env.PORT || 10000;
 const WebSocketServer = require("ws").Server;
-const wss = new WebSocketServer({ port: WSSPORT });
-console.log(`[INFO] socket-server.js listening on port ${WSSPORT}`);
+const server = require('http').createServer();
+const app = require("./express-server.js");
+const PORT = require("./express-server.js").port; // uses the PORT defined in express-server.js
+let wss = new WebSocketServer({
+	server: server
+});
+
+// HTTP requests will be handled by express-server.js
+server.on('request', app);
+
 
 // Import the MultiplayerGame (this allows the server access to the game)
 const MultiplayerGame = require("./game-engine/MultiplayerGame.js");
@@ -78,7 +85,7 @@ wss.broadcastToLobbyNonOwner = function (serverUpdate, lobbyId, lobbyOwnerId) {
 
 // Client connects to the web socket server
 wss.on("connection", function connection(ws, req) {
-	console.log("[INFO] Client is starting to connect to server");
+	console.log("[SOCKET SERVER INFO] Client is starting to connect to server");
 
 	// Add this newly-connected client to our clients list
 	let connectedUsername = req.url.split("=")[1];
@@ -91,7 +98,7 @@ wss.on("connection", function connection(ws, req) {
 		lobbyID: null,
 	});
 	console.log(
-		`[INFO] Client with PID ${connectedUsername} connected. There are now ${connectedClients.length} connected clients`
+		`[SOCKET SERVER INFO] Client with PID ${connectedUsername} connected. There are now ${connectedClients.length} connected clients`
 	);
 
 	// Send the current state of lobbies to the user
@@ -701,7 +708,7 @@ let serverInstance = new ServerInstance();
 const startGlobalInterval = (server) => {
 	// This does not need to run that frequently, as it only checks for lobbies where games have finished
 	globalInterval = setInterval(() => {
-		console.log(`[INFO] Checking lobbies... there are ${serverInstance.getLobbiesJSON().length} lobbies`);
+		console.log(`[SOCKET SERVER INFO] Checking lobbies... there are ${serverInstance.getLobbiesJSON().length} lobbies`);
 		// console.log(serverInstance.getLobbiesJSON());
 		server.checkLobbies();
 	}, 5000);
@@ -710,3 +717,9 @@ const startGlobalInterval = (server) => {
 };
 
 startGlobalInterval(serverInstance);
+
+
+// Creates a listener on the specified port
+server.listen(PORT, function() {
+	console.log(`[INFO] Express and WebSocket server listening on ${PORT}`)
+});

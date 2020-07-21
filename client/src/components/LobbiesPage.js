@@ -27,8 +27,9 @@ const emptyGunSound = new UIFx(emptyGunImport, {
 	volume: 0.5
 });
 
+const PORT = process.env.PORT || 10000; // uses process.env.PORT when deployed on Heroku, otherwise 10000
 const localIPAddress = "localhost";
-const wssServerURL = `ws://${localIPAddress}:10000`;
+const wssServerURL = `ws://${localIPAddress}:${PORT}`;
 
 // Note: disabled React Strict Mode in index.js, as it would cause the constructor to load twice
 class LobbiesPage extends React.Component {

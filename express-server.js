@@ -1,4 +1,4 @@
-const PORT = process.env.PORT || 10421; // If on production, Heroku will automatically select a port. Else if on local environemnt, defaults to 10421
+const PORT = process.env.PORT || 10000; // If on production, Heroku will automatically select a port. Else if on local environemnt, defaults to 10000
 const express = require("express");
 const app = express();
 const path = require('path');
@@ -23,13 +23,13 @@ const db = new sqlite3.Database("db/database.db", err => {
 	if (err) {
 		console.error(err.message);
 	}
-	console.log("[INFO] express-server.js is now connected to the SQLite database");
+	console.log("[HTTP SERVER INFO] express-server.js is now connected to the SQLite database");
 });
 
-// TODO: Set this to true to serve from build folder on localhost:10421..
-// In production, front-end files are served from client/build. Test by going to localhost:10421
+// TODO: Set this to true to serve from build folder on localhost:10000..
+// In production, front-end files are served from client/build. Test by going to localhost:10000
 if (process.env.NODE_ENV === "production" || true) {
-	console.log("[INFO] express-server.js is serving files from React build folder");
+	console.log("[HTTP SERVER INFO] express-server.js is serving files from React build folder");
 	// app.use(express.static('./client/build'));
 	// app.use('/static', express.static(path.join(__dirname, './client/build//static')));
 	
@@ -39,7 +39,7 @@ if (process.env.NODE_ENV === "production" || true) {
 // In development, front-end are served from CRA dev server
 else {
 	// TODO: This might not be needed anymore
-	console.log("[INFO] express-server.js is using local React dev server");
+	console.log("[HTTP SERVER INFO] express-server.js is using local React dev server");
 	app.use("/", function (req, res, next) {
 		res.header("Access-Control-Allow-Origin", "http://localhost:3000");
 		res.header("Access-Control-Allow-Credentials", true);
@@ -466,7 +466,7 @@ app.get("/ftd/api/leaderboard", async (req, res) => {
 });
 
 
-// TODO: Set this to true to serve from build folder on localhost:10421..
+// TODO: Set this to true to serve from build folder on localhost:10000..
 // In prod, catches any routes meant for React Router
 if (process.env.NODE_ENV === "production" || true) {
 	app.get('*', function(req, res) {
@@ -476,6 +476,5 @@ if (process.env.NODE_ENV === "production" || true) {
 	});
 } 
 
-app.listen(PORT, function () {
-	console.log(`[INFO] express-server.js is listening on port ${PORT}`);
-});
+module.exports = app;
+module.exports.port = PORT;
