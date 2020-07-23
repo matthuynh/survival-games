@@ -1,6 +1,6 @@
 
 // Import the Stage (this allows the server access to the game)
-const Stage = require("./Stage.js");
+const MultiplayerStage = require("./StageMultiplayer.js");
 
 // A multiplayer game has multiplayer players in it
 module.exports = class MultiplayerGame {
@@ -28,7 +28,7 @@ module.exports = class MultiplayerGame {
 		};
 
 		// Initialize the server-side stage
-		this.stage = new Stage(
+		this.stage = new MultiplayerStage(
 			this.gameId,
 			this.players,
 			numPlayers,

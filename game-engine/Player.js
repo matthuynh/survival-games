@@ -11,7 +11,7 @@ const GunPistol = require("./environment/GunPistol.js");
 const GunRifle = require("./environment/GunRifle.js");
 const Line = require("./environment/Line.js");
 
-const Stage = require("./Stage.js");
+const Stage = require("./StageBase.js"); // TODO: Ensure this import is fine
 // const CollisionEngine = require("./CollisionEngine.js");
 
 // Return a random integer between 0 and n, inclusive
