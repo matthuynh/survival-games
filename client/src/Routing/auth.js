@@ -69,9 +69,8 @@ class Auth {
 			}
 			return "";
 		} catch {
-			console.log("Unable to retrieve username. Server is likely down");
-			// TODO: Add a time check for cookie. If expired, then logout?
-			// this.logout();
+			console.log("Unable to retrieve username. Logging out user");
+			this.logout();
 			return "";
 		}
 	}
@@ -93,9 +92,8 @@ class Auth {
 				response.data.verified === "Verified"
 			);
 		} catch {
-			console.log("Unable to retrieve username. Server is likely down");
-			// TODO: Add a time check for cookie. If expired, then logout?
-			// this.logout();
+			console.log("Unable to retrieve username. Logging out user");
+			this.logout();
 			return false;
 		}
 	}

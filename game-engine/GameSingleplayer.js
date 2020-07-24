@@ -1,9 +1,9 @@
 
 // Import the Stage (this allows the server access to the game)
-const MultiplayerStage = require("./StageMultiplayer.js");
+const SingleplayerStage = require("./StageSingleplayer.js");
 
 // A multiplayer game has multiplayer players in it
-module.exports = class MultiplayerGame {
+module.exports = class GameSingleplayer {
 	constructor(wss, gameId, gamePlayers, setPlayerStatus) {
         this.wss = wss;
 		this.gameId = gameId; // a game has the same ID as its lobby

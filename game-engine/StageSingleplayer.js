@@ -12,7 +12,7 @@ module.exports = class StageSingleplayer extends StageBase {
 	step() {
         // TODO: this
         // Take one step in the animation of the game.  Do this by asking each of the actors to take a single step. 
-	step() {
+
 		// Take a step for each player actor
 		for (let i = 0; i < this.playerActors.length; i++) {
 			// console.log(`Actors list: ${this.environmentActors}`);

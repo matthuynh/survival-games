@@ -10,7 +10,7 @@ let wss = new WebSocketServer({
 server.on('request', app);
 
 
-const Lobby = require("./game-engine/LobbyBase.js");
+const LobbyMultiplayer = require("./game-engine/LobbyMultiplayer.js");
 
 // The ws server keeps track of connected clients and game lobbies
 let connectedClients = [];
@@ -37,7 +37,7 @@ const disassociateClientLobby = (clientPID) => {
 	}
 }
 
-// Send updated state of lobbies to only that specified socket
+// Send updated state of lobbies (both singleplayer and multiplayer) to only that specified socket
 const sendUpdatedLobbies = (ws) => {
 	ws.send(lobbyList = JSON.stringify({
 		type: "view-lobbies",
@@ -45,7 +45,7 @@ const sendUpdatedLobbies = (ws) => {
 	}));
 }
 
-// Send updated state of lobbies to all connected client sockets
+// Send updated state of lobbies (both singleplayer and multiplayer) to all connected client sockets
 const broadcastUpdatedLobbies = () => {
 	wss.broadcast(JSON.stringify({
 		type: "view-lobbies",
@@ -64,7 +64,7 @@ wss.broadcast = function (serverUpdate) {
 	});
 };
 
-// Send an update to all clients in a specific lobby -- used for stage-update or stage-initialization
+// Send an update to all clients in a specific multiplayer lobby -- used for stage-update or stage-initialization
 wss.broadcastToLobby = function (serverUpdate, lobbyId) {
 	let lobbySockets = serverInstance.getLobby(lobbyId).getPlayersSockets();
 	lobbySockets.forEach((socket) => {
@@ -72,7 +72,7 @@ wss.broadcastToLobby = function (serverUpdate, lobbyId) {
 	});
 };
 
-// Send an update to all clients in a specific lobby, except for the lobby owner
+// Send an update to all clients in a specific multiplayer lobby, except for the lobby owner
 wss.broadcastToLobbyNonOwner = function (serverUpdate, lobbyId, lobbyOwnerId) {
 	let lobbyMembers = serverInstance.getLobby(lobbyId).getPlayers();
 	lobbyMembers.forEach((member) => {
@@ -82,7 +82,7 @@ wss.broadcastToLobbyNonOwner = function (serverUpdate, lobbyId, lobbyOwnerId) {
 	})
 }
 
-// Send updated state of lobbies to all connected client sockets
+// Send updated state of lobbies (both singleplayer and multiplayer) to all connected client sockets
 wss.broadcastUpdatedLobbies = function() {
 	wss.broadcast(JSON.stringify({
 		type: "view-lobbies",
@@ -129,6 +129,7 @@ wss.on("connection", function connection(ws, req) {
 		if (lobby) {
 			console.log(`[WSS INFO] The disconnected client is in the lobby with ID ${disconnectedClient.lobbyID}, removing them`);
 			
+			// TODO: Check if the lobby type is multiplayer or singleplayer. If multiplayer, continue below. If singleplayer, just delete the lobby
 			// If they are lobby owner, kick everyone else out
 			if (lobby.getLobbyOwnerId() === disconnectedClient.PID) {
 				wss.broadcastToLobbyNonOwner(JSON.stringify({
@@ -173,7 +174,8 @@ wss.on("connection", function connection(ws, req) {
 				);
 				let createdLobby = serverInstance.createLobby(
 					clientUpdate.pid,
-					connectedClient.socket
+					connectedClient.socket,
+					"multiplayer"
 				);
 				associateClientLobby(clientUpdate.pid, createdLobby.getLobbyId());
 				
@@ -272,7 +274,7 @@ wss.on("connection", function connection(ws, req) {
 				}
 				break;
 
-			// Client wants to join a lobby. Only non-lobby owners can do this
+			// Client wants to join a multiplayer lobby. Only non-lobby owners can do this
 			case "join-lobby":
 				// console.log(`Client with id ${clientUpdate.pid} attempts to join lobby`);
 				connectedClient = connectedClients.find((client) => 
@@ -317,6 +319,7 @@ wss.on("connection", function connection(ws, req) {
 				}
 				break;
 
+			// TODO: Rename this case to be "leave-lobby-multiplayer"
 			// A client attempts to leave the lobby. Only non-lobby owners can do this
 			case "leave-lobby":
 				// console.log("Client tries to leave lobby on server");
@@ -363,6 +366,7 @@ wss.on("connection", function connection(ws, req) {
 				}
 				break;
 
+			// TODO: Rename this case to be "leave-lobby-multiplayer"
 			// All players in a lobby may choose to leave a game (but stay in the lobby)
 			case "leave-game":
 				console.log("[WSS INFO] Client tries to leave game on lobby on server");
@@ -420,11 +424,15 @@ class ServerInstance {
 	}
 
 	// Create a lobby for players to join, initially has the player ID of the lobby creator
-	createLobby(lobbyOwnerId, playerSocket) {
-		let newLobby = new Lobby(this.newLobbyId, lobbyOwnerId, playerSocket, wss);
-		this.lobbies.push(newLobby);
-		this.newLobbyId++;
-		return newLobby;
+	createLobby(lobbyOwnerId, playerSocket, lobbyType) {
+		if (lobbyType === "multiplayer") {
+			let newLobby = new LobbyMultiplayer(this.newLobbyId, lobbyOwnerId, playerSocket, wss);
+			this.lobbies.push(newLobby);
+			this.newLobbyId++;
+			return newLobby;
+		} else {
+			// TODO: Add this
+		}
 	}
 
 	// Return the lobby with the given id
