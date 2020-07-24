@@ -137,7 +137,7 @@ class LobbyList extends React.Component {
 						<Col>
 							<Button
 								variant="primary"
-								disabled
+								onClick={this.props.createSingleplayerLobby}
 								className="lobby-list-right-button"
 							>
 								Create Singleplayer Lobby

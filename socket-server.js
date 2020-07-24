@@ -10,8 +10,7 @@ let wss = new WebSocketServer({
 server.on('request', app);
 
 
-// Import the MultiplayerGame (this allows the server access to the game)
-const MultiplayerGame = require("./game-engine/MultiplayerGame.js");
+const Lobby = require("./game-engine/LobbyBase.js");
 
 // The ws server keeps track of connected clients and game lobbies
 let connectedClients = [];
@@ -81,6 +80,14 @@ wss.broadcastToLobbyNonOwner = function (serverUpdate, lobbyId, lobbyOwnerId) {
 			member.socket.send(serverUpdate);
 		}
 	})
+}
+
+// Send updated state of lobbies to all connected client sockets
+wss.broadcastUpdatedLobbies = function() {
+	wss.broadcast(JSON.stringify({
+		type: "view-lobbies",
+		lobbies: serverInstance.getLobbiesJSON(),
+	}));
 }
 
 // Client connects to the web socket server
@@ -158,8 +165,8 @@ wss.on("connection", function connection(ws, req) {
 				}
 				break;
 
-			// Client wants to create a lobby. Only the lobby owner can do this.
-			case "create-lobby":
+			// Client wants to create a multiplayer lobby. Only the lobby owner can do this.
+			case "create-lobby-multiplayer":
 				// The given user id creates and joins the lobby
 				connectedClient = connectedClients.find((client) => 
 					client.PID == clientUpdate.pid
@@ -173,7 +180,7 @@ wss.on("connection", function connection(ws, req) {
 				// Send information back to client
 				ws.send(
 					JSON.stringify({
-						type: "new-lobby",
+						type: "new-lobby-multiplayer",
 						newLobbyId: createdLobby.getLobbyId(),
 						lobbies: serverInstance.getLobbiesJSON(),
 					})
@@ -181,6 +188,16 @@ wss.on("connection", function connection(ws, req) {
 
 				broadcastUpdatedLobbies();
 				// console.log("Client created and joined lobby with id " + createdLobby.getLobbyId());
+				break;
+
+			// Client wants to create a singleplayer lobby
+			case "create-lobby-singleplayer":
+				// The given user id creates and joins the lobby
+				connectedClient = connectedClients.find((client) => 
+					client.PID == clientUpdate.pid
+				);
+				
+				console.log(connectedClient);
 				break;
 
 			// A client attempts to delete the lobby. Only the lobby owner can do this.
@@ -404,7 +421,7 @@ class ServerInstance {
 
 	// Create a lobby for players to join, initially has the player ID of the lobby creator
 	createLobby(lobbyOwnerId, playerSocket) {
-		let newLobby = new Lobby(this.newLobbyId, lobbyOwnerId, playerSocket);
+		let newLobby = new Lobby(this.newLobbyId, lobbyOwnerId, playerSocket, wss);
 		this.lobbies.push(newLobby);
 		this.newLobbyId++;
 		return newLobby;
@@ -457,241 +474,6 @@ class ServerInstance {
 				lobby.reinitializeLobby();
 			}
 		});
-	}
-}
-
-// A Lobby contains players and can intiialize a multiplayer game
-class Lobby {
-	constructor(lobbyId, lobbyOwnerId, ws) {
-		this.lobbyId = lobbyId;
-		this.lobbyOwnerId = lobbyOwnerId;
-		// possible statuses: "In Lobby", "In Game", "Winner!", "Spectating"
-		this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws, status: "In Lobby" }];
-
-		// NOTE: This is currently non-customizable by the user
-		this.maxLobbySize = 4;
-
-		this.gameInProgress = false;
-		this.gameHasEnded = false;
-
-		// this.isReady = false;
-		this.multiplayerGame = null;
-		this.multiplayerGameInterval = null;
-		this.gameWinner = null;
-
-		// Reference to server socket
-		this.wss = null;
-	}
-
-	// Return information about this lobby in a format readable by the client
-	getLobbyJSON() {
-		return {
-			id: this.lobbyId,
-			lobbyOwner: this.lobbyOwnerId,
-			lobbyPlayers: this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status })),
-			gameInProgress: this.gameInProgress,
-			numPlayers: this.lobbyPlayers.length,
-			maxLobbySize: this.maxLobbySize
-		};
-	}
-
-	// Get the id of this lobby
-	getLobbyId() {
-		return this.lobbyId;
-	}
-
-	// Return true if the given player ID is in lobby, else false
-	isPlayerInLobby(playerId) {
-		let foundPlayer = this.lobbyPlayers.find(player => 
-			player.pid == playerId
-		);
-		return foundPlayer !== "undefined";
-	}
-
-	// Get a list of players in this lobby
-	getPlayers() {
-		return this.lobbyPlayers;
-	}
-
-	// Get a list of players PIDs/usernames in this lobby
-	getPlayersPIDs() {
-		return this.lobbyPlayers.map(player => player.pid);
-	}
-
-	// Get a list of all the sockets in this lobby
-	getPlayersSockets() {
-		return this.lobbyPlayers.map(player => player.socket);
-	}
-
-	getLobbyOwnerId() {
-		return this.lobbyOwnerId;
-	}
-
-	// A player joins a lobby. Return true if successful, otherwise false.
-	joinLobby(playerId, playerSocket) {
-		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId);
-
-		// Player is not in lobby yet; add them
-		if (playerIndex == -1) {
-			this.lobbyPlayers.push({ pid: playerId, socket: playerSocket, status: "In Lobby" });
-			return true;
-		}
-		return false;
-	}
-
-	// A player leaves a lobby. Return true if successful, otherwise false.
-	leaveLobby(playerId, reason) {
-		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId);
-
-		// Player is in lobby; remove them
-		if (playerIndex > -1) {
-			this.lobbyPlayers.splice(playerIndex, 1);
-			// console.log("Successfully removed player from lobby, at index " + playerIndex);
-
-			// If there is an ongoing game, remove them from the game as well
-			if (this.gameInProgress) {
-				this.multiplayerGame.setPlayerDead(playerId, reason);
-			}
-			return true;
-		}
-		return false;
-	}
-
-	// Begins the multiplayer game in this lobby, returns the initial game state
-	initializeGame() {
-		this.gameInProgress = true;
-		this.lobbyPlayers.forEach((player) => {
-			player.status = "In Game";
-		})
-
-		// NOTE: We pass in an anonymous function so that it can be called by ./game-engine/Stage.js and access the 'this' keyword to refer to this Lobby instance
-		this.multiplayerGame = new MultiplayerGame(
-			wss,
-			this.lobbyId,
-			this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
-			(playerId, status) => {
-				// function "name" is setPlayerStatus, handles changing player status (eg. dead, spectating)
-				// See Lobby for possible statuses ("In Lobby", "In Game", "Winner!", "Spectating")
-				console.log(`[WSS INFO] ${playerId} either died or won, status is ${status}`);
-				let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
-				this.lobbyPlayers[index].status = status;
-				if (status === "Spectating") {
-					this.lobbyPlayers[index].socket.send(JSON.stringify({
-						pid: playerId,
-						type: "lost-game"
-					}));
-				}
-				// console.log(this.lobbyPlayers[index]);
-				broadcastUpdatedLobbies();
-			}
-		);
-
-		try {
-			// Run the multiplayer game on an interval
-			this.multiplayerGameInterval = setInterval(async () => {
-				// console.log("[GAME STATUS] SENDING UPDATES TO PLAYERS");
-				await this.multiplayerGame.calculateUpdates();
-				await this.multiplayerGame.sendPlayerUpdates(wss);
-
-				// Check to see if the game has ended (only 1 player remaining)
-				// TODO: There is probably a better way to trigger endGame() when a player wins.... pass in a callback to MultiplayerGame, like with initializeGame?
-				let gameWinner = this.multiplayerGame.getGameWinner();
-				if (gameWinner) {
-					this.endGame(gameWinner);
-				}
-			}, 20);
-		} catch (e) {
-			console.log(`[WSS WARNING] ${e}`);
-		}
-
-		// Return initial game state
-		let initialState = this.multiplayerGame.getInitialState();
-		// console.log(initialState);
-		return initialState;
-	}
-	
-
-	// Send updates to a server from a client's controller
-	updateGameState(clientUpdate) {
-		if (this.gameInProgress) {
-			this.multiplayerGame.updateState(clientUpdate);
-		}
-	}
-
-	// Ends the multiplayer game in this lobby
-	endGame(gameWinner) {
-		clearInterval(this.multiplayerGameInterval); // clearInterval is a library function
-		this.multiplayerGame = null;
-		this.gameWinner = gameWinner;
-		this.gameInProgress = false;
-		this.gameHasEnded = true;
-	}
-
-	// Return true if the game is in progress
-	isGameInProgress() {
-		return this.gameInProgress;
-	}
-
-	// Return true if the game has ended
-	hasGameEnded() {
-		return this.gameHasEnded;
-	}
-
-	// Return the winner of the game
-	getLobbyWinner() {
-		return this.gameWinner;
-	}
-
-	// Return true if the lobby is full
-	isFull() {
-		return this.lobbyPlayers.length >= this.maxLobbySize;
-	}
-
-	// When the owner closes the lobby while a game is ongoing, forces
-	// other players to terminate their stage
-	forceStageTermination() {
-		let updatedState = JSON.stringify({
-			type: "stage-termination",
-			lobbyID: this.lobbyId,
-			winningPID: "",
-			isForced: true
-		});
-		wss.broadcastToLobby(updatedState, this.lobbyId);
-	}
-
-	// When a game finishes, the lobby is "reinitialized"
-	reinitializeLobby() {
-		this.gameInProgress = false;
-		this.multiplayerGame = null;
-		this.multiplayerGameInterval = null;
-		this.wss = wss;
-		this.gameHasEnded = false;
-
-		// Send update to all clients, telling those who are connected
-		// to this lobby to clear their own model instance
-		let updatedState = JSON.stringify({
-			type: "stage-termination",
-			lobbyID: this.lobbyId,
-			winningPID: this.gameWinner,
-			isForced: false
-		});
-
-		this.gameWinner = null;
-		wss.broadcastToLobby(updatedState, this.lobbyId);
-	}
-
-	// A player leaves the currently ongoing game in the lobby
-	leaveGame(playerId, reason) {
-		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId);
-
-		if (playerIndex > -1) {
-			this.lobbyPlayers[playerIndex].status = "In Lobby";
-			if (this.gameInProgress) {
-				this.multiplayerGame.setPlayerDead(playerId, reason);
-			}
-			return true;
-		}
-		return false;
 	}
 }
 

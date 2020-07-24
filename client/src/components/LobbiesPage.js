@@ -75,6 +75,7 @@ class LobbiesPage extends React.Component {
 		this.sendGUIToggle = this.sendGUIToggle.bind(this);
 
 		this.handleCreateLobby = this.handleCreateLobby.bind(this);
+		this.handleCreateSingleplayerLobby = this.handleCreateSingleplayerLobby.bind(this);
 		this.handleJoinLobby = this.handleJoinLobby.bind(this);
 		this.handleLeaveLobby = this.handleLeaveLobby.bind(this);
 		this.handleDeleteLobby = this.handleDeleteLobby.bind(this);
@@ -209,8 +210,8 @@ class LobbiesPage extends React.Component {
 							});
 							break;
 	
-						// Created a lobby, receive the lobby id
-						case "new-lobby":
+						// Successfully created a new multiplayer lobby, receive the lobby id
+						case "new-lobby-multiplayer":
 							this.setState({
 								lobbies: serverUpdate.lobbies,
 								joinedLobbyId: serverUpdate.newLobbyId
@@ -339,11 +340,20 @@ class LobbiesPage extends React.Component {
 		this.clientSocket.send(clientUpdate);
 	}
 
-	// A player creates a lobby on the server. That player automatically joins the lobby as well
+	// A player creates a multiplayer lobby on the server. That player automatically joins the lobby as well
 	handleCreateLobby() {
 		let clientUpdate = JSON.stringify({
 			pid: this.state.playerId,
-			type: "create-lobby",
+			type: "create-lobby-multiplayer",
+		});
+		this.clientSocket.send(clientUpdate);
+	}
+
+	// A player creates a singleplayer lobby on the server. That player automatically joins the lobby as well
+	handleCreateSingleplayerLobby() {
+		let clientUpdate = JSON.stringify({
+			pid: this.state.playerId,
+			type: "create-lobby-singleplayer"
 		});
 		this.clientSocket.send(clientUpdate);
 	}
@@ -604,6 +614,7 @@ class LobbiesPage extends React.Component {
 					lobbies={this.state.lobbies}
 					joinLobby={this.handleJoinLobby}
 					createLobby={this.handleCreateLobby}
+					createSingleplayerLobby={this.handleCreateSingleplayerLobby}
 					returnToDashboard={this.returnToDashboard}
 				/>
 			);

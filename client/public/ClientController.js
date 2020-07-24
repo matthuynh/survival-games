@@ -64,8 +64,8 @@ function stopStageGame() {
 
 // Called by LobbiesPage.js (React) for sound
 function getCurrentPlayerWeapon() {
-	console.log(stage);
-	console.log(stage.player);
+	// console.log(stage);
+	// console.log(stage.player);
 	if (stage.player && stage.player.currentWeapon) {
 		if (stage.player.currentAmmo > 1) { return stage.player.currentWeapon };
 		return -1;

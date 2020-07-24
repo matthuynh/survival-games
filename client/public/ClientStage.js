@@ -264,7 +264,7 @@ class Stage {
 
 		// Draw the health status message
 		context.fillStyle = "rgba(0,0,0,1)";
-		context.font = "20px Impact";
+		context.font = "14px Impact";
 		let healthMessage = "Full Health 😎";
 		if (playerHPPercent > 0.8 && playerHPPercent < 1) {
 			healthMessage = "Optimal Health 🤗";
