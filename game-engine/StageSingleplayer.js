@@ -4,8 +4,9 @@ const StageBase = require("./StageBase.js");
 // A Singleplayer game is also capable of having the player pause the game
 module.exports = class StageSingleplayer extends StageBase {
     // TODO: Check if the constructor needs to be different
-	constructor(gameId, players, numPlayers, setPlayerStatus, generationSettings) {
-		super(gameId, players, numPlayers, setPlayerStatus, generationSettings);
+	constructor(gameId, players, numPlayers, endSingleplayerGame, generationSettings) {
+		super(gameId, players, numPlayers, generationSettings);
+		this.endSingleplayerGame = endSingleplayerGame;
 	}
 
 	// Take one step in the animation of the game.  Do this by asking each of the actors to take a single step. 

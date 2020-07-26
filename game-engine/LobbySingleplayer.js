@@ -55,34 +55,43 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 		this.gameInProgress = false;
 		this.gameHasEnded = true;
 	}
+	
+	// Player leaves the currently ongoing singleplayer game
+	leaveGame(playerId, reason) {
+		const playerIndex = 0; // there will always only be 1 human player
+		this.lobbyPlayers[playerIndex].status = "In Lobby";
+		
+		// This is if the user chose to leave the ongoing game via the game menu
+		if (this.gameInProgress) {
+			this.endGame("");
+		}
+	}
 
 	// When a singleplayer game finishes, the lobby is "reinitialized"
 	reinitializeLobby() {
+		let updatedState = JSON.stringify({
+			type: "stage-termination",
+			lobbyID: this.lobbyId,
+			winningPID: this.gameWinner,
+			isForced: false
+		});
+		
+		clearInterval(this.singleplayerGameInterval);
 		this.gameInProgress = false;
 		this.singleplayerGame = null;
-		this.singleplayerGameInterval = null;
 		this.gameHasEnded = false;
         this.gameWinner = null;
-        
+		
         this.ws.send(updatedState);
-        // this.wss.broadcastToLobby(updatedState, this.lobbyId); // TODO: Check if this is still needed
 	}
 
-	// Player leaves the currently ongoing singleplayer game
-	leaveGame() {
-		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId); // TODO: Remove this line, there will always only be 1 player
-        this.lobbyPlayers[playerIndex].status = "In Lobby";
-        if (this.gameInProgress) {
-            this.singleplayerGame.setPlayerDead();
-        }
-    }
-    
+
 	forceStageTermination() {
-		// TODO: This version of the method will slightly differ from LobbyMultiplayer's
+		
     }
-    
+
+	// Initialize a new singleplayer game. The game will run on an interval until the game finishes (user wins/loses or quits)
 	initializeGame() {
-        // TODO: this
         this.gameInProgress = true;
 		this.lobbyPlayers.forEach((player) => {
 			player.status = "In Game";
@@ -90,24 +99,16 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 
 		// NOTE: We pass in an anonymous function so that it can be called by ./game-engine/StageSingleplayer.js and access the 'this' keyword to refer to this Lobby instance
 		this.singleplayerGame = new SingleplayerGame(
+			this.ws,
 			this.wss,
 			this.lobbyId,
             this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
             this.generationSettings,
-			(playerId, status) => {
-				// function "name" is setPlayerStatus, handles changing player status (eg. dead, spectating)
-				// See LobbyBase constructor for possible statuses ("In Lobby", "In Game", "Winner!", "Spectating")
-				console.log(`[WSS INFO] ${playerId} either died or won, status is ${status}`);
-                
+			(playerId) => {
+				// function "name" is endSingleplayerGame
                 let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
-				this.lobbyPlayers[index].status = status;
-				if (status === "Spectating") {
-					this.lobbyPlayers[index].socket.send(JSON.stringify({
-						pid: playerId,
-						type: "lost-game"
-					}));
-				}
-				// console.log(this.lobbyPlayers[index]);
+				this.lobbyPlayers[index].status = "In Lobby";
+				this.endGame();
 			}
 		);
 

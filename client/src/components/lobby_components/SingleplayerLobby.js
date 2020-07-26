@@ -172,7 +172,7 @@ class SingleplayerLobby extends React.Component {
                                     variant="primary"
                                     className="multiplayer-lobby-button"
                                     onClick={() => {
-                                        this.props.handleStartGame(
+                                        this.props.handleStartGameSingleplayer(
                                             this.state.playerId,
                                             this.state.lobbyId
                                         );
@@ -201,7 +201,7 @@ class SingleplayerLobby extends React.Component {
                                     variant="dark"
                                     className="multiplayer-lobby-button"
                                     onClick={() => {
-                                        this.props.handleDeleteLobby(
+                                        this.props.handleDeleteLobbySingleplayer(
                                             this.state.playerId,
                                             this.state.lobbyId
                                         );

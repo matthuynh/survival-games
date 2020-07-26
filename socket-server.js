@@ -1,3 +1,6 @@
+const LobbyMultiplayer = require("./game-engine/LobbyMultiplayer");
+const LobbySingleplayer = require("./game-engine/LobbySingleplayer");
+
 const WebSocketServer = require("ws").Server;
 const server = require('http').createServer();
 const app = require("./express-server.js");
@@ -5,48 +8,44 @@ const PORT = require("./express-server.js").port; // uses the PORT defined in ex
 let wss = new WebSocketServer({
 	server: server
 });
-
-// HTTP requests will be handled by express-server.js
-server.on('request', app);
-
-
-const LobbyMultiplayer = require("./game-engine/LobbyMultiplayer");
-const LobbySingleplayer = require("./game-engine/LobbySingleplayer");
+server.on('request', app); // HTTP requests will be handled by express-server.js
 
 // The ws server keeps track of connected clients and game lobbies
 let connectedClients = [];
 
-// The client joins the lobby
+// The client joins the lobby; associate that lobby with the client object
 const associateClientLobby = (clientPID, lobbyNumber) => {
 	for (let i = 0; i < connectedClients.length; i++) {
 		if (connectedClients[i].PID === clientPID) {
-			// console.log(`associating client ${clientPID} with a lobby`);
+			// console.log(`[WSS INFO] Associating client ${clientPID} with lobby ${lobbyNumber}`);
 			connectedClients[i].lobbyID = lobbyNumber;
 			break;
 		}
 	}
 };
 
-// The client leaves the lobby
+// The client leaves the lobby; disassociate that lobby from the client object
 const disassociateClientLobby = (clientPID) => {
 	for (let i = 0; i < connectedClients.length; i++) {
 		if (connectedClients[i].PID === clientPID) {
-			// console.log(`disassociating client ${clientPID} with its lobby`);
+			// console.log(`[WSS INFO] Disassociating client ${clientPID} with lobby ${lobbyNumber}`);
 			connectedClients[i].lobbyID = null;
 			break;
 		}
 	}
 }
 
-// Send updated state of lobbies (both singleplayer and multiplayer) to only that specified socket
-const sendUpdatedLobbies = (ws) => {
+// Send updated state of lobbies to the specified client web socket
+const sendUpdatedLobbiesToClient = (ws) => {
 	ws.send(lobbyList = JSON.stringify({
 		type: "view-lobbies",
 		lobbies: serverInstance.getLobbiesJSON(),
 	}));
 }
 
-// Send updated state of lobbies (both singleplayer and multiplayer) to all connected client sockets
+// TODO: Check difference between wss.broadcastUpdatedLobbies and const broadcastUpdatedLobbies
+// Send updated state of lobbies to all connected client sockets
+// This is called whenever the state of a lobby changes
 const broadcastUpdatedLobbies = () => {
 	wss.broadcast(JSON.stringify({
 		type: "view-lobbies",
@@ -55,17 +54,18 @@ const broadcastUpdatedLobbies = () => {
 }
 
 wss.on("close", function () {
-	console.log("Server disconnected");
+	console.log(`[WSS INFO] Web socket server disconnected`);
 });
 
-// Send an update to all connected clients -- used for lobbies
+// Send an update to all connected clients
 wss.broadcast = function (serverUpdate) {
 	this.clients.forEach((clientSocket) => {
 		clientSocket.send(serverUpdate);
 	});
 };
 
-// Send an update to all clients in a specific lobby -- used for stage-update or stage-initialization
+// Send an update to all clients in a specific lobby
+// Typically used to ensure client's stage are synced to the server stage for that lobby (eg. stage-update, stage-initialization, or stage-termination)
 wss.broadcastToLobby = function (serverUpdate, lobbyId) {
 	let lobbySockets = serverInstance.getLobby(lobbyId).getPlayersSockets();
 	lobbySockets.forEach((socket) => {
@@ -83,7 +83,9 @@ wss.broadcastToLobbyNonOwner = function (serverUpdate, lobbyId, lobbyOwnerId) {
 	})
 }
 
-// Send updated state of lobbies (both singleplayer and multiplayer) to all connected client sockets
+// TODO: Check difference between wss.broadcastUpdatedLobbies and const broadcastUpdatedLobbies
+// Send updated state of lobbies to all connected client sockets
+// This is called whenever the state of a lobby changes
 wss.broadcastUpdatedLobbies = function() {
 	wss.broadcast(JSON.stringify({
 		type: "view-lobbies",
@@ -93,34 +95,35 @@ wss.broadcastUpdatedLobbies = function() {
 
 // Client connects to the web socket server
 wss.on("connection", function connection(ws, req) {
-	console.log("[WSS INFO] Client is starting to connect to server");
-
 	// Add this newly-connected client to our clients list
 	let connectedUsername = req.url.split("=")[1];
 	if (connectedUsername == null) {
-		console.log("[WSS WARNING] Unable to identify connecting client");
+		console.log("[WSS WARNING] Unable to identify connecting client... disconnecting client");
+		// TODO: Test this out. Boot out the new connection instead of continuing with this process
+		ws.close(1000, "Unable to identify client");
 	}
 	connectedClients.push({
 		socket: ws,
 		PID: connectedUsername,
 		lobbyID: null,
 	});
-	console.log(`[WSS INFO] Client with PID ${connectedUsername} connected. There are now ${connectedClients.length} connected clients`);
+	console.log(`[WSS INFO] Client ${connectedUsername} connected. There are now ${connectedClients.length} connected clients`);
 
 	// Send the current state of lobbies to the user
-	sendUpdatedLobbies(ws);
+	sendUpdatedLobbiesToClient(ws);
 
 	// Client closes socket connection on server; remove them from any lobbies and games
 	ws.on("close", function () {
-		console.log("[WSS INFO] Client closing socket connection to server");
+		console.log(`[WSS INFO] Client closing socket connection to server`);
 		let disconnectedClient;
 		let disconnectedClientIndex;
-		// console.log(connectedClients);
+
+		// Identify the disconnected client
 		for (let i = 0; i < connectedClients.length; i++) {
 			if (connectedClients[i].socket === ws) {
 				disconnectedClient = connectedClients[i];
 				disconnectedClientIndex = i;
-				console.log(`[WSS INFO] Client with PID ${disconnectedClient.PID} disconnected.`);
+				console.log(`[WSS INFO] Client identified as ${disconnectedClient.PID}. Client disconnected.`);
 				break;
 			}
 		}
@@ -128,30 +131,30 @@ wss.on("connection", function connection(ws, req) {
 		// Remove that client from any lobbies it is in
 		let lobby = serverInstance.getLobby(disconnectedClient.lobbyID);
 		if (lobby) {
-			console.log(`[WSS INFO] The disconnected client is in the lobby with ID ${disconnectedClient.lobbyID}, removing them`);
+			console.log(`[WSS INFO] The disconnected client is in the lobby with ID ${disconnectedClient.lobbyID}, removing them from lobby`);
 			
-			// TODO: Check if the lobby type is multiplayer or singleplayer. If multiplayer, continue below. If singleplayer, just delete the lobby
-
+			// If lobby type is multiplayer, remove them from lobby
 			if (lobby.getLobbyType() === "multiplayer") {
-				// If they are lobby owner, kick everyone else out
+				// If they are lobby owner, kick everyone else out and then delete lobby
 				if (lobby.getLobbyOwnerId() === disconnectedClient.PID) {
 					wss.broadcastToLobbyNonOwner(JSON.stringify({
 						type: "kicked-lobby"
 					}), disconnectedClient.lobbyID, disconnectedClient.PID);
 					serverInstance.deleteLobby(disconnectedClient.lobbyID);
-				} else {
+					console.log(`[WSS INFO] The disconnected client is also lobby owner. Deleting multiplayer lobby ${disconnectedClient.lobbyID}`);
+				} 
+				// Non-lobby owners just leave the lobby
+				else {
 					lobby.leaveLobby(disconnectedClient.PID, "disconnection");
 				}
-			} else {
+			} 
+			// If lobby type is singleplayer, just delete the lobby
+			else {
 				// TODO: Refactor this to be more proper for singleplayer
 				// If they are lobby owner, kick everyone else out
 				if (lobby.getLobbyOwnerId() === disconnectedClient.PID) {
-					wss.broadcastToLobbyNonOwner(JSON.stringify({
-						type: "kicked-lobby"
-					}), disconnectedClient.lobbyID, disconnectedClient.PID);
 					serverInstance.deleteLobby(disconnectedClient.lobbyID);
-				} else {
-					lobby.leaveLobby(disconnectedClient.PID, "disconnection");
+					console.log(`[WSS INFO] Deleting singleplayer lobby ${disconnectedClient.lobbyID}`);
 				}
 			}
 			
@@ -160,23 +163,23 @@ wss.on("connection", function connection(ws, req) {
 
 		// Remove the disconnected client from the connected clients list
 		connectedClients.splice(disconnectedClientIndex, 1);
-		console.log(`[WSS INFO] There are now ${connectedClients.length} connected clients \n`);
+		console.log(`[WSS INFO] There are now ${connectedClients.length} connected clients`);
 	});
 
 	// When we receive an update from the client, take the appropriate action
 	ws.on("message", function (clientUpdate) {
 		clientUpdate = JSON.parse(clientUpdate);
-
 		let lobby, connectedClient;
+		// console.log(clientUpdate);
+
 		switch (clientUpdate.type) {
-			// Client interacts with ongoing game
+			// Client interacts with ongoing game on client side stage. Apply changes to server side stage
 			case "move":
 			case "click":
 			case "cursor":
 			case "weapon-toggle":
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
-					// console.log(clientUpdate);
 					lobby.updateGameState(clientUpdate);
 				}
 				break;
@@ -187,24 +190,24 @@ wss.on("connection", function connection(ws, req) {
 				connectedClient = connectedClients.find((client) => 
 					client.PID == clientUpdate.pid
 				);
-				let createdLobby = serverInstance.createLobby(
+				let multiplayerLobby = serverInstance.createLobby(
 					clientUpdate.pid,
 					connectedClient.socket,
 					"multiplayer"
 				);
-				associateClientLobby(clientUpdate.pid, createdLobby.getLobbyId());
+				associateClientLobby(clientUpdate.pid, multiplayerLobby.getLobbyId());
 				
 				// Send information back to client
 				ws.send(
 					JSON.stringify({
 						type: "new-lobby-multiplayer",
-						newLobbyId: createdLobby.getLobbyId(),
+						newLobbyId: multiplayerLobby.getLobbyId(),
 						lobbies: serverInstance.getLobbiesJSON(),
 					})
 				);
 
 				broadcastUpdatedLobbies();
-				// console.log("Client created and joined lobby with id " + createdLobby.getLobbyId());
+				console.log(`[WSS INFO] Client ${clientUpdate.pid} created and joined multiplayer lobby ${multiplayerLobby.getLobbyId()}`);
 				break;
 
 			// Client wants to create a singleplayer lobby
@@ -213,7 +216,7 @@ wss.on("connection", function connection(ws, req) {
 				connectedClient = connectedClients.find((client) => 
 					client.PID == clientUpdate.pid
 				);
-				console.log("User attempting to make singleplayer lobby");
+				console.log(`[WSS INFO] Client ${clientUpdate.pid} attempting to create singleplayer lobby`);
 
 				let singleplayerLobby = serverInstance.createLobby(
 					clientUpdate.pid,
@@ -232,13 +235,11 @@ wss.on("connection", function connection(ws, req) {
 				);
 
 				broadcastUpdatedLobbies();
-				console.log("Client created and joined lobby with id " + singleplayerLobby.getLobbyId());
+				console.log(`[WSS INFO] Client ${clientUpdate.pid} created and joined singleplayer lobby ${singleplayerLobby.getLobbyId()}`);
 				break;
 
 			// A client attempts to delete the lobby. Only the lobby owner can do this.
 			case "delete-lobby-multiplayer":
-				// console.log("Client tries to delete lobby on server");
-
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
 					// Check if the player owns the lobby
@@ -263,6 +264,8 @@ wss.on("connection", function connection(ws, req) {
 
 						// Send updated state of lobbies to all clients
 						broadcastUpdatedLobbies();
+
+						console.log(`[WSS INFO] Client ${clientUpdate.pid} deleted multiplayer lobby ${clientUpdate.lobbyId}`);
 					}
 				}
 				break;
@@ -289,6 +292,8 @@ wss.on("connection", function connection(ws, req) {
 
 						// Send updated state of lobbies to all clients
 						broadcastUpdatedLobbies();
+
+						console.log(`[WSS INFO] Client ${clientUpdate.pid} deleted singleplayer lobby ${clientUpdate.lobbyId}`);
 					}
 				}
 				break;
@@ -296,7 +301,7 @@ wss.on("connection", function connection(ws, req) {
 			// Client wants to start game. Only the lobby owner can do this.
 			// The game can only start if all players have status "In Lobby"
 			case "start-game-multiplayer":
-				console.log(`[WSS INFO] ${clientUpdate.pid} attempting to start multiplayer game`);
+				console.log(`[WSS INFO] Client ${clientUpdate.pid} attempting to start multiplayer game`);
 
 				// Check to see if the lobby exists, and the user is the owner
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
@@ -334,7 +339,7 @@ wss.on("connection", function connection(ws, req) {
 				break;
 
 			case "start-game-singleplayer":
-				console.log(`[WSS INFO] ${clientUpdate.pid} attempting to start singleplayer game`);
+				console.log(`[WSS INFO] Client ${clientUpdate.pid} attempting to start singleplayer game`);
 
 				// Check to see if the lobby exists, and the user is the owner
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
@@ -459,31 +464,32 @@ wss.on("connection", function connection(ws, req) {
 				}
 				break;
 
-			// TODO: Check to see if this still works for singleplayer
 			// All players in a lobby may choose to leave a game (but stay in the lobby)
+			// This is triggered client-side only via the game menu 
 			case "leave-game":
-				console.log("[WSS INFO] Client tries to leave game on lobby on server");
+				console.log(`[WSS INFO] Client ${clientUpdate.pid} left game on client side. Trying to reflect changes in server stage`);
+
 				// Check to see if the lobby exists
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
 					// Check to see if the user is in the lobby, if so, remove them from game
 					if (lobby.isPlayerInLobby(clientUpdate.pid)) {
-						// console.log("The given client is in the lobby, removing them from game");
+						console.log(`[WSS INFO] Client ${clientUpdate.pid} was in lobby ${clientUpdate.lobbyId}. Removing them from game`);
 
 						lobby.leaveGame(clientUpdate.pid, "quit");
 
 						// Successfully left lobby, alert user
-						// let newGameState = JSON.stringify({
-						// 	type: "left-game",
-						// 	pid: clientUpdate.pid,
-						// 	status: "success",
-						// });
-						// ws.send(newGameState);
+						let newGameState = JSON.stringify({
+							type: "left-game",
+							pid: clientUpdate.pid,
+							status: "success",
+						});
+						ws.send(newGameState);
 						broadcastUpdatedLobbies();
 					} 
 					// Could not leave lobby, send message to that player
 					else {
-						// console.log("The given client is NOT in the lobby");
+						console.log(`[WSS WARNING] The given client is NOT currently in the lobby`);
 						let errorMessage = JSON.stringify({
 							type: "left-lobby",
 							status: "failure",
@@ -492,7 +498,7 @@ wss.on("connection", function connection(ws, req) {
 						ws.send(errorMessage);
 					}
 				} else {
-					// console.log("That lobby ID does not exist");
+					console.log(`[WSS WARNING] That lobby ID does not exist`);
 					let errorMessage = JSON.stringify({
 						type: "left-game",
 						status: "failure",
@@ -502,9 +508,8 @@ wss.on("connection", function connection(ws, req) {
 				}
 				break;
 
-
 			default:
-				console.log("[WSS INFO] Server received unrecognized command from client");
+				console.log("[WSS WARNING] Server received unrecognized command from client");
 		}
 	});
 });
@@ -560,7 +565,10 @@ class ServerInstance {
 	deleteLobby(lobbyId) {
 		let lobbyToDelete = this.getLobby(lobbyId);
 		if (lobbyToDelete) {
-			lobbyToDelete.forceStageTermination();
+			// If a lobby owner suddenly disconnects, all other players in lobby will forcibly have stage terminate
+			if (lobbyToDelete.getLobbyType() === "multiplayer") {
+				lobbyToDelete.forceStageTermination();
+			}
 			lobbyToDelete.endGame("");
 			for (let i = 0; i < this.lobbies.length; i++) {
 				if (this.lobbies[i].getLobbyId() == lobbyId) {

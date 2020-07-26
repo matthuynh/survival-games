@@ -10,7 +10,7 @@ module.exports = class GameMultiplayer {
 		this.players = gamePlayers;
 		const numPlayers = gamePlayers.length;
 
-		// Function 'pointer' that is defined in class Lobby
+		// Function 'pointer' that is defined in class LobbyMultiplayer
 		this.setPlayerStatus = setPlayerStatus;
 		
 		// Game specific settings

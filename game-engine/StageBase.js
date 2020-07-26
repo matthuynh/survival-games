@@ -42,14 +42,13 @@ function getRandomColor() {
 
 // A Stage stores all actors (all environment objects). It is also responsible for calculating game logic (eg. collisions)
 module.exports = class StageBase {
-	constructor(gameId, players, numPlayers, setPlayerStatus, generationSettings) {
+	constructor(gameId, players, numPlayers, generationSettings) {
         this.gameId = gameId;
         this.players = players;
         this.numPlayers = numPlayers;
         this.numAlive = numPlayers;
         this.gameHasEnded = false;
 		this.winningPID = null;
-		this.setPlayerStatus = setPlayerStatus;
 
 		// Each actor is stored in different arrays to handle collisions differently
 		this.playerActors = []; // includes all Players
@@ -102,35 +101,6 @@ module.exports = class StageBase {
                 return this.playerActors[i];
             }
         }
-        return null;
-	}
-	
-	// Given a player ID, remove that player from the game
-	// This is called from MultiplayerGame if the player leaves the game or disconnects (leaves page)
-	removePlayer(pid, reason) {
-		// disconnection
-		for (let i = 0; i < this.playerActors.length; i++) {
-            if (this.playerActors[i].getPlayerID() == pid) {
-				this.removeActor(this.playerActors[i]);
-				this.numAlive -= 1;
-
-				// This means the player quit game (but remains in lobby)
-				if (reason === "quit") {
-					this.setPlayerStatus(pid, "In Lobby");
-				}
-
-				// There is only one player left in the game; he wins automatically
-				if (this.numAlive == 1) {
-					this.gameHasEnded = true;
-					// TODO: Insert this record into the leaderboards 
-					this.winningPID = this.playerActors[0].getPlayerID();
-					// console.log("The player who won is " + this.winningPID);
-				}
-
-				// If this.numAlive == 0, then no one wins game, as all clients disconnected
-				return true;
-            }
-		}
         return null;
 	}
 

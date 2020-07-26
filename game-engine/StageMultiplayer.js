@@ -3,7 +3,37 @@ const StageBase = require("./StageBase.js");
 // A Stage for Multiplayer games. Logic for starting/finishing a game is different from a Singleplayer stage
 module.exports = class StageMultiplayer extends StageBase {
 	constructor(gameId, players, numPlayers, setPlayerStatus, generationSettings) {
-		super(gameId, players, numPlayers, setPlayerStatus, generationSettings);
+		super(gameId, players, numPlayers, generationSettings);
+		this.setPlayerStatus = setPlayerStatus;
+	}
+
+	// Given a player ID, remove that player from the game
+	// This is called from MultiplayerGame if the player leaves the game or disconnects (leaves page)
+	removePlayer(pid, reason) {
+		// disconnection
+		for (let i = 0; i < this.playerActors.length; i++) {
+            if (this.playerActors[i].getPlayerID() == pid) {
+				this.removeActor(this.playerActors[i]);
+				this.numAlive -= 1;
+
+				// This means the player quit game (but remains in lobby)
+				if (reason === "quit") {
+					this.setPlayerStatus(pid, "In Lobby");
+				}
+
+				// There is only one player left in the game; he wins automatically
+				if (this.numAlive == 1) {
+					this.gameHasEnded = true;
+					// TODO: Insert this record into the leaderboards 
+					this.winningPID = this.playerActors[0].getPlayerID();
+					// console.log("The player who won is " + this.winningPID);
+				}
+
+				// If this.numAlive == 0, then no one wins game, as all clients disconnected
+				return true;
+            }
+		}
+        return null;
 	}
 
 	// Take one step in the animation of the game.  Do this by asking each of the actors to take a single step. 

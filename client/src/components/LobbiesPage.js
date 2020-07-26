@@ -156,11 +156,15 @@ class LobbiesPage extends React.Component {
 			};
 	
 			this.clientSocket.onclose = (event) => {
-				console.log("Front-end closing connectiong to web server");
+				if (event.reason === "Unable to identify client") {
+					console.log("Web socket server unable to identify client. Front-end connection disconnected")
+				} else {
+					console.log("Front-end disconnected from web socket server");
+				}			
 				this.returnToDashboard("socket-server-closed");
 			};
 	
-			// When the client receives a message from the server, we will update our client accordingly
+			// When the client receives an update from the server, we update our state
 			this.clientSocket.onmessage = (event) => {
 				let serverUpdate = JSON.parse(event.data);
 				// console.log(serverUpdate);
@@ -428,7 +432,7 @@ class LobbiesPage extends React.Component {
 		this.clientSocket.send(clientUpdate);
 	}
 
-	// User leaves game
+	// User chooses to leave game via the game menu
 	handleLeaveGame(playerId, lobbyId) {
 		console.log("Inside handleLeaveGame()");
 		// Note that leaving a game also causes you to leave the lobby

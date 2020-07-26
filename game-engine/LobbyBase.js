@@ -7,7 +7,7 @@ module.exports = class LobbyBase {
         this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws, status: "In Lobby" }];
         
         this.gameInProgress = false;
-		this.gameHasEnded = false;
+		this.gameHasEnded = false; // TODO: This won't be needed in future when we implement better way to detect game end....
 
 		// Reference to web server socket
 		this.wss = wss;
@@ -31,8 +31,16 @@ module.exports = class LobbyBase {
 	// Return true if the game has ended
 	hasGameEnded() {
 		return this.gameHasEnded;
-    }
-    
+	}
+	
+	// Return true if the given player ID is in lobby, else false
+	isPlayerInLobby(playerId) {
+		let foundPlayer = this.lobbyPlayers.find(player => 
+			player.pid == playerId
+		);
+		return foundPlayer !== "undefined";
+	}
+
 	// Return true if the lobby is full
 	isFull() {
 		return this.lobbyPlayers.length >= this.maxLobbySize;

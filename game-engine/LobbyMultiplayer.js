@@ -28,14 +28,6 @@ module.exports = class LobbyMultiplayer extends LobbyBase {
 		};
 	}
 
-	// Return true if the given player ID is in lobby, else false
-	isPlayerInLobby(playerId) {
-		let foundPlayer = this.lobbyPlayers.find(player => 
-			player.pid == playerId
-		);
-		return foundPlayer !== "undefined";
-	}
-
 	// Get a list of players in this lobby
 	getPlayers() {
 		return this.lobbyPlayers;

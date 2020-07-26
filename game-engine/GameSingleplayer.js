@@ -4,21 +4,22 @@ const SingleplayerStage = require("./StageSingleplayer.js");
 
 // A multiplayer game has multiplayer players in it
 module.exports = class GameSingleplayer {
-	constructor(wss, gameId, gamePlayers, generationSettings, setPlayerStatus) {
+	constructor(ws, wss, gameId, gamePlayers, generationSettings, endSingleplayerGame) {
+		this.ws = ws;
         this.wss = wss;
 		this.gameId = gameId; // a game has the same ID as its lobby
 		this.players = gamePlayers;
 		const numPlayers = gamePlayers.length;
 
-		// Function 'pointer' that is defined in class Lobby
-		this.setPlayerStatus = setPlayerStatus;
+		// Function 'pointer' that is defined in class LobbySingleplayer
+		this.endSingleplayerGame = endSingleplayerGame;
 
 		// Initialize the server-side stage
 		this.stage = new SingleplayerStage(
 			this.gameId,
 			this.players,
 			numPlayers,
-			this.setPlayerStatus,
+			this.endSingleplayerGame,
 			generationSettings
 		);
 	}
@@ -75,10 +76,5 @@ module.exports = class GameSingleplayer {
 	// Return the PID of the winner of the game, else if game is still ongoing, return null
 	getGameWinner() {
 		return this.stage.getWinner();
-	}
-
-	// Remove the player that disconnected
-	setPlayerDead(playerID, reason) {
-		this.stage.removePlayer(playerID, reason);
 	}
 }

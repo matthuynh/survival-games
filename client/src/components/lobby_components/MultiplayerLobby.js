@@ -214,7 +214,7 @@ class MultiplayerLobby extends React.Component {
 										variant="dark"
 										className="multiplayer-lobby-button"
 										onClick={() => {
-											this.props.handleDeleteLobby(
+											this.props.handleDeleteLobbyMultiplayer(
 												this.state.playerId,
 												this.state.lobbyId
 											);
@@ -252,7 +252,7 @@ class MultiplayerLobby extends React.Component {
 									variant="dark"
 									className="multiplayer-lobby-button"
 									onClick={() => {
-										this.props.handleLeaveLobby(
+										this.props.handleLeaveLobbyMultiplayer(
 											this.state.playerId,
 											this.state.lobbyId
 										);
