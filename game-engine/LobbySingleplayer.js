@@ -6,10 +6,23 @@ const LobbyBase = require("./LobbyBase.js");
 module.exports = class LobbySingleplayer extends LobbyBase {
 	constructor(lobbyId, lobbyOwnerId, ws, wss) {
         super(lobbyId, lobbyOwnerId, ws, wss);
+        this.maxLobbySize = 1;
+        this.ws = ws;
 
-		this.maxLobbySize = 1;
+        // Default generation settings for a singleplayer game
+        this.generationSettings = {
+			numBushes: 10,
+			numCrates: 5,
+			numHPPots: 5,
+			numAmmo: 10,
+			numSpeedBoost: 1,
+			numRDS: 0,
+			numSmallGun: 1,
+			numBigGun: 1,
+			stageWidth: 2000,
+			stageHeight: 2000
+		};
 
-        // TODO: Everything below here needs to be updated to work in a singleplayer lobby
 		this.singleplayerGame = null;
 		this.singleplayerGameInterval = null;
 		this.gameWinner = null;
@@ -27,7 +40,7 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 		};
 	}
 
-    // Send updates to a server from a client's controller
+    // Send updates to a server from the client's controller
 	updateGameState(clientUpdate) {
 		if (this.gameInProgress) {
 			this.singleplayerGame.updateState(clientUpdate);
@@ -36,7 +49,7 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 	
 	// Ends the singleplayer game in this lobby
 	endGame(gameWinner) {
-		clearInterval(this.singleplayerGamenterval); // clearInterval is a library function
+		clearInterval(this.singleplayerGameInterval); // clearInterval is a library function
 		this.singleplayerGame = null;
 		this.gameWinner = gameWinner;
 		this.gameInProgress = false;
@@ -48,34 +61,20 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 		this.gameInProgress = false;
 		this.singleplayerGame = null;
 		this.singleplayerGameInterval = null;
-		// this.wss = wss; // TODO: Check to see if this is necessary
 		this.gameHasEnded = false;
-
-		// Send update to all clients, telling those who are connected
-		// to this lobby to clear their own model instance
-		let updatedState = JSON.stringify({
-			type: "stage-termination",
-			lobbyID: this.lobbyId,
-			winningPID: this.gameWinner,
-			isForced: false
-		});
-
-		this.gameWinner = null;
-		this.wss.broadcastToLobby(updatedState, this.lobbyId);
+        this.gameWinner = null;
+        
+        this.ws.send(updatedState);
+        // this.wss.broadcastToLobby(updatedState, this.lobbyId); // TODO: Check if this is still needed
 	}
 
-	// A player leaves the currently ongoing singleplayer game in the lobby
-	leaveGame(playerId, reason) {
-		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId);
-
-		if (playerIndex > -1) {
-			this.lobbyPlayers[playerIndex].status = "In Lobby";
-			if (this.gameInProgress) {
-				this.singleplayerGame.setPlayerDead(playerId, reason);
-			}
-			return true;
-		}
-		return false;
+	// Player leaves the currently ongoing singleplayer game
+	leaveGame() {
+		let playerIndex = this.lobbyPlayers.findIndex(player => player.pid == playerId); // TODO: Remove this line, there will always only be 1 player
+        this.lobbyPlayers[playerIndex].status = "In Lobby";
+        if (this.gameInProgress) {
+            this.singleplayerGame.setPlayerDead();
+        }
     }
     
 	forceStageTermination() {
@@ -84,5 +83,59 @@ module.exports = class LobbySingleplayer extends LobbyBase {
     
 	initializeGame() {
         // TODO: this
+        this.gameInProgress = true;
+		this.lobbyPlayers.forEach((player) => {
+			player.status = "In Game";
+		})
+
+		// NOTE: We pass in an anonymous function so that it can be called by ./game-engine/StageSingleplayer.js and access the 'this' keyword to refer to this Lobby instance
+		this.singleplayerGame = new SingleplayerGame(
+			this.wss,
+			this.lobbyId,
+            this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
+            this.generationSettings,
+			(playerId, status) => {
+				// function "name" is setPlayerStatus, handles changing player status (eg. dead, spectating)
+				// See LobbyBase constructor for possible statuses ("In Lobby", "In Game", "Winner!", "Spectating")
+				console.log(`[WSS INFO] ${playerId} either died or won, status is ${status}`);
+                
+                let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
+				this.lobbyPlayers[index].status = status;
+				if (status === "Spectating") {
+					this.lobbyPlayers[index].socket.send(JSON.stringify({
+						pid: playerId,
+						type: "lost-game"
+					}));
+				}
+				// console.log(this.lobbyPlayers[index]);
+			}
+		);
+
+		try {
+			// Run the multiplayer game on an interval
+			this.singleplayerGameInterval = setInterval(async () => {
+				// console.log("[GAME STATUS] SENDING UPDATES TO PLAYERS");
+				this.singleplayerGame.calculateUpdates();
+				this.singleplayerGame.sendPlayerUpdates(this.wss);
+
+				// Check to see if the game has ended (only 1 player remaining)
+				// TODO: There is probably a better way to trigger endGame() when a player wins.... pass in a callback to MultiplayerGame, like with initializeGame?
+				let gameWinner = this.singleplayerGame.getGameWinner();
+				if (gameWinner) {
+					this.endGame(gameWinner);
+				}
+			}, 20);
+		} catch (e) {
+			console.log(`[WSS WARNING] ${e}`);
+		}
+
+		// Return initial game state
+		let initialState = this.singleplayerGame.getInitialState();
+		// console.log(initialState);
+		return initialState;
+    }
+    
+    getLobbyType() {
+        return "singleplayer";
     }
 }

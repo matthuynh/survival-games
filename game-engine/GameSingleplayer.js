@@ -4,7 +4,7 @@ const SingleplayerStage = require("./StageSingleplayer.js");
 
 // A multiplayer game has multiplayer players in it
 module.exports = class GameSingleplayer {
-	constructor(wss, gameId, gamePlayers, setPlayerStatus) {
+	constructor(wss, gameId, gamePlayers, generationSettings, setPlayerStatus) {
         this.wss = wss;
 		this.gameId = gameId; // a game has the same ID as its lobby
 		this.players = gamePlayers;
@@ -12,28 +12,14 @@ module.exports = class GameSingleplayer {
 
 		// Function 'pointer' that is defined in class Lobby
 		this.setPlayerStatus = setPlayerStatus;
-		
-		// Game specific settings
-		const generationSettings = {
-			numBushes: 10,
-			numCrates: 5,
-			numHPPots: 7,
-			numAmmo: 15,
-			numSpeedBoost: Math.floor(numPlayers / 2) + 1,
-			numRDS: 0,
-			numSmallGun: numPlayers,
-			numBigGun: Math.floor(numPlayers / 2) + 1,
-			stageWidth: 2000,
-			stageHeight: 2000
-		};
 
 		// Initialize the server-side stage
-		this.stage = new MultiplayerStage(
+		this.stage = new SingleplayerStage(
 			this.gameId,
 			this.players,
 			numPlayers,
 			this.setPlayerStatus,
-			generationSettings,
+			generationSettings
 		);
 	}
 
@@ -69,7 +55,7 @@ module.exports = class GameSingleplayer {
 		this.stage.step();
 	}
 
-	// Send the state of the stage to all players
+	// Send the state of the stage to the human single player
 	sendPlayerUpdates() {
 		// console.log("Sending player updates");
 		let update = this.stage.getUpdatedStageState();
@@ -81,8 +67,9 @@ module.exports = class GameSingleplayer {
 			environmentActors: update.environment,
 			numAlive: update.numAlive,
 			hasEnded: update.hasEnded,
-		});
-		this.wss.broadcastToLobby(updatedState, this.gameId);
+        });
+        
+        this.ws.send(updatedState);
 	}
 
 	// Return the PID of the winner of the game, else if game is still ongoing, return null

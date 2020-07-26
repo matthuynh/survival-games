@@ -198,7 +198,7 @@ class MultiplayerLobby extends React.Component {
 										className="multiplayer-lobby-button"
 										disabled={this.state.lobbyReady === false}
 										onClick={() => {
-											this.props.handleStartGame(
+											this.props.handleStartGameMultiplayer(
 												this.state.playerId,
 												this.state.lobbyId
 											);
@@ -230,7 +230,7 @@ class MultiplayerLobby extends React.Component {
 										variant="warning"
 										className="multiplayer-lobby-button"
 										onClick={() => {
-											this.props.handleStartGame(
+											this.props.handleStartGameMultiplayer(
 												this.state.playerId,
 												this.state.lobbyId
 											);

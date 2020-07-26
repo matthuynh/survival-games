@@ -6,6 +6,7 @@ import React from "react";
 
 import LobbyList from "./lobby_components/LobbyList";
 import MultiplayerLobby from "./lobby_components/MultiplayerLobby";
+import SingleplayerLobby from "./lobby_components/SingleplayerLobby";
 import CloseLobby from "./lobby_components/CloseLobby";
 import GameView from "./lobby_components/GameView";
 import Auth from "../Routing/auth";
@@ -47,6 +48,7 @@ class LobbiesPage extends React.Component {
 			userWon: false,
 			userLost: false,
 			joinedLobbyId: null,
+			joinedLobbyType: "",
 			lobbies: [],
 			lobbyClosed: false,
 
@@ -77,9 +79,11 @@ class LobbiesPage extends React.Component {
 		this.handleCreateLobby = this.handleCreateLobby.bind(this);
 		this.handleCreateSingleplayerLobby = this.handleCreateSingleplayerLobby.bind(this);
 		this.handleJoinLobby = this.handleJoinLobby.bind(this);
-		this.handleLeaveLobby = this.handleLeaveLobby.bind(this);
-		this.handleDeleteLobby = this.handleDeleteLobby.bind(this);
-		this.handleStartGame = this.handleStartGame.bind(this);
+		this.handleLeaveLobbyMultiplayer = this.handleLeaveLobbyMultiplayer.bind(this);
+		this.handleDeleteLobbyMultiplayer = this.handleDeleteLobbyMultiplayer.bind(this);
+		this.handleStartGameMultiplayer = this.handleStartGameMultiplayer.bind(this);
+		this.handleDeleteLobbySingleplayer = this.handleDeleteLobbySingleplayer.bind(this);
+		this.handleStartGameSingleplayer = this.handleStartGameSingleplayer.bind(this);
 		this.handleLeaveGame = this.handleLeaveGame.bind(this);
 		this.handleCloseLobbyDialog = this.handleCloseLobbyDialog.bind(this);
 
@@ -212,20 +216,32 @@ class LobbiesPage extends React.Component {
 	
 						// Successfully created a new multiplayer lobby, receive the lobby id
 						case "new-lobby-multiplayer":
+							// TODO: Will need to differentiate between showing multiplayer and singleplayer lobby
 							this.setState({
 								lobbies: serverUpdate.lobbies,
-								joinedLobbyId: serverUpdate.newLobbyId
+								joinedLobbyId: serverUpdate.newLobbyId,
+								joinedLobbyType: "multiplayer"
 							});
 							break;
 	
-						// User joined a lobby successfully
+						case "new-lobby-singleplayer":
+							// TODO: Will need to differentiate between showing multiplayer and singleplayer lobby
+							this.setState({
+								lobbies: serverUpdate.lobbies,
+								joinedLobbyId: serverUpdate.newLobbyId,
+								joinedLobbyType: "singleplayer"
+							});
+							break;
+							
+						// User joined a multiplayer lobby successfully
 						case "joined-lobby":
 							// console.log("joined-lobby");
 							// console.log("Setting state of lobbies");
 							// console.log("Reached");
 							this.setState({
 								lobbies: serverUpdate.lobbies,
-								joinedLobbyId: serverUpdate.lobbyId
+								joinedLobbyId: serverUpdate.lobbyId,
+								joinedLobbyType: "multiplayer"
 							});
 							// console.log(serverUpdate.lobbies);
 							break;
@@ -234,7 +250,8 @@ class LobbiesPage extends React.Component {
 						case "left-lobby":
 							if (serverUpdate.status === "success") {
 								this.setState({
-									joinedLobbyId: null
+									joinedLobbyId: null,
+									joinedLobbyType: ""
 								});
 							}
 							break;
@@ -264,6 +281,7 @@ class LobbiesPage extends React.Component {
 									userWon: false,
 									userLost: false,
 									joinedLobbyId: null,
+									joinedLobbyType: "",
 									lobbyClosed: true,
 									movingUp: false,
 									movingLeft: false,
@@ -284,7 +302,8 @@ class LobbiesPage extends React.Component {
 						case "kicked-lobby":
 							this.setState({
 								lobbyClosed: true,
-								joinedLobbyId: null
+								joinedLobbyId: null,
+								joinedLobbyType: ""
 							});
 							break;
 	
@@ -327,14 +346,14 @@ class LobbiesPage extends React.Component {
 		this.clientSocket.send(clientUpdate);
 	}
 
-	// A player can leave the lobby they are in
-	handleLeaveLobby(playerId, lobbyNumber) {
-		console.log("Inside handleLeaveLobby()");
+	// A player can leave the multiplayer lobby they are in
+	handleLeaveLobbyMultiplayer(playerId, lobbyNumber) {
+		console.log("Inside handleLeaveLobbyMultiplayer()");
 		// console.log("Client tries to leave lobby with id " + lobbyNumber);
 
 		let clientUpdate = JSON.stringify({
 			pid: playerId,
-			type: "leave-lobby",
+			type: "leave-lobby-multiplayer",
 			lobbyId: lobbyNumber,
 		});
 		this.clientSocket.send(clientUpdate);
@@ -358,11 +377,22 @@ class LobbiesPage extends React.Component {
 		this.clientSocket.send(clientUpdate);
 	}
 
-	// A player deletes the lobby he is in 
-	handleDeleteLobby(playerId, lobbyId) {
-		console.log("Inside handleDeleteLobby()");
+	// A lobby owner deletes the multiplayer lobby he is in 
+	handleDeleteLobbyMultiplayer(playerId, lobbyId) {
+		console.log("Inside handleDeleteLobbyMultiplayer()");
 		let clientUpdate = JSON.stringify({
-			type: "delete-lobby",
+			type: "delete-lobby-multiplayer",
+			pid: playerId,
+			lobbyId: lobbyId
+		})
+		this.clientSocket.send(clientUpdate);
+	}
+
+	// A lobby owner deletes the singleplayer lobby he is in 
+	handleDeleteLobbySingleplayer(playerId, lobbyId) {
+		console.log("Inside handleDeleteLobbySingleplayer()");
+		let clientUpdate = JSON.stringify({
+			type: "delete-lobby-singleplayer",
 			pid: playerId,
 			lobbyId: lobbyId
 		})
@@ -370,16 +400,29 @@ class LobbiesPage extends React.Component {
 	}
 
 	// A lobby owner attempts to starts a game on a lobby on the server
-	handleStartGame(ownerId, lobbyId) {
-		console.log("Inside handleStartGame()");
+	handleStartGameMultiplayer(ownerId, lobbyId) {
+		console.log("Inside handleStartGameMultiplayer()");
 		// console.log(ownerId);
 		// console.log(lobbyId);
 
 		// Note that only the owner of a valid lobby may start a game
 		let clientUpdate = JSON.stringify({
 			pid: ownerId,
-			type: "start-game",
-			lobbyId: lobbyId,
+			type: "start-game-mutliplayer",
+			lobbyId: lobbyId
+		});
+		console.log(clientUpdate);
+		this.clientSocket.send(clientUpdate);
+	}
+
+	handleStartGameSingleplayer(ownerId, lobbyId) {
+		console.log("Inside handleStartGameSingleplayer()");
+
+		// Only the owner of a valid singleplayer lobby may start a game
+		let clientUpdate = JSON.stringify({
+			pid: ownerId,
+			type: "start-game-singleplayer",
+			lobbyId: lobbyId
 		});
 		console.log(clientUpdate);
 		this.clientSocket.send(clientUpdate);
@@ -639,16 +682,29 @@ class LobbiesPage extends React.Component {
 			)
 		}
 
-		// Render the lobby view
-		else if (this.state.joinedLobbyId !== null) {
+		// Render the multiplayer lobby view
+		else if (this.state.joinedLobbyId !== null && this.state.joinedLobbyType === "multiplayer") {
 			return (
 				<MultiplayerLobby
 					lobbies={this.state.lobbies}
 					lobbyId={this.state.joinedLobbyId}
 					playerId={this.state.playerId}
-					handleStartGame={this.handleStartGame}
-					handleDeleteLobby={this.handleDeleteLobby}
-					handleLeaveLobby={this.handleLeaveLobby}
+					handleStartGameMultiplayer={this.handleStartGameMultiplayer}
+					handleDeleteLobbyMultiplayer={this.handleDeleteLobbyMultiplayer}
+					handleLeaveLobbyMultiplayer={this.handleLeaveLobbyMultiplayer}
+				/>
+			);
+		}
+
+		// Render the singleplayer lobby view
+		else if (this.state.joinedLobbyId !== null && this.state.joinedLobbyType === "singleplayer") {
+			return (
+				<SingleplayerLobby
+					lobbies={this.state.lobbies}
+					lobbyId={this.state.joinedLobbyId}
+					playerId={this.state.playerId}
+					handleStartGameSingleplayer={this.handleStartGameSingleplayer}
+					handleDeleteLobbySingleplayer={this.handleDeleteLobbySingleplayer}
 				/>
 			);
 		}

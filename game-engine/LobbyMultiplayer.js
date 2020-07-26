@@ -88,14 +88,14 @@ module.exports = class LobbyMultiplayer extends LobbyBase {
 			player.status = "In Game";
 		})
 
-		// NOTE: We pass in an anonymous function so that it can be called by ./game-engine/Stage.js and access the 'this' keyword to refer to this Lobby instance
+		// NOTE: We pass in an anonymous function so that it can be called by ./game-engine/StageMultiplayer.js and access the 'this' keyword to refer to this Lobby instance
 		this.multiplayerGame = new MultiplayerGame(
 			this.wss,
 			this.lobbyId,
 			this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
 			(playerId, status) => {
 				// function "name" is setPlayerStatus, handles changing player status (eg. dead, spectating)
-				// See Lobby for possible statuses ("In Lobby", "In Game", "Winner!", "Spectating")
+				// See LobbyBase constructor for possible statuses ("In Lobby", "In Game", "Winner!", "Spectating")
 				console.log(`[WSS INFO] ${playerId} either died or won, status is ${status}`);
 				let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
 				this.lobbyPlayers[index].status = status;
@@ -114,8 +114,8 @@ module.exports = class LobbyMultiplayer extends LobbyBase {
 			// Run the multiplayer game on an interval
 			this.multiplayerGameInterval = setInterval(async () => {
 				// console.log("[GAME STATUS] SENDING UPDATES TO PLAYERS");
-				await this.multiplayerGame.calculateUpdates();
-				await this.multiplayerGame.sendPlayerUpdates(this.wss);
+				this.multiplayerGame.calculateUpdates();
+				this.multiplayerGame.sendPlayerUpdates(this.wss);
 
 				// Check to see if the game has ended (only 1 player remaining)
 				// TODO: There is probably a better way to trigger endGame() when a player wins.... pass in a callback to MultiplayerGame, like with initializeGame?
@@ -200,5 +200,9 @@ module.exports = class LobbyMultiplayer extends LobbyBase {
 			isForced: true
 		});
 		this.wss.broadcastToLobby(updatedState, this.lobbyId);
-	}
+    }
+    
+    getLobbyType() {
+        return "multiplayer";
+    }
 }

@@ -12,7 +12,7 @@ import HelpImg from "../../assets/question-mark.png";
 import "../../css/Lobby.css";
 
 // Display a detailed view about a specific lobby on the server
-class MultiplayerLobby extends React.Component {
+class SingleplayerLobby extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -22,8 +22,7 @@ class MultiplayerLobby extends React.Component {
 			isLobbyOwner: false,
 			playerId: null,
 			lobbyOwnerId: null,
-			maxLobbySize: null,
-			lobbyReady: false,
+			maxLobbySize: null
 		};
 
 		this.determineLobbyInfo = this.determineLobbyInfo.bind(this);
@@ -38,31 +37,11 @@ class MultiplayerLobby extends React.Component {
 				if (this.state.lobbies[i].id === this.state.lobbyId) {
 					let thisLobby = this.state.lobbies[i];
 
-					// Check if lobby is ready
-					let isLobbyReady = true;
-					if (thisLobby.lobbyPlayers.length <= 1) {
-						isLobbyReady = false;
-					} else {
-						for (
-							let j = 0;
-							j < thisLobby.lobbyPlayers.length;
-							j++
-						) {
-							if (
-								thisLobby.lobbyPlayers[j].status !== "In Lobby"
-							) {
-								isLobbyReady = false;
-								break;
-							}
-						}
-					}
-
 					// console.log("Updating lobby players");
 					this.setState({
 						lobbyPlayers: thisLobby.lobbyPlayers,
 						lobbyOwnerId: thisLobby.lobbyOwner,
-						maxLobbySize: thisLobby.maxLobbySize,
-						lobbyReady: isLobbyReady,
+						maxLobbySize: thisLobby.maxLobbySize
 					});
 					break;
 				}
@@ -74,14 +53,13 @@ class MultiplayerLobby extends React.Component {
 	renderHelpPopover() {
 		return(
 			<Popover id="popover-basic">
-                <Popover.Title as="h3" style={{ textAlign: "center" }}>Multiplayer Lobby Help</Popover.Title>
+                <Popover.Title as="h3" style={{ textAlign: "center" }}>Singleplayer Lobby Help</Popover.Title>
                 <Popover.Content>
 					<ListGroup variant="flush">
-						<ListGroup.Item>The game starts once the lobby owner starts the game!</ListGroup.Item>
-						<ListGroup.Item>All players must be "In Lobby" in order to start a game</ListGroup.Item>
-						<ListGroup.Item>This lobby will be closed when the lobby iwner leaves</ListGroup.Item>
-						<ListGroup.Item>Only lobby owners may start a game</ListGroup.Item>
-						<ListGroup.Item>Once in the game, press ESC to open the game menu</ListGroup.Item>
+						<ListGroup.Item>You can specify world generation settings for the game!</ListGroup.Item>
+                        <ListGroup.Item>You must play with at least one bot</ListGroup.Item>
+						<ListGroup.Item>You can customize the number of bots</ListGroup.Item>
+						<ListGroup.Item>Once in the game, press ESC to pause and open the game menu</ListGroup.Item>
 					</ListGroup>
                 </Popover.Content>
 			</Popover>
@@ -184,85 +162,56 @@ class MultiplayerLobby extends React.Component {
 						</Table>
 					</Row>
 
-					{/* Render a different lobby view for a lobby owner and lobby player */}
-					{this.state.lobbyOwnerId === this.state.playerId ? (
-						// Lobby view for the lobby owner
-						<Container>
-							<Row className="multiplayer-lobby-text">
-								You are lobby owner! The battle starts for everyone once you start the game
-							</Row>
-							<Row>
-								<Col>
-									<Button
-										variant="primary"
-										className="multiplayer-lobby-button"
-										disabled={this.state.lobbyReady === false}
-										onClick={() => {
-											this.props.handleStartGame(
-												this.state.playerId,
-												this.state.lobbyId
-											);
-										}}
-									>
-										Start Game
-									</Button>
-								</Col>
-							</Row>
-							<Row>
-								<Col>
-									<Button
-										variant="dark"
-										className="multiplayer-lobby-button"
-										onClick={() => {
-											this.props.handleDeleteLobby(
-												this.state.playerId,
-												this.state.lobbyId
-											);
-										}}
-									>
-										Delete Lobby
-									</Button>
-								</Col>
-							</Row>
-							<Row>
-								<Col>
-									<Button
-										variant="warning"
-										className="multiplayer-lobby-button"
-										onClick={() => {
-											this.props.handleStartGame(
-												this.state.playerId,
-												this.state.lobbyId
-											);
-										}}
-									>
-										Debug Mode - BUGGY!
-									</Button>
-								</Col>
-							</Row>
-						</Container>
-					) : (
-						// Lobby view for all other lobby members
-						<Container>
-							<Row className="multiplayer-lobby-text">
-								Prepare yourself! The battle starts as soon as the lobby owner starts the game
-							</Row>
-							<Col>
-								<Button
-									variant="dark"
-									className="multiplayer-lobby-button"
-									onClick={() => {
-										this.props.handleLeaveLobby(
-											this.state.playerId,
-											this.state.lobbyId
-										);
-									}}
-								>
-									Leave Lobby
-								</Button>
-							</Col>
-						</Container>
-					)}
+                    <Container>
+                        <Row className="multiplayer-lobby-text">
+                            Welcome to WarCry Singleplayer! Feel free to customize your game by changing the bot settings and world generation settings
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Button
+                                    variant="primary"
+                                    className="multiplayer-lobby-button"
+                                    onClick={() => {
+                                        this.props.handleStartGame(
+                                            this.state.playerId,
+                                            this.state.lobbyId
+                                        );
+                                    }}
+                                >
+                                    Start Game
+                                </Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Button
+                                    variant="secondary"
+                                    className="multiplayer-lobby-button"
+                                    onClick={() => {
+                                        console.log("Clicked on generation settings button")
+                                    }}
+                                >
+                                    Game Settings
+                                </Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Button
+                                    variant="dark"
+                                    className="multiplayer-lobby-button"
+                                    onClick={() => {
+                                        this.props.handleDeleteLobby(
+                                            this.state.playerId,
+                                            this.state.lobbyId
+                                        );
+                                    }}
+                                >
+                                    Delete Lobby
+                                </Button>
+                            </Col>
+                        </Row>
+                    </Container>
 				</Container>
 
 				<Row className="lobby-list-footer align-items-center">
@@ -279,4 +228,4 @@ class MultiplayerLobby extends React.Component {
 	}
 }
 
-export default MultiplayerLobby;
+export default SingleplayerLobby;
