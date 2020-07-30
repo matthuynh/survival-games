@@ -40,6 +40,28 @@ function getRandomColor() {
 	return color;
 }
 
+let playerGenerationTemplate = {};
+playerGenerationTemplate["Human"] = {
+	movementSpeed: 6,
+	healthPoints: 100,
+	radius: 30
+};
+playerGenerationTemplate["EasyBot"] = {
+	movementSpeed: 3,
+	healthPoints: 30,
+	radius: 30
+};
+playerGenerationTemplate["MediumBot"] = {
+	movementSpeed: 5,
+	healthPoints: 80,
+	radius: 37
+};
+playerGenerationTemplate["HardBot"] = {
+	movementSpeed: 5,
+	healthPoints: 80,
+	radius: 25
+};
+
 // A Stage stores all actors (all environment objects). It is also responsible for calculating game logic (eg. collisions)
 module.exports = class StageBase {
 	constructor(gameId, players, numPlayers, generationSettings) {
@@ -59,33 +81,10 @@ module.exports = class StageBase {
         // The logical width and height of the stage
 		this.stageWidth = generationSettings.stageWidth;
         this.stageHeight = generationSettings.stageHeight;
-        
-        // Initialize each player in the stage
-        for (let i = 0; i < this.numPlayers; i++) {
-            // console.log("Adding player with id " + this.players[i].pid);
-            // Player spawns in a random spot (they spawn away from the border)
-            let xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
-            let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageHeight / 4);
-            
-            // Check to see if the would collide with another player
-			const playerRadius = 30;
-            let collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
-            let attemptsToMake = 3;
-            while (collides || attemptsToMake > 0) {
-                xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
-                ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageWidth / 4);
-                attemptsToMake--;
-                collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
-            }
-            
-            const playerStartingPosition = new Pair(xSpawn, ySpawn);
-            const playerColour = getRandomColor(); // each player has a different color
-            const playerHP = 100;
-            const playerMovementSpeed = 8; // default is 8; debug is 15
-            let player = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, this.players[i].pid);
-            this.addActor(player);
-        }
-
+		
+		// Initialize each player in the stage, both human and bot (if any)
+		this.generatePlayers(generationSettings);
+       
 		// Generate environment (bushes, crates, buffs) and add them to the corresponding actors lists
 		this.generateCrates(generationSettings.numCrates);
 		this.generateBushes(generationSettings.numBushes);
@@ -154,6 +153,36 @@ module.exports = class StageBase {
         return state;
     }
 
+	// Generate human players and bot players (if in singleplayer) in the stage
+	generatePlayers() {
+		this.players.forEach((player) => {
+			// console.log("Adding player with id " + this.players[i].pid);
+			// Player spawns in a random spot (they spawn away from the border)
+			let xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
+			let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageHeight / 4);
+			
+			console.log(player);
+			
+
+			// Check to see if the would collide with another player
+			const playerRadius = playerGenerationTemplate[player.type].radius;
+			let collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
+			let attemptsToMake = 3;
+			while (collides || attemptsToMake > 0) {
+				xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
+				ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageWidth / 4);
+				attemptsToMake--;
+				collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
+			}
+			
+			const playerStartingPosition = new Pair(xSpawn, ySpawn);
+			const playerColour = getRandomColor(); // each player has a different color // TODO: make bots the same colour
+			const playerHP = playerGenerationTemplate[player.type].healthPoints;
+			const playerMovementSpeed = playerGenerationTemplate[player.type].movementSpeed
+			const generatedPlayer = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, player.pid);
+			this.addActor(generatedPlayer);
+		})	
+	}
 
 	// Generate bushes in random locations throughout the map
 	generateBushes(numBushes) {

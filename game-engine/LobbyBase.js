@@ -4,7 +4,7 @@ module.exports = class LobbyBase {
 		this.lobbyId = lobbyId;
 		this.lobbyOwnerId = lobbyOwnerId;
 		// possible statuses: "In Lobby", "In Game", "Winner!", "Spectating"
-        this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws, status: "In Lobby" }];
+        this.lobbyPlayers = [{ pid: lobbyOwnerId, socket: ws, status: "In Lobby", type: "Human" }]; // the player that created this lobby becomes the first player in the lobby
         
         this.gameInProgress = false;
 		this.gameHasEnded = false; // TODO: This won't be needed in future when we implement better way to detect game end....

@@ -18,10 +18,11 @@ module.exports = class LobbyMultiplayer extends LobbyBase {
 
 	// Return information about this lobby in a format readable by the client
 	getLobbyJSON() {
+		// We use the map function to avoid sending back player.socket as well
 		return {
 			id: this.lobbyId,
 			lobbyOwner: this.lobbyOwnerId,
-			lobbyPlayers: this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status })),
+			lobbyPlayers: this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status, type: player.type })),
 			gameInProgress: this.gameInProgress,
 			numPlayers: this.lobbyPlayers.length,
 			maxLobbySize: this.maxLobbySize
@@ -49,7 +50,7 @@ module.exports = class LobbyMultiplayer extends LobbyBase {
 
 		// Player is not in lobby yet; add them
 		if (playerIndex == -1) {
-			this.lobbyPlayers.push({ pid: playerId, socket: playerSocket, status: "In Lobby" });
+			this.lobbyPlayers.push({ pid: playerId, socket: playerSocket, status: "In Lobby", type: "Human" });
 			return true;
 		}
 		return false;
@@ -84,7 +85,7 @@ module.exports = class LobbyMultiplayer extends LobbyBase {
 		this.multiplayerGame = new MultiplayerGame(
 			this.wss,
 			this.lobbyId,
-			this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status})),
+			this.lobbyPlayers.map(player => ({ pid: player.pid, status: player.status, type: player.type })),
 			(playerId, status) => {
 				// function "name" is setPlayerStatus, handles changing player status (eg. dead, spectating)
 				// See LobbyBase constructor for possible statuses ("In Lobby", "In Game", "Winner!", "Spectating")
@@ -183,7 +184,7 @@ module.exports = class LobbyMultiplayer extends LobbyBase {
     }
     
     // When the owner closes the lobby while a game is ongoing, forces
-	// other players to terminate their stage
+	// other players to terminate their stage and immediately head back to lobby page
 	forceStageTermination() {
 		let updatedState = JSON.stringify({
 			type: "stage-termination",

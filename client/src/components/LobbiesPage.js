@@ -272,14 +272,17 @@ class LobbiesPage extends React.Component {
 	
 						// Re-initialize the stage (user loss or won)
 						case "stage-termination":
-							console.log("Trying to terminate stage");
+							console.log("[WSS INO] Trying to terminate stage");
 							document.removeEventListener("keydown", this.handleKeyPress);
 							document.removeEventListener("keyup", this.handleKeyRelease);
 							document.removeEventListener("mousemove", this.handleMouseMove);
 							document.removeEventListener("mousedown", this.handleMouseDown);
 							window.stopStageGame();
 	
+							// Forceful stage termination during a multiplayer game by lobby owner disconnected
+							// Sends all other players back to lobby paeg
 							if (serverUpdate.isForced) {
+								console.log("[WSS INO] Stage termination is forceful, sending all players back to lobby page");
 								this.setState({
 									showGameView: false,
 									userWon: false,
@@ -294,9 +297,19 @@ class LobbiesPage extends React.Component {
 									horizontalDirection: 0,
 									verticalDirection: 0
 								});
-							} else if (serverUpdate.winningPID === this.state.playerId) {
+							} 
+							// Stage terminated because user won game
+							else if (serverUpdate.winningPID === this.state.playerId) {
+								console.log("[WSS INO] User won");
 								this.setState({
 									userWon: true
+								});
+							} 
+							// Stage terminated because user lost game by quitting the game
+							else {
+								console.log("[WSS INO] User lost");
+								this.setState({
+									userLost: true
 								});
 							}
 	
@@ -412,7 +425,7 @@ class LobbiesPage extends React.Component {
 		// Note that only the owner of a valid lobby may start a game
 		let clientUpdate = JSON.stringify({
 			pid: ownerId,
-			type: "start-game-mutliplayer",
+			type: "start-game-multiplayer",
 			lobbyId: lobbyId
 		});
 		console.log(clientUpdate);

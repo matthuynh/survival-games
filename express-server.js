@@ -33,7 +33,7 @@ if (process.env.NODE_ENV === "production" || true) {
 	// app.use(express.static('./client/build'));
 	// app.use('/static', express.static(path.join(__dirname, './client/build//static')));
 	
-	const root = require('path').join(__dirname, 'client', 'build')
+	const root = require('path').join(__dirname, 'client', 'build');
 	app.use(express.static(root));
 } 
 // In development, front-end are served from CRA dev server

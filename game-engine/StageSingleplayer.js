@@ -35,6 +35,7 @@ module.exports = class StageSingleplayer extends StageBase {
 		// Check if any player actors died
 		for (let i = 0; i < this.playerActors.length; i++) {
 			// TODO: Implement this a bit better
+			// TODO: Replace setPlayerStatus with endSingleplayerGame when the human has won or lost
             // Dead players get removed from the player actors list
 			if (this.playerActors[i].isDead()) {
 				this.setPlayerStatus(this.playerActors[i].getPlayerID(), "Spectating");
@@ -44,12 +45,11 @@ module.exports = class StageSingleplayer extends StageBase {
             
 			// Game ends (only one person is left)
 			// NOTE: Set this value to be 0 for single player mode, and 1 for multiplayer mode. Setting the incorrect value will BUG OUT THE GAME!! (specifically the intervals in socket-server.js)
-            if (this.numAlive <= 0) {
+            if (this.numAlive <= 1) {
                 this.gameHasEnded = true;
                 
-                // TODO: Insert this record into the leaderboards 
-				this.winningPID = this.playerActors[0].getPlayerID();
-				this.setPlayerStatus(this.playerActors[0].getPlayerID(), "Winner!");
+				let playerId = this.playerActors[0].getPlayerID();
+				this.endSingleplayerGame(playerId, true);
             }
 		}
 

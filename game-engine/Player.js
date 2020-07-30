@@ -272,7 +272,7 @@ module.exports = class Player extends Circle {
 				else if (collidedObj.type instanceof SpeedBoostEnv) {
 					// Give the player a speed boost
 					// console.log("player collision detected -- Player with Speed boost");
-					this.setMovementSpeed(12);
+					this.setMovementSpeed(10);
 					this.stage.removeActor(collidedObj.type);
 				}
 				else if (collidedObj.type instanceof PistolEnv) { 

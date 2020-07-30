@@ -2,7 +2,7 @@
 // Import the Stage (this allows the server access to the game)
 const SingleplayerStage = require("./StageSingleplayer.js");
 
-// A multiplayer game has multiplayer players in it
+// A singleplayer game has a single human player and 1 or more bot players in it
 module.exports = class GameSingleplayer {
 	constructor(ws, wss, gameId, gamePlayers, generationSettings, endSingleplayerGame) {
 		this.ws = ws;
