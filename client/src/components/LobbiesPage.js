@@ -687,6 +687,7 @@ class LobbiesPage extends React.Component {
 					canvasRef={this.canvasRef}
 					playerId={this.state.playerId}
 					joinedLobbyId={this.state.joinedLobbyId}
+					joinedLobbyType={this.state.joinedLobbyType}
 					userWon={this.state.userWon}
 					userLost={this.state.userLost}
 					handleLeaveGame={this.handleLeaveGame}

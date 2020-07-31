@@ -3,8 +3,17 @@ const Gun = require("./Gun.js");
 
 // A Gun object of type Pistol, that inherits from Gun
 module.exports = class GunPistol extends Gun {
-	constructor(stage, owner, gunProps) {
-		super(stage, owner, gunProps);
+	constructor(stage, owner) {
+		const pistolProps = {
+			startingBullets: 20,
+			bulletCapacity: 40,
+			bulletSpeed: 25,
+			bulletDamage: 15,
+			bulletRadius: 7,
+			range: 800,
+			cooldown: 0
+		}
+		super(stage, owner, pistolProps);
 	}
 
 	// Return True if the gun is able to create and shoot a Bullet, else False

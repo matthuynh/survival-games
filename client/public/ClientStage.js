@@ -296,7 +296,7 @@ class Stage {
 			context.fillRect(
 				bottomRightX - this.canvas.width / 6,
 				bottomRightY - offsetY,
-				this.canvas.width / 6 - 5,
+				this.canvas.width / 7,
 				-40
 			);
 			offsetY += 50;
@@ -315,15 +315,17 @@ class Stage {
 				bottomRightX - this.canvas.width / 6,
 				bottomRightY - offsetY
 			);
+			context.textAlign = "right"
 			context.fillText(
 				weaponNumbers[i],
-				bottomRightX - 20,
+				bottomRightX - (this.canvas.width / 6) + (this.canvas.width / 7 - 10),
 				bottomRightY - offsetY
 			)
+			context.textAlign = "start"
 			context.strokeRect(
 				bottomRightX - this.canvas.width / 6,
 				bottomRightY - offsetY,
-				this.canvas.width / 6 - 5,
+				this.canvas.width / 7,
 				-40
 			);
 			offsetY += 50;

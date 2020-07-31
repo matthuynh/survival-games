@@ -12,8 +12,9 @@ const Bullet = require("./environment/Bullet.js");
 const Gun = require("./environment/Gun.js");
 const Line = require("./environment/Line.js");
 
-const Player = require('./Player.js');
-const CollisionEngine = require("./CollisionEngine.js");
+const PlayerHuman = require('./PlayerHuman.js');
+const PlayerBot = require('./PlayerBot.js');
+// const CollisionEngine = require("./CollisionEngine.js");
 
 // Return a random integer between 0 and n, inclusive
 function randInt(n) { return Math.round(Math.random() * n); }
@@ -42,24 +43,27 @@ function getRandomColor() {
 
 let playerGenerationTemplate = {};
 playerGenerationTemplate["Human"] = {
-	movementSpeed: 6,
+	movementSpeed: 7,
 	healthPoints: 100,
 	radius: 30
 };
 playerGenerationTemplate["EasyBot"] = {
 	movementSpeed: 3,
 	healthPoints: 30,
-	radius: 30
+	radius: 30,
+	colour: "rgb(255,255,255)"
 };
 playerGenerationTemplate["MediumBot"] = {
 	movementSpeed: 5,
 	healthPoints: 80,
-	radius: 37
+	radius: 37,
+	colour: "rgb(255,255,0)"
 };
 playerGenerationTemplate["HardBot"] = {
-	movementSpeed: 5,
+	movementSpeed: 6,
 	healthPoints: 80,
-	radius: 25
+	radius: 25,
+	colour: "rgb(0,0,0)"
 };
 
 // A Stage stores all actors (all environment objects). It is also responsible for calculating game logic (eg. collisions)
@@ -101,6 +105,12 @@ module.exports = class StageBase {
             }
         }
         return null;
+	}
+
+	// TODO: design this better lol
+	// Given a player's position in the playerActors array, return that player
+	getPlayerWithIndex(index) {
+		return this.playerActors[index] || null;
 	}
 
     // Return the initial state of the actors lists
@@ -176,10 +186,19 @@ module.exports = class StageBase {
 			}
 			
 			const playerStartingPosition = new Pair(xSpawn, ySpawn);
-			const playerColour = getRandomColor(); // each player has a different color // TODO: make bots the same colour
+			// TODO: Make humans able to choose their own colour
+			const playerColour = (player.type === "Human" ?
+				getRandomColor()
+				:
+				playerGenerationTemplate[player.type].colour
+			);
 			const playerHP = playerGenerationTemplate[player.type].healthPoints;
 			const playerMovementSpeed = playerGenerationTemplate[player.type].movementSpeed
-			const generatedPlayer = new Player(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, player.pid);
+			const generatedPlayer = (player.type === "Human" ? 
+				new PlayerHuman(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, player.pid, player.type)
+				:
+				new PlayerBot(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, player.pid, player.type)
+			);
 			this.addActor(generatedPlayer);
 		})	
 	}
@@ -428,7 +447,7 @@ module.exports = class StageBase {
 	// Add an actor (eg. enemy, boxes) to the stage (actor spawns)
 	addActor(actor) {
 		// Each actor is stored in different arrays to handle collisions differently
-		if (actor instanceof Player) {
+		if (actor instanceof PlayerHuman || actor instanceof PlayerBot) {
 			this.playerActors.push(actor);
 		} else if (actor instanceof Bullet) {
 			this.bulletActors.push(actor);
@@ -444,7 +463,7 @@ module.exports = class StageBase {
 	// Remove an actor (eg. enemy, boxes) to the stage (actor despawns/dies)
 	removeActor(actor) {
 		// Determine which actors list to remove this object from
-		if (actor instanceof Player) {
+		if (actor instanceof PlayerHuman || actor instanceof PlayerBot) {
 			let index = this.playerActors.indexOf(actor);
 			if (index != -1) {
 				// console.log("Removing actor " + this.playerActors[index]);

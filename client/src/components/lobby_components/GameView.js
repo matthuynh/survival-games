@@ -127,7 +127,7 @@ class GameView extends React.Component {
 									<Image src={AudioImg} alt={"Volume-Toggle"} style={{maxHeight: "25px", maxWidth: "25px"}} />
 								</span>
 								<Col>
-									{!this.state.userWon && !this.state.userLost && <h3> Game in Progress!</h3>}
+									{!this.state.userWon && !this.state.userLost && <h3> {this.props.joinedLobbyType} in Progress!</h3>}
 									{this.state.userWon && <h3> You won! </h3>}
 									{this.state.userLost && <h3> You lost! </h3>}
 								</Col>

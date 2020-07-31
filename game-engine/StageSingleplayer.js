@@ -9,6 +9,16 @@ module.exports = class StageSingleplayer extends StageBase {
 		this.endSingleplayerGame = endSingleplayerGame;
 	}
 
+	// Return JSON representation of the human player in this game
+	getHumanPlayer() {
+		const humanPlayerIndex = 0;
+		let humanPlayer = this.getPlayerWithIndex(humanPlayerIndex);
+		if (humanPlayer) {
+			return humanPlayer.getJSONRepresentation();
+		}
+		return null;
+	}
+
 	// Take one step in the animation of the game.  Do this by asking each of the actors to take a single step. 
 	step() {
         // TODO: this
