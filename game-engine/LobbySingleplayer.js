@@ -103,9 +103,9 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 
 
 		// TODO: Get these from front-end instead
-		this.generationSettings.numberEasyBots = 4;
-		this.generationSettings.numberMediumBots = 4;
-		this.generationSettings.numberHardBots = 4;
+		this.generationSettings.numberEasyBots = 1;
+		this.generationSettings.numberMediumBots = 1;
+		this.generationSettings.numberHardBots = 1;
 
 		// Initialize bot players here
 		if (this.generationSettings && this.generationSettings.numberEasyBots) {

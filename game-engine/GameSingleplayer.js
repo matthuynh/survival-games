@@ -39,6 +39,9 @@ module.exports = class GameSingleplayer {
 
 		// Only clients with a player that is still alive can make updates
 		if (player) {
+			// Save current canvas dimensions from single player's browser
+			this.stage.setCanvasDimensions(update.width, update.height);
+
 			if (update.type == "move") {
 				player.setMovementDirection(update.x, update.y);
 			} else if (update.type == "cursor") {

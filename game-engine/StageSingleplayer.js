@@ -6,7 +6,23 @@ module.exports = class StageSingleplayer extends StageBase {
     // TODO: Check if the constructor needs to be different
 	constructor(gameId, players, numPlayers, endSingleplayerGame, generationSettings) {
 		super(gameId, players, numPlayers, generationSettings);
+		this.canvasHeight = 0; // TODO: get better initial values
+		this.canvasWidth = 0;
 		this.endSingleplayerGame = endSingleplayerGame;
+	}
+
+	// Keeps the human player's canvas width and canvas height for bots to make appropriate calculations
+	setCanvasDimensions(canvasWidth, canvasHeight) {
+		this.canvasWidth = canvasWidth;
+		this.canvasHeight = canvasHeight;
+	}
+
+	getCanvasWidth() {
+		return this.canvasWidth;
+	}
+
+	getCanvasHeight() {
+		return this.canvasHeight;
 	}
 
 	// Return JSON representation of the human player in this game
@@ -48,9 +64,9 @@ module.exports = class StageSingleplayer extends StageBase {
 			// TODO: Replace setPlayerStatus with endSingleplayerGame when the human has won or lost
             // Dead players get removed from the player actors list
 			if (this.playerActors[i].isDead()) {
-				this.setPlayerStatus(this.playerActors[i].getPlayerID(), "Spectating");
+				// this.setPlayerStatus(this.playerActors[i].getPlayerID(), "Spectating");
 				this.removeActor(this.playerActors[i]);
-                this.numAlive -= 1;
+                // this.numAlive -= 1;
             }
             
 			// Game ends (only one person is left)
