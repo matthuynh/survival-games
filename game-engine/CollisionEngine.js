@@ -151,11 +151,11 @@ module.exports = CollisionEngine = {
 	},
 
 	// Used by class Player to check for collisions between the Player and any other Player
-	checkPlayerToPlayerCollision(destinationX, destinationY, playersList, playerRadius) {
+	checkPlayerToPlayerCollision(destinationX, destinationY, thisPlayer, playersList, playerRadius) {
 		// Check if the player (a circle) will collide with other players (also circles)
 		for (let i = 0; i < playersList.length; i++) {
 			// Check if the player is ANOTHER player
-			if (playersList[i] == this) {
+			if (playersList[i] == thisPlayer) {
 				// Skip this collision detection (player cannot collide with self)
 				continue;
 			}
@@ -200,13 +200,13 @@ module.exports = CollisionEngine = {
 		}
 	},
 
-	// Used by class Bullet to check for collisions between a bullet and player
+	// Used by class Bullet to check for collisions between a bullet and player. Shot by a Human Player
 	checkBulletToPlayerCollision(destinationX, destinationY, playerList, bulletRadius, bulletOwner, bulletDamage) {
 		for (let i = 0; i < playerList.length; i++) {
 			// Check if the player is shooting ANOTHER player (not the one shooting the bullet) -- player can't shoot itself
-			if (playerList[i] == bulletOwner) {
-				continue;
-			}
+			if (playerList[i] == bulletOwner) { continue; }
+			// If the shooter is a bot, its bullets cannot hurt other bots
+			if (bulletOwner.playerType !== "Human" && playerList[i].playerType !== "Human") { continue; }
 
 			let playerPosition = playerList[i].getPlayerPosition();
 			let dx = destinationX - playerPosition.x;

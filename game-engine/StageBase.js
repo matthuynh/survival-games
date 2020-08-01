@@ -50,19 +50,19 @@ playerGenerationTemplate["Human"] = {
 playerGenerationTemplate["EasyBot"] = {
 	movementSpeed: 3,
 	healthPoints: 30,
-	radius: 30,
+	radius: 38,
 	colour: "rgb(255,255,255)"
 };
 playerGenerationTemplate["MediumBot"] = {
 	movementSpeed: 5,
 	healthPoints: 80,
-	radius: 37,
+	radius: 30,
 	colour: "rgb(255,255,0)"
 };
 playerGenerationTemplate["HardBot"] = {
 	movementSpeed: 6,
 	healthPoints: 80,
-	radius: 25,
+	radius: 20,
 	colour: "rgb(0,0,0)"
 };
 
@@ -86,12 +86,15 @@ module.exports = class StageBase {
 		this.stageWidth = generationSettings.stageWidth;
         this.stageHeight = generationSettings.stageHeight;
 		
-		// Initialize each player in the stage, both human and bot (if any)
-		this.generatePlayers(generationSettings);
-       
-		// Generate environment (bushes, crates, buffs) and add them to the corresponding actors lists
+		
+		// Generate environment (bushes, crates)
 		this.generateCrates(generationSettings.numCrates);
 		this.generateBushes(generationSettings.numBushes);
+		
+		// Initialize each player in the stage, both human and bot (if any)
+		this.generatePlayers(generationSettings);
+
+		// Generate buffs
 		this.generateBuffs(generationSettings);
 
 		this.startTime = Math.round(new Date().getTime() / 1000);
@@ -161,26 +164,39 @@ module.exports = class StageBase {
             hasEnded: this.gameHasEnded
         }
         return state;
-    }
+	}
+	
+	generatePlayerXLocation(pattern) {
+		if (pattern === "clustered") {
+			return randInt(this.stageWidth) - randInt(this.stageWidth / 4);
+		} else if (pattern === "random") {
+			return randInt(this.stageWidth);
+		}
+	}
+
+	generatePlayerYLocation(pattern) {
+		if (pattern === "clustered") {
+			return randInt(this.stageHeight) - randInt(this.stageHeight / 4);
+		} else if (pattern === "random") {
+			return randInt(this.stageHeight);
+		}
+	}
 
 	// Generate human players and bot players (if in singleplayer) in the stage
 	generatePlayers() {
 		this.players.forEach((player) => {
 			// console.log("Adding player with id " + this.players[i].pid);
 			// Player spawns in a random spot (they spawn away from the border)
-			let xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
-			let ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageHeight / 4);
-			
-			console.log(player);
-			
+			let xSpawn = this.generatePlayerXLocation("random");
+			let ySpawn = this.generatePlayerYLocation("random");
 
 			// Check to see if the would collide with another player
 			const playerRadius = playerGenerationTemplate[player.type].radius;
 			let collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
-			let attemptsToMake = 3;
+			let attemptsToMake = 5;
 			while (collides || attemptsToMake > 0) {
-				xSpawn = (this.stageWidth / 2) - randInt(this.stageWidth / 4) + randInt(this.stageWidth / 4);
-				ySpawn = (this.stageHeight / 2) - randInt(this.stageHeight / 4) + randInt(this.stageWidth / 4);
+				xSpawn = this.generatePlayerXLocation("random");
+				ySpawn = this.generatePlayerYLocation("random");
 				attemptsToMake--;
 				collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
 			}

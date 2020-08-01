@@ -7,7 +7,7 @@ module.exports = class GunRifle extends Gun {
 		const rifleProps = {
 			startingBullets: 100,
 			bulletCapacity: 200,
-			bulletSpeed: 30,
+			bulletSpeed: 45,
 			bulletDamage: 5,
 			bulletRadius: 3,
 			range: 1600,
@@ -23,7 +23,8 @@ module.exports = class GunRifle extends Gun {
 			return false;
 		} else {
 			// 3-burst fire behaviour
-			if (this.numberBullets > 0) {
+			// TODO: Cooldown code currently not used for human players
+			if (this.numberBullets > 0 && (new Date().getTime() - this.previousFireTime >= this.cooldown)) {
 				this._burstHelper(position, cursorDirection, firingVector, colour);
 				if (this.numberBullets > 0) {
 					setTimeout( () => {
@@ -35,8 +36,8 @@ module.exports = class GunRifle extends Gun {
 						}
 					}, 50);
 				}
+				this.previousFireTime = new Date().getTime();
 			}
-			this.previousFireTime = new Date().getTime();
 			return true;
 		}
 	}

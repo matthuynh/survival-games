@@ -6,10 +6,10 @@ module.exports = class GunPistolBot extends Gun {
 	constructor(stage, owner) {
 		const pistolProps = {
 			startingBullets: 20,
-			bulletCapacity: 40,
-			bulletSpeed: 15,
+			bulletCapacity: 20,
+			bulletSpeed: 35,
 			bulletDamage: 10,
-			bulletRadius: 7,
+			bulletRadius: 5,
 			range: 800,
 			cooldown: 1000
 		}

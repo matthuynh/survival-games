@@ -7,9 +7,9 @@ module.exports = class GunPistol extends Gun {
 		const pistolProps = {
 			startingBullets: 20,
 			bulletCapacity: 40,
-			bulletSpeed: 25,
+			bulletSpeed: 40,
 			bulletDamage: 15,
-			bulletRadius: 7,
+			bulletRadius: 5,
 			range: 800,
 			cooldown: 0
 		}
@@ -19,7 +19,7 @@ module.exports = class GunPistol extends Gun {
 	// Return True if the gun is able to create and shoot a Bullet, else False
 	shoot(position, cursorDirection, firingVector, colour) {
 		// Check if gun has enough ammo, and if cooldown period is over firing
-		// TODO: Cooldown code currently not being used
+		// TODO: Cooldown code currently not used for human players
 		if (this.numberBullets > 0 && (new Date().getTime() - this.previousFireTime >= this.cooldown)) {
 			let bullet = new Bullet(position, cursorDirection, firingVector, colour, this.bulletRadius, this.range, this.bulletSpeed, this.bulletDamage, this.owner);
 			this.stage.addActor(bullet);

@@ -5,9 +5,9 @@ const Gun = require("./Gun.js");
 module.exports = class GunRifleBot extends Gun {
 	constructor(stage, owner) {
 		const rifleProps = {
-			startingBullets: 100,
-			bulletCapacity: 200,
-			bulletSpeed: 30,
+			startingBullets: 60,
+			bulletCapacity: 60,
+			bulletSpeed: 40,
 			bulletDamage: 5,
 			bulletRadius: 3,
 			range: 1600,
@@ -35,8 +35,8 @@ module.exports = class GunRifleBot extends Gun {
 						}
 					}, 50);
 				}
+				this.previousFireTime = new Date().getTime();
 			}
-			this.previousFireTime = new Date().getTime();
 			return true;
 		}
 	}

@@ -214,9 +214,6 @@ module.exports = class PlayerHuman extends Player {
 				}
 			}
 
-			// Player collision -- currently disabled
-			// let collidesPlayer = CollisionEngine.checkPlayerToPlayerCollision(destinationX, destinationY, playersList[i].getPlayerPosition[i], this.radius);
-			
 			// Update the player's location
 			this.position.x = destinationX;
 			this.position.y = destinationY;

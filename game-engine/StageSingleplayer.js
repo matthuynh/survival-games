@@ -6,8 +6,6 @@ module.exports = class StageSingleplayer extends StageBase {
     // TODO: Check if the constructor needs to be different
 	constructor(gameId, players, numPlayers, endSingleplayerGame, generationSettings) {
 		super(gameId, players, numPlayers, generationSettings);
-		this.canvasHeight = 0; // TODO: get better initial values
-		this.canvasWidth = 0;
 		this.endSingleplayerGame = endSingleplayerGame;
 	}
 

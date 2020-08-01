@@ -21,16 +21,33 @@ function distanceBetweenTwoPairs(startingPair, endingPair) {
 }
 
 let maxMoveDelay = 25000;
+const humanPlayerRadius = 30;
+
+// TODO: Define properties and abilities for each type of bot
+// detectionDistance is how close a bot would have to be to a player before the bot starts following the player
+let botAbilities = {};
+botAbilities["EasyBot"] = {
+	detectionDistance: humanPlayerRadius * 2,
+};
+botAbilities["MediumBot"] = {
+	detectionDistance: humanPlayerRadius * 3,
+};
+botAbilities["HardBot"] = {
+	detectionDistance: humanPlayerRadius * 4,
+};
 
 // A Player class that represents human players
 module.exports = class PlayerBot extends Player {
     constructor(stage, position, colour, radius, hp, movementSpeed, playerID, playerType) {
         super(stage, position, colour, radius, hp, movementSpeed, playerID, playerType);
 
+        // TODO: Revamp how weapons work for bots
         this.difficulty = playerType;
-
-        // TODO: Implement this better, different bots should have different weapons
-        this.weapon = new GunPistolBot(this.stage, this);
+        if (this.difficulty === "HardBot") {
+            this.weapon = new GunRifleBot(this.stage, this);
+        } else {
+            this.weapon = new GunPistolBot(this.stage, this);
+        }
 
         this.previousMoveTime = new Date().getTime(); // used to store when the bot last changed movement direction
     }
@@ -73,34 +90,84 @@ module.exports = class PlayerBot extends Player {
         const humanPlayer = this.stage.getHumanPlayer();
         // console.log(humanPlayer);
 		if (humanPlayer.playerHP > 0) {
-            // Player isn't hidden -- bot will try facing them and shooting them
-            if (!humanPlayer.isHidden) {
-                this.facePlayer(humanPlayer);
-                this.shootPlayer(humanPlayer);
+            let distanceFromPlayer = distanceBetweenTwoPoints(this.position.x, this.position.y, humanPlayer.playerPositionX, humanPlayer.playerPositionY);
 
-                // Move towards the player
-				if (this.position.x - humanPlayer.playerPositionX < 0) { this.dx = 1; }
-				if (this.position.x - humanPlayer.playerPositionX >= 0) { this.dx = -1; }
-				if (this.position.y - humanPlayer.playerPositionY < 0) { this.dy = 1; }
-				if (this.position.y - humanPlayer.playerPositionY >= 0) { this.dy = -1; }
+            // The bot has run out of bullets, it will run from the player if player is close enough
+            if (this.weapon.getRemainingBullets() <= 0) {
+                // If close enough, run directly away from player
+                if (distanceFromPlayer < humanPlayerRadius * 20) {
+                    let xDistance = (this.position.x - humanPlayer.playerPositionX) * 4;
+                    let yDistance = (this.position.y - humanPlayer.playerPositionY) * 4;
+                    if (xDistance < this.movementSpeed && xDistance > 0 - this.movementSpeed) { xDistance = 0; }
+                    if (yDistance < this.movementSpeed && yDistance > 0 - this.movementSpeed) { yDistance = 0; }
+                    if (xDistance > 0) { this.dx = 1; }
+                    if (xDistance < 0) { this.dx = -1; }
+                    if (yDistance > 0) { this.dy = 1; }
+                    if (yDistance < 0) { this.dy = -1; }
+                } 
+                // Move in random directions TODO: consolidate this with random moving method below
+                else if (new Date().getTime() - this.previousMoveTime >= randInt(maxMoveDelay)) {
+                    maxMoveDelay = 50000;
+                    this.faceRandomDirection();
+                    this.dx = this.cursorDirection.x;
+                    this.dy = this.cursorDirection.y;
+                    this.setVelocity();
+                    this.previousMoveTime = new Date().getTime();
+                }
                 this.setVelocity();
+            }
+            // If Player isn't hidden and within range, bot will try facing them and shooting them
+            // If Player is hidden, but bot is still close enough, the bot will "detect" the player and shoot them (eg. when bots wander into bushes)
+            else if ((!humanPlayer.isHidden && distanceFromPlayer < 800) || distanceFromPlayer < humanPlayerRadius * 2) {
+                this.facePlayer(humanPlayer);
+                this.dx = 0;
+                this.dy = 0;
+                
+                // Move towards the player. There is a minimum distance bots will keep from players
+                if (distanceFromPlayer > humanPlayerRadius * 5) {
+                    // Distance between bot and player
+                    let xDistance = this.position.x - humanPlayer.playerPositionX;
+                    let yDistance = this.position.y - humanPlayer.playerPositionY;
+
+                    // Used as "tolerance" to prevent indefinite alternating between positions due to precision
+                    if (xDistance < this.movementSpeed && xDistance > 0 - this.movementSpeed) { xDistance = 0; }
+                    if (yDistance < this.movementSpeed && yDistance > 0 - this.movementSpeed) { yDistance = 0; }
+                    
+                    // Determines direction to move in
+                    if (xDistance < 0) { this.dx = 1; }
+                    if (xDistance > 0) { this.dx = -1; }
+                    if (yDistance < 0) { this.dy = 1; }
+                    if (yDistance > 0) { this.dy = -1; }
+                } 
+
+                this.setVelocity();
+                this.shootPlayer(humanPlayer);
                 maxMoveDelay = 100000;
             } 
             // Player is hidden (in a bush), bot will choose a random direction to move in
             else if (new Date().getTime() - this.previousMoveTime >= randInt(maxMoveDelay)) {
-                maxMoveDelay = 25000;
+                maxMoveDelay = 50000;
                 this.faceRandomDirection();
                 this.dx = this.cursorDirection.x;
                 this.dy = this.cursorDirection.y;
 				this.setVelocity();
 				this.previousMoveTime = new Date().getTime();
-			}
-                
+            }
+                        
             // Check if where we are proposing to move will cause a collision
             let destinationX = this.position.x + this.velocity.x;
             let destinationY = this.position.y + this.velocity.y;
-                
             let crateCollision = CollisionEngine.checkPlayerToCrateCollision(destinationX, destinationY, this.stage.getCrateActors(), this.radius);
+            
+            
+            // Handle collision with human player and other bots
+            // let collidesPlayer = CollisionEngine.checkPlayerToPlayerCollision(destinationX, destinationY, this, this.stage.getPlayerActors(), this.radius);
+            // if (collidesPlayer) {
+            //     console.log("bot collides with player or another bot");
+            //     destinationX = this.position.x - this.velocity.x;
+			// 	   destinationY = this.position.y - this.velocity.y;
+            // }    
+
             // Handle crate collision -- move bot away from colliding side
             if (crateCollision) {                    
                 if (crateCollision.side === "crateTop") {
@@ -114,8 +181,9 @@ module.exports = class PlayerBot extends Player {
                 }
                 this.previousMoveTime = 0;
             }
-            // Check for collision of bot against world map
-            else if (CollisionEngine.checkPlayerToBorderCollision(this.radius, this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.stage.stageWidth, this.stage.stageHeight)) {
+            
+            // Handle collision against world border
+            if (CollisionEngine.checkPlayerToBorderCollision(this.radius, this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.stage.stageWidth, this.stage.stageHeight)) {
                 destinationX = this.position.x + this.velocity.x;
                 destinationY = this.position.y + this.velocity.y;
                 
@@ -135,9 +203,6 @@ module.exports = class PlayerBot extends Player {
                 this.previousMoveTime = 0;
             }
 
-            // Player collision -- currently disabled
-            // let collidesPlayer = CollisionEngine.checkPlayerToPlayerCollision(destinationX, destinationY, playersList[i].getPlayerPosition[i], this.radius);
-            
             // Update the player's location
             this.position.x = destinationX;
             this.position.y = destinationY;
