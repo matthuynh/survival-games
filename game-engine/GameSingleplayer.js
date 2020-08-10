@@ -70,7 +70,7 @@ module.exports = class GameSingleplayer {
 			bulletActors: update.bullets,
 			environmentActors: update.environment,
 			numAlive: update.numAlive,
-			hasEnded: update.hasEnded,
+			hasEnded: update.hasEnded
         });
         
         this.ws.send(updatedState);

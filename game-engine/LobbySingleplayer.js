@@ -12,9 +12,9 @@ module.exports = class LobbySingleplayer extends LobbyBase {
         // Default generation settings for a singleplayer game
         this.generationSettings = {
 			numBushes: 10,
-			numCrates: 5,
+			numCrates: 8,
 			numHPPots: 5,
-			numAmmo: 10,
+			numAmmo: 15,
 			numSpeedBoost: 1,
 			numRDS: 0,
 			numSmallGun: 1,
@@ -49,15 +49,19 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 	
 	// Ends the singleplayer game in this lobby
 	endGame(gameWinner) {
-		console.log("endGame() called!");
+		// We set a timeout to allow the client stage to redraw the GUI (namely to redraw the bots remaining counter)
+		setTimeout( () => {
+			console.log("endGame() called!");
+	
+			// clearInterval(this.singleplayerGameInterval); // clearInterval is a library function
+			this.singleplayerGame = null;
+			this.gameWinner = gameWinner;
+			this.gameInProgress = false;
+			this.gameHasEnded = true;
+	
+			this.reinitializeLobby();
 
-		// clearInterval(this.singleplayerGameInterval); // clearInterval is a library function
-		this.singleplayerGame = null;
-		this.gameWinner = gameWinner;
-		this.gameInProgress = false;
-		this.gameHasEnded = true;
-
-		this.reinitializeLobby();
+		}, 250)
 	}
 	
 	// Player leaves the singleplayer game. This is called from socket-server, and is triggered only when the user clicks on "Leave game" in the game menu
@@ -83,11 +87,19 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 		this.gameInProgress = false;
 		this.singleplayerGame = null;
 		this.gameHasEnded = false;
-        this.gameWinner = null;
+		this.gameWinner = null;
+		
+		// Delete all bot players that were previously added
+		this.deleteAllBots();
 		
 		this.ws.send(updatedState);
 	}
 
+	// A player leaves a lobby. Return true if successful, otherwise false.
+	deleteAllBots() {
+		// Note that the human player is always the first player in the lobbyPlayers array
+		this.lobbyPlayers.splice(1);
+	}
 
 	forceStageTermination() {
 		
@@ -146,10 +158,14 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 			(playerId, playerWon) => {
 				// function "name" is endSingleplayerGame
 				console.log("endSingleplayerGame() in LobbySingleplayer called");
+				console.log("The player won? " + playerWon);
 
 				let gameWinner = this.singleplayerGame.getGameWinner();
-                let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
-				this.lobbyPlayers[index].status = "In Lobby";
+				console.log("The game winner is " + gameWinner);
+				if (playerWon) {
+					let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
+					this.lobbyPlayers[index].status = "In Lobby";
+				}
 				this.endGame(gameWinner);
 			}
 		);
@@ -162,13 +178,6 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 					(this.singleplayerGame && this.singleplayerGame.calculateUpdates());
 					(this.singleplayerGame && this.singleplayerGame.sendPlayerUpdates(this.wss));
 				}
-
-				// Check to see if the game has ended (only 1 player remaining)
-				// TODO: There is probably a better way to trigger endGame() when a player wins.... pass in a callback to MultiplayerGame, like with initializeGame?
-				// let gameWinner = this.singleplayerGame.getGameWinner();
-				// if (gameWinner) {
-				// 	this.endGame(gameWinner);
-				// }
 			}, 20);
 		} catch (e) {
 			console.log(`[WSS WARNING] ${e}`);

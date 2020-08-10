@@ -11,14 +11,17 @@ class Stage {
 		startTime,
 		numAlive,
 		numPlayers,
-		playerID
+		playerID,
+		gameType
 	) {
 		console.log("Instantiating Stage on client side");
 		this.canvas = canvas; // canvas.width and canvas.height correspond to the user's own browser dimensions
 		this.graphicsContext = canvas.getContext("2d");
+		this.gameType = gameType; // either "singleplayer" or "multiplayer"
 
 		this.numPlayers = numPlayers;
 		this.numAlive = numAlive;
+		(this.gameType === "singleplayer" && (this.numBotsAlive = numPlayers - 1)); // used for singleplayer mode
 		this.hasEnded = false; // true if the game has ended on the server side
 		this.isSpectating = false;
 		this.startTime = startTime;
@@ -67,6 +70,7 @@ class Stage {
 		this.bulletActors = bulletActors;
 		this.environmentActors = environmentActors;
 		this.numAlive = numAlive;
+		(this.gameType === "singleplayer" && (this.numBotsAlive = numAlive - 1));
 		this.hasEnded = hasEnded; // TODO: Not using this right now
 
 		// Each client's stage should know which player belongs to that client
@@ -90,6 +94,7 @@ class Stage {
 		}
 
 		if (!playerStillAlive) {
+			(this.gameType === "singleplayer" && (this.numBotsAlive = numAlive));
 			this.isSpectating = true;
 		}
 	}
@@ -204,6 +209,8 @@ class Stage {
 			context.font = "40px verdana";
 			context.fillStyle = "rgba(255,0,0,1)";
 			context.fillText("YOU DIED", this.centerX - 100, this.centerY - 10);
+			context.font = "20px verdana";
+			context.fillText("Press Esc", this.centerX - 100, this.centerY + 10);
 		}
 
 		// Draw the logged in user's username
@@ -213,11 +220,19 @@ class Stage {
 
 		// Draw the number of remaining enemies
 		context.font = "30px impact";
-		context.fillText(
-			`Alive: ${this.numAlive}/${this.numPlayers}`,
-			topLeftX + 10,
-			topLeftY + 35
-		);
+		if (this.gameType === "multiplayer") {
+			context.fillText(
+				`Alive: ${this.numAlive}/${this.numPlayers}`,
+				topLeftX + 10,
+				topLeftY + 35
+			);
+		} else {
+			context.fillText(
+				`Bots Left: ${this.numBotsAlive}/${this.numPlayers - 1}`,
+				topLeftX + 10,
+				topLeftY + 35
+			)
+		}
 
 		// Draw the elapsed time since the game started
 		context.font = "30px impact";

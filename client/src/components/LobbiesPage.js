@@ -198,7 +198,8 @@ class LobbiesPage extends React.Component {
 								serverUpdate.startTime,
 								serverUpdate.numAlive,
 								serverUpdate.numPlayers,
-								this.state.playerId
+								this.state.playerId,
+								this.state.joinedLobbyType
 							);
 	
 							// Start the client model interval (for re-drawing)

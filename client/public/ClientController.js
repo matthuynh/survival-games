@@ -22,8 +22,10 @@ function setupStageModel(
 	startTime,
 	numAlive,
 	numPlayers,
-	playerId
+	playerId,
+	gameType
 ) {
+	console.log("Called setupStageModel()");
 	// Instantiate a new Stage with the canvas element from index.html
 	stage = new Stage(
 		canvas,
@@ -36,7 +38,8 @@ function setupStageModel(
 		startTime,
 		numAlive,
 		numPlayers,
-		playerId
+		playerId,
+		gameType
 	);
 	console.log("Instantiated a new Stage on client side");
 }

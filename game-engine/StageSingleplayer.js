@@ -7,6 +7,8 @@ module.exports = class StageSingleplayer extends StageBase {
 	constructor(gameId, players, numPlayers, endSingleplayerGame, generationSettings) {
 		super(gameId, players, numPlayers, generationSettings);
 		this.endSingleplayerGame = endSingleplayerGame;
+		this.calledEndSingleplayerGame = false; // eh.. we need this because of the timeout I set in LobbySingleplayer#endGame... the step() for loop would repeatedly call endSingleplayerGame during this timeout period
+		this.humanPlayerAlive = true;
 	}
 
 	// Keeps the human player's canvas width and canvas height for bots to make appropriate calculations
@@ -25,10 +27,12 @@ module.exports = class StageSingleplayer extends StageBase {
 
 	// Return JSON representation of the human player in this game
 	getHumanPlayer() {
-		const humanPlayerIndex = 0;
-		let humanPlayer = this.getPlayerWithIndex(humanPlayerIndex);
-		if (humanPlayer) {
-			return humanPlayer.getJSONRepresentation();
+		if (this.humanPlayerAlive) {
+			const humanPlayerIndex = 0;
+			let humanPlayer = this.getPlayerWithIndex(humanPlayerIndex);
+			if (humanPlayer) {
+				return humanPlayer.getJSONRepresentation();
+			}
 		}
 		return null;
 	}
@@ -56,25 +60,34 @@ module.exports = class StageSingleplayer extends StageBase {
 			this.environmentActors[i].step();
 		}
 
-		// Check if any player actors died
-		for (let i = 0; i < this.playerActors.length; i++) {
-			// TODO: Implement this a bit better
-			// TODO: Replace setPlayerStatus with endSingleplayerGame when the human has won or lost
-            // Dead players get removed from the player actors list
-			if (this.playerActors[i].isDead()) {
-				// this.setPlayerStatus(this.playerActors[i].getPlayerID(), "Spectating");
-				this.removeActor(this.playerActors[i]);
-                // this.numAlive -= 1;
-            }
-            
-			// Game ends (only one person is left)
-			// NOTE: Set this value to be 0 for single player mode, and 1 for multiplayer mode. Setting the incorrect value will BUG OUT THE GAME!! (specifically the intervals in socket-server.js)
-            if (this.numAlive <= 1) {
-                this.gameHasEnded = true;
-                
-				let playerId = this.playerActors[0].getPlayerID();
-				this.endSingleplayerGame(playerId, true);
-            }
+		if (!this.calledEndSingleplayerGame) {
+			// Check if any player actors died
+			for (let i = 0; i < this.playerActors.length; i++) {
+				// Dead players get removed from the player actors list
+				if (this.playerActors[i].isDead()) {
+					// If the human player died, end the game
+					if (this.playerActors[i].playerType === "Human") {
+						this.gameHasEnded = true;
+						this.winningPID = -1; // indicates the bots have won
+						this.removeActor(this.playerActors[i]);
+						this.numAlive -= 1;
+						this.humanPlayerAlive = false;
+						this.endSingleplayerGame(-1, false);
+						this.calledEndSingleplayerGame = true;
+					} else {
+						this.removeActor(this.playerActors[i]);
+						this.numAlive -= 1;
+					}
+				}
+				
+				// Game ends (only one person is left)
+				if (this.numAlive <= 1) {
+					this.gameHasEnded = true;
+					this.winningPID = this.playerActors[0].getPlayerID();
+					this.endSingleplayerGame(this.winningPID, this.winningPID);
+					this.calledEndSingleplayerGame = true;
+				}
+			}
 		}
 
 		// Update elapsed time (in seconds)

@@ -80,7 +80,7 @@ module.exports = class GameMultiplayer {
 			bulletActors: update.bullets,
 			environmentActors: update.environment,
 			numAlive: update.numAlive,
-			hasEnded: update.hasEnded,
+			hasEnded: update.hasEnded
 		});
 		this.wss.broadcastToLobby(updatedState, this.gameId);
 	}

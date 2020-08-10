@@ -20,7 +20,10 @@ module.exports = class Player extends Circle {
 		this.cursorX = 0;
 		this.cursorY = 0;
 
+		this.movementSpeed = movementSpeed;
 		this.velocity = new Pair(0, 0);
+		this.velocity.x = 0;
+		this.velocity.y = 0;
 		this.cursorDirection = new Pair(0, 1); // represents the cursor direction, aka. where the player is facing
 
 		// Design: weapons array is used to refer to all potential weapons the user can have
@@ -29,7 +32,6 @@ module.exports = class Player extends Circle {
 		this.currentWeapon = 0; // index of the weapon is currently equipped with
 		this.hidden = false; // set to true when the player is under a bush
 		
-		this.movementSpeed = movementSpeed;
 		this.HP = hp;
 		this.maxHP = hp;
     }

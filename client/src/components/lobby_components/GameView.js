@@ -88,11 +88,13 @@ class GameView extends React.Component {
 	closeMenuScreen() {
 		this.setState({ showMenuScreen: false });
 		// console.log("Modal closing");
-		// Re-anble user game UI controls
-		document.addEventListener("keydown", this.props.handleGameKeyPress);
-		document.addEventListener("keyup", this.props.handleGameKeyRelease);
-		document.addEventListener("mousemove", this.props.handleGameMouseMove);
-		document.addEventListener("mousedown", this.props.handleGameMouseDown);
+		// Re-anble user game UI controls, but ONLY if the game is still ongoing
+		if (!this.state.userWon && !this.state.userLost) {
+			document.addEventListener("keydown", this.props.handleGameKeyPress);
+			document.addEventListener("keyup", this.props.handleGameKeyRelease);
+			document.addEventListener("mousemove", this.props.handleGameMouseMove);
+			document.addEventListener("mousedown", this.props.handleGameMouseDown);
+		}
 	}
 
 	handleKeyPress(e) {

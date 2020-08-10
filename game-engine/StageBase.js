@@ -232,7 +232,7 @@ module.exports = class StageBase {
 				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this bush would collide any other actors
-				let collides = this.checkForGenerationCollisions(startingX, startingY, radius * 2);
+				let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
 				if (!collides) {
 					let bush = new BushEnv(new Pair(startingX, startingY), colour, radius)
 					this.addActor(bush);
@@ -251,7 +251,7 @@ module.exports = class StageBase {
 			let validGeneration = false;
 			let attemptsToMake = 5; // after n attempts, stops trying to generate this crate
 			const colour = "rgb(128,128,128,1)";
-			let width = 220, height = 220;
+			let width = 200, height = 200;
 			const playerRadius = 30; // used so that crates don't spawn with small gaps that players can't access
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - width);
@@ -259,7 +259,7 @@ module.exports = class StageBase {
 				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, width + playerRadius, this.stageWidth, this.stageHeight)) { continue; }
 
 				// Check if this crate would collide any other actors
-				let collides = this.checkForGenerationCollisions(startingX, startingY, width * 2);
+				let collides = this.checkForGenerationCollisions(startingX, startingY, width);
 				if (!collides) {
 					let crate = new Crate(startingX, startingY, colour, width, height)
 					this.addActor(crate);
