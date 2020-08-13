@@ -115,9 +115,9 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 
 
 		// TODO: Get these from front-end instead
-		this.generationSettings.numberEasyBots = 1;
+		this.generationSettings.numberEasyBots = 0;
 		this.generationSettings.numberMediumBots = 1;
-		this.generationSettings.numberHardBots = 1;
+		this.generationSettings.numberHardBots = 0;
 
 		// Initialize bot players here
 		if (this.generationSettings && this.generationSettings.numberEasyBots) {
@@ -161,7 +161,7 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 				console.log("The player won? " + playerWon);
 
 				let gameWinner = this.singleplayerGame.getGameWinner();
-				console.log("The game winner is " + gameWinner);
+				console.log("The game winner is " + gameWinner); // "-1 means bots won"
 				if (playerWon) {
 					let index = this.lobbyPlayers.findIndex(player => player.pid == playerId);
 					this.lobbyPlayers[index].status = "In Lobby";

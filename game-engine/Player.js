@@ -24,6 +24,7 @@ module.exports = class Player extends Circle {
 		this.velocity = new Pair(0, 0);
 		this.velocity.x = 0;
 		this.velocity.y = 0;
+		this.setVelocity(); 
 		this.cursorDirection = new Pair(0, 1); // represents the cursor direction, aka. where the player is facing
 
 		// Design: weapons array is used to refer to all potential weapons the user can have

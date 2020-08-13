@@ -92,6 +92,7 @@ class LobbiesPage extends React.Component {
 		this.handleKeyRelease = this.handleKeyRelease.bind(this);
 		this.handleMouseMove = this.handleMouseMove.bind(this);
 		this.handleMouseDown = this.handleMouseDown.bind(this);
+		this.resetMovementInput = this.resetMovementInput.bind(this);
 
 		this.updateDimensions = this.updateDimensions.bind(this);
 	}
@@ -104,7 +105,7 @@ class LobbiesPage extends React.Component {
 	// Return to lobby view after lobby owner closed lobby
 	handleCloseLobbyDialog() {
 		this.setState({
-			lobbyClosed: false
+			lobbyClosed: false,
 		})
 	}
 
@@ -183,7 +184,9 @@ class LobbiesPage extends React.Component {
 	
 						// Initialize client game model state by receiving initial model state from server
 						case "stage-initialization":
-							this.setState({ showGameView: true });
+							this.setState({ 
+								showGameView: true,
+							});
 							console.log("Starting client stage model");
 	
 							// Initialize state of the client model
@@ -208,6 +211,7 @@ class LobbiesPage extends React.Component {
 							document.addEventListener("keyup", this.handleKeyRelease);
 							document.addEventListener("mousemove", this.handleMouseMove);
 							document.addEventListener("mousedown", this.handleMouseDown);
+							document.addEventListener("visibilitychange", this.resetMovementInput);
 							break;
 	
 						// Receive list of updated lobbies state from socket server
@@ -225,7 +229,13 @@ class LobbiesPage extends React.Component {
 							this.setState({
 								lobbies: serverUpdate.lobbies,
 								joinedLobbyId: serverUpdate.newLobbyId,
-								joinedLobbyType: "multiplayer"
+								joinedLobbyType: "multiplayer",
+								movingUp: false,
+								movingLeft: false,
+								movingDown: false,
+								movingRight: false,
+								horizontalDirection: 0,
+								verticalDirection: 0,
 							});
 							break;
 	
@@ -234,7 +244,7 @@ class LobbiesPage extends React.Component {
 							this.setState({
 								lobbies: serverUpdate.lobbies,
 								joinedLobbyId: serverUpdate.newLobbyId,
-								joinedLobbyType: "singleplayer"
+								joinedLobbyType: "singleplayer",
 							});
 							break;
 							
@@ -246,7 +256,7 @@ class LobbiesPage extends React.Component {
 							this.setState({
 								lobbies: serverUpdate.lobbies,
 								joinedLobbyId: serverUpdate.lobbyId,
-								joinedLobbyType: "multiplayer"
+								joinedLobbyType: "multiplayer",
 							});
 							// console.log(serverUpdate.lobbies);
 							break;
@@ -256,7 +266,7 @@ class LobbiesPage extends React.Component {
 							if (serverUpdate.status === "success") {
 								this.setState({
 									joinedLobbyId: null,
-									joinedLobbyType: ""
+									joinedLobbyType: "",
 								});
 							}
 							break;
@@ -278,6 +288,7 @@ class LobbiesPage extends React.Component {
 							document.removeEventListener("keyup", this.handleKeyRelease);
 							document.removeEventListener("mousemove", this.handleMouseMove);
 							document.removeEventListener("mousedown", this.handleMouseDown);
+							document.removeEventListener("visibilitychange", this.resetMovementInput);
 							window.stopStageGame();
 	
 							// Forceful stage termination during a multiplayer game by lobby owner disconnected
@@ -291,26 +302,20 @@ class LobbiesPage extends React.Component {
 									joinedLobbyId: null,
 									joinedLobbyType: "",
 									lobbyClosed: true,
-									movingUp: false,
-									movingLeft: false,
-									movingDown: false,
-									movingRight: false,
-									horizontalDirection: 0,
-									verticalDirection: 0
 								});
 							} 
 							// Stage terminated because user won game
 							else if (serverUpdate.winningPID === this.state.playerId) {
 								console.log("[WSS INO] User won");
 								this.setState({
-									userWon: true
+									userWon: true,
 								});
 							} 
 							// Stage terminated because user lost game by quitting the game
 							else {
 								console.log("[WSS INO] User lost");
 								this.setState({
-									userLost: true
+									userLost: true,
 								});
 							}
 	
@@ -614,6 +619,22 @@ class LobbiesPage extends React.Component {
 		}
 	}
 
+	// When user is pressing down on a movement key (eg. asdf) and then unfocuses (eg. clicks on different application or presses Esc), reset movement
+	resetMovementInput() {
+		this.setState({ 
+			movingUp: false,
+			movingLeft: false,
+			movingDown: false,
+			movingRight: false,
+			horizontalDirection: 0,
+			verticalDirection: 0, 
+		});
+		this.sendMovement(
+			this.state.horizontalDirection,
+			this.state.verticalDirection
+		);
+	}
+
 	// Handle when the mouses buttons are pressed
 	handleMouseDown(event) {
 		let canvas = this.canvasRef.current.getBoundingClientRect();
@@ -697,6 +718,7 @@ class LobbiesPage extends React.Component {
 					handleGameKeyRelease={this.handleKeyRelease}
 					handleGameMouseMove={this.handleMouseMove}
 					handleGameMouseDown={this.handleMouseDown}
+					resetMovementInput={this.resetMovementInput}
 				/>
 			)
 		}

@@ -24,16 +24,16 @@ let maxMoveDelay = 25000;
 const humanPlayerRadius = 30;
 
 // TODO: Define properties and abilities for each type of bot
-// detectionDistance is how close a bot would have to be to a player before the bot starts following the player
+// detectionRange is how close a bot would have to be to a player before the bot starts following the player
 let botAbilities = {};
 botAbilities["EasyBot"] = {
-	detectionDistance: humanPlayerRadius * 2,
+	detectionRange: 600,
 };
 botAbilities["MediumBot"] = {
-	detectionDistance: humanPlayerRadius * 3,
+	detectionRange: 700,
 };
 botAbilities["HardBot"] = {
-	detectionDistance: humanPlayerRadius * 4,
+	detectionRange: 800,
 };
 
 // A Player class that represents human players
@@ -117,9 +117,9 @@ module.exports = class PlayerBot extends Player {
                     }
                     this.setVelocity();
                 }
-                // If Player isn't hidden and within range, bot will try facing them and shooting them
-                // If Player is hidden, but bot is still close enough, the bot will "detect" the player and shoot them (eg. when bots wander into bushes)
-                else if ((!humanPlayer.isHidden && distanceFromPlayer < 600) || distanceFromPlayer < humanPlayerRadius * 2) {
+                // If Player isn't hidden and within detection range, bot will try facing them and chasing after them while shooting them
+                // If Player is hidden, but bot is still close enough, the bot will "see" the player and shoot them (eg. when bots wander into bushes)
+                else if ((!humanPlayer.isHidden && distanceFromPlayer < botAbilities[this.difficulty].detectionRange) || distanceFromPlayer < humanPlayerRadius * 3) {
                     this.facePlayer(humanPlayer);
                     this.dx = 0;
                     this.dy = 0;
