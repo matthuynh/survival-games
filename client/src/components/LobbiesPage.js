@@ -438,14 +438,21 @@ class LobbiesPage extends React.Component {
 		this.clientSocket.send(clientUpdate);
 	}
 
-	handleStartGameSingleplayer(ownerId, lobbyId) {
+	handleStartGameSingleplayer(ownerId, lobbyId, stageSize, numEasyBots, numMedBots, numHardBots) {
 		console.log("Inside handleStartGameSingleplayer()");
+		const stageGenerationSettings = {
+			stageSize,
+			numEasyBots,
+			numMedBots,
+			numHardBots
+		}
 
 		// Only the owner of a valid singleplayer lobby may start a game
 		let clientUpdate = JSON.stringify({
 			pid: ownerId,
 			type: "start-game-singleplayer",
-			lobbyId: lobbyId
+			lobbyId: lobbyId,
+			stageGenerationSettings
 		});
 		console.log(clientUpdate);
 		this.clientSocket.send(clientUpdate);

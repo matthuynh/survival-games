@@ -106,18 +106,32 @@ module.exports = class LobbySingleplayer extends LobbyBase {
     }
 
 	// Initialize a new singleplayer game. The game will run on an interval until the game finishes (user wins/loses or quits)
-	initializeGame() {
+	// Takes in user-configured stage generation settings from the front-end
+	initializeGame(stageGenerationSettings) {
+		console.log(stageGenerationSettings);
         this.gameInProgress = true;
 		this.lobbyPlayers.forEach((player) => {
 			player.status = "In Game";
 			player.type = "Human";
 		})
 
+		// Determine stage size
+		if (stageGenerationSettings.stageSize === "Small") {
+			this.generationSettings.stageWidth = 1250;
+			this.generationSettings.stageHeight = 1250;
+		}
+		else if (stageGenerationSettings.stageSize === "Normal") {
+			this.generationSettings.stageWidth = 2000;
+			this.generationSettings.stageHeight = 2000;
+		}
+		else if (stageGenerationSettings.stageSize === "Large") {
+			this.generationSettings.stageWidth = 3000;
+			this.generationSettings.stageHeight = 3000;
+		}
 
-		// TODO: Get these from front-end instead
-		this.generationSettings.numberEasyBots = 0;
-		this.generationSettings.numberMediumBots = 1;
-		this.generationSettings.numberHardBots = 0;
+		this.generationSettings.numberEasyBots = stageGenerationSettings.numEasyBots;
+		this.generationSettings.numberMediumBots = stageGenerationSettings.numMedBots;
+		this.generationSettings.numberHardBots = stageGenerationSettings.numHardBots;
 
 		// Initialize bot players here
 		if (this.generationSettings && this.generationSettings.numberEasyBots) {

@@ -345,7 +345,7 @@ wss.on("connection", function connection(ws, req) {
 				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
 				if (lobby) {
 					if (lobby.getLobbyOwnerId() == clientUpdate.pid) {
-						let initialGameStatus = lobby.initializeGame();
+						let initialGameStatus = lobby.initializeGame(clientUpdate.stageGenerationSettings);
 
 						// Successfully initialized game
 						if (initialGameStatus) {
@@ -358,7 +358,7 @@ wss.on("connection", function connection(ws, req) {
 								bulletActors: initialGameStatus.bullets,
 								crateActors: initialGameStatus.crates,
 								environmentActors:
-									initialGameStatus.environment,
+								initialGameStatus.environment,
 								startTime: initialGameStatus.gameStartTime,
 								numAlive: initialGameStatus.numAlive,
 								numPlayers: initialGameStatus.numPlayers,

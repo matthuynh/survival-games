@@ -119,7 +119,7 @@ module.exports = class PlayerBot extends Player {
                 }
                 // If Player isn't hidden and within detection range, bot will try facing them and chasing after them while shooting them
                 // If Player is hidden, but bot is still close enough, the bot will "see" the player and shoot them (eg. when bots wander into bushes)
-                else if ((!humanPlayer.isHidden && distanceFromPlayer < botAbilities[this.difficulty].detectionRange) || distanceFromPlayer < humanPlayerRadius * 3) {
+                else if ((!humanPlayer.isHidden && distanceFromPlayer < botAbilities[this.difficulty].detectionRange) || distanceFromPlayer < humanPlayerRadius * 2) {
                     this.facePlayer(humanPlayer);
                     this.dx = 0;
                     this.dy = 0;

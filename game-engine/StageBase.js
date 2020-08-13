@@ -44,7 +44,7 @@ function getRandomColor() {
 let playerGenerationTemplate = {};
 playerGenerationTemplate["Human"] = {
 	movementSpeed: 7,
-	healthPoints: 100,
+	healthPoints: 10000,
 	radius: 30
 };
 playerGenerationTemplate["EasyBot"] = {
