@@ -424,6 +424,7 @@ class LobbiesPage extends React.Component {
 
 	// A lobby owner attempts to starts a game on a lobby on the server
 	handleStartGameMultiplayer(ownerId, lobbyId) {
+		this.resetMovementInput();
 		console.log("Inside handleStartGameMultiplayer()");
 		// console.log(ownerId);
 		// console.log(lobbyId);
@@ -440,6 +441,7 @@ class LobbiesPage extends React.Component {
 
 	handleStartGameSingleplayer(ownerId, lobbyId, stageSize, numEasyBots, numMedBots, numHardBots) {
 		console.log("Inside handleStartGameSingleplayer()");
+		this.resetMovementInput();
 		const stageGenerationSettings = {
 			stageSize,
 			numEasyBots,
@@ -686,6 +688,7 @@ class LobbiesPage extends React.Component {
 	}
 
 	render() {
+		// TODO: Refactor logic for determining view (put it into a function)
 		// console.log("State of joined lobby id is " + this.state.joinedLobbyId);
 		// "Lobby closed" screen
 		if (this.state.lobbyClosed) {

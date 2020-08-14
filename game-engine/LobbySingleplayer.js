@@ -115,16 +115,29 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 			player.type = "Human";
 		})
 
-		// Determine stage size
+		// TODO: Refactor/change logic here
+		// Change generation settings according to stage size
 		if (stageGenerationSettings.stageSize === "Small") {
+			this.generationSettings.numBushes = 5;
+			this.generationSettings.numCrates = 4;
+			this.generationSettings.numHPPots = 5;
+			this.generationSettings.numAmmo = 15;
 			this.generationSettings.stageWidth = 1250;
 			this.generationSettings.stageHeight = 1250;
 		}
 		else if (stageGenerationSettings.stageSize === "Normal") {
+			this.generationSettings.numBushes = 10;
+			this.generationSettings.numCrates = 8;
+			this.generationSettings.numHPPots = 10;
+			this.generationSettings.numAmmo = 20;
 			this.generationSettings.stageWidth = 2000;
 			this.generationSettings.stageHeight = 2000;
 		}
 		else if (stageGenerationSettings.stageSize === "Large") {
+			this.generationSettings.numBushes = 14;
+			this.generationSettings.numCrates = 10;
+			this.generationSettings.numHPPots = 20;
+			this.generationSettings.numAmmo = 30;
 			this.generationSettings.stageWidth = 3000;
 			this.generationSettings.stageHeight = 3000;
 		}

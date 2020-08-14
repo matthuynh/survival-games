@@ -20,9 +20,38 @@ import "../../css/Lobby.css";
 // Mappings for map sizes for radio buttons
 const stageSizes = [
     { size: "Small" },
-    { size: "Normal" },
+    { size: "Medium" },
     { size: "Large" },
 ];
+
+// World generation preset settings
+const stageSettings = {
+	Small: {
+		name : "Small",
+		numEasyBots: 3,
+		numMedBots: 2,
+		numHardBots: 1,
+		totalBots: 6,
+		maxBots: 20
+	},
+	Medium: {
+		name : "Medium",
+		numEasyBots: 5,
+		numMedBots: 3,
+		numHardBots: 2,
+		totalBots: 10,
+		maxBots: 40
+	},
+	Large: {
+		name : "Large",
+		numEasyBots: 10,
+		numMedBots: 4,
+		numHardBots: 4,
+		totalBots: 18,
+		maxBots: 60
+	}
+}
+
 
 // Display a detailed view about a specific lobby on the server
 class SingleplayerLobby extends React.Component {
@@ -38,16 +67,12 @@ class SingleplayerLobby extends React.Component {
 			maxLobbySize: null,
 
 			showMenuScreen: false,
-			stageSize: "Normal",
-			numEasyBots: 4,
-			numMedBots: 1,
-			numHardBots: 1,
-			maxEasyBots: 10,
-			maxMedBots: 10,
-			maxHardBots: 10,
-
-			// TODO: Implement this version of max bots (a pooled number of max bots)
-			maxBots: 20,
+			stageSize: stageSettings.Medium.name,
+			numEasyBots: stageSettings.Medium.numEasyBots,
+			numMedBots: stageSettings.Medium.numMedBots,
+			numHardBots: stageSettings.Medium.numHardBots,
+			totalBots: stageSettings.Medium.numEasyBots + stageSettings.Medium.numMedBots + stageSettings.Medium.numHardBots,
+			maxBots: stageSettings.Medium.maxBots,
 		};
 
 		this.determineLobbyInfo = this.determineLobbyInfo.bind(this);
@@ -161,102 +186,129 @@ class SingleplayerLobby extends React.Component {
 
 	// Set generation settings for the given stage size
 	setStageSize(size) {
-		console.log("Setting stage size to " + size);
-		if (size === "Small") {
-			this.setState({
-				numEasyBots: 3,
-				numMedBots: 2,
-				numHardBots: 1,
-				maxEasyBots: 5,
-				maxMedBots: 5,
-				maxHardBots: 5
-			})
-		} else if (size === "Normal") {
-			this.setState({
-				numEasyBots: 5,
-				numMedBots: 3,
-				numHardBots: 2,
-				maxEasyBots: 10,
-				maxMedBots: 10,
-				maxHardBots: 10
-			})
-		} else {
-			this.setState({
-				numEasyBots: 10,
-				numMedBots: 4,
-				numHardBots: 4,
-				maxEasyBots: 20,
-				maxMedBots: 20,
-				maxHardBots: 20
-			})
-		}
-		this.setState({ stageSize: size });
+		// console.log(`Total Bots: ${this.state.totalBots}, Max Bots: ${this.state.maxBots}, Easy Bots: ${this.state.numEasyBots}, Med Bots: ${this.state.numMedBots}, Hard Bots: ${this.state.numHardBots}`);		
+		this.setState({
+			stageSize: size,
+			numEasyBots: stageSettings[size].numEasyBots,
+			numMedBots: stageSettings[size].numMedBots,
+			numHardBots: stageSettings[size].numHardBots,
+			totalBots: stageSettings[size].totalBots,
+			maxBots: stageSettings[size].maxBots,
+		});
 	}
 
 
 	setNumEasyBots(event) {
-		let scrubbedValue = event.target.value >= 0 && event.target.value <= this.state.maxEasyBots ? event.target.value : this.state.numEasyBots;
-		this.setState({ numEasyBots: Number(scrubbedValue) });
+		let scrubbedValue = (event.target.value >= 0 && Number(event.target.value) + this.state.totalBots - this.state.numEasyBots <= this.state.maxBots) ? 
+		event.target.value : this.state.maxBots - this.state.totalBots + this.state.numEasyBots;
+		this.setState((prevState, props) => ({ 
+			numEasyBots: Number(scrubbedValue), 
+			totalBots: Number(scrubbedValue) + prevState.numMedBots + prevState.numHardBots 
+		}));
 	}
 
 	decreaseNumEasyBots() {
-		this.setState({ numEasyBots: (this.state.numEasyBots - 1) < 0 ? 0 : (this.state.numEasyBots - 1) });
+		this.setState((prevState, props) => ({ 
+			numEasyBots: (prevState.numEasyBots - 1) < 0 ? 0 : (prevState.numEasyBots - 1),
+			totalBots: prevState.totalBots - 1
+		}));
 	}
 
 	increaseNumEasyBots() {
-		this.setState({ numEasyBots: (this.state.numEasyBots + 1) > this.state.maxEasyBots ? this.state.maxEasyBots : (this.state.numEasyBots + 1) });
+		this.setState((prevState, props) => ({ 
+			numEasyBots: (prevState.numEasyBots + 1) > prevState.maxBots ? prevState.numEasyBots : (prevState.numEasyBots + 1),
+			totalBots: prevState.totalBots + 1
+		}));
 	}
 
 	setMinEasyBots() {
-		this.setState({ numEasyBots: 0 });
+		this.setState((prevState, props) => ({ 
+			numEasyBots: 0,
+			totalBots: prevState.totalBots - prevState.numEasyBots
+		}));
 	}
 
 	setMaxEasyBots() {
-		this.setState({ numEasyBots: this.state.maxEasyBots });
+		this.setState((prevState, props) => ({ 
+			numEasyBots: prevState.numEasyBots + (prevState.maxBots - prevState.totalBots),
+			totalBots: prevState.maxBots
+		}));
 	}
 
 
 	setNumMedBots(event) {
-		let scrubbedValue = event.target.value >= 0 && event.target.value <= this.state.maxMedBots ? event.target.value : this.state.numMedBots;
-		this.setState({ numMedBots: Number(scrubbedValue) });
+		let scrubbedValue = (event.target.value >= 0 && Number(event.target.value) + this.state.totalBots - this.state.numMedBots <= this.state.maxBots) ? 
+		event.target.value : this.state.maxBots - this.state.totalBots + this.state.numMedBots;
+		this.setState((prevState, props) => ({ 
+			numMedBots: Number(scrubbedValue), 
+			totalBots: Number(scrubbedValue) + prevState.numEasyBots + prevState.numHardBots 
+		}));
 	}
 
 	decreaseNumMedBots() {
-		this.setState({ numMedBots: (this.state.numMedBots - 1) < 0 ? 0 : (this.state.numMedBots - 1) });
+		this.setState((prevState, props) => ({ 
+			numMedBots: (prevState.numMedBots - 1) < 0 ? 0 : (prevState.numMedBots - 1),
+			totalBots: prevState.totalBots - 1
+		}));
 	}
 
 	increaseNumMedBots() {
-		this.setState({ numMedBots: (this.state.numMedBots + 1) > this.state.maxMedBots ? this.state.maxMedBots : (this.state.numMedBots + 1) });
+		this.setState((prevState, props) => ({ 
+			numMedBots: (prevState.numMedBots + 1) > prevState.maxBots ? prevState.numMedBots : (prevState.numMedBots + 1),
+			totalBots: prevState.totalBots + 1
+		}));
 	}
 
 	setMinMedBots() {
-		this.setState({ numMedBots: 0 });
+		this.setState((prevState, props) => ({ 
+			numMedBots: 0,
+			totalBots: prevState.totalBots - prevState.numMedBots
+		}));
 	}
 
 	setMaxMedBots() {
-		this.setState({ numMedBots: this.state.maxMedBots });
+		this.setState((prevState, props) => ({ 
+			numMedBots: prevState.numMedBots + (prevState.maxBots - prevState.totalBots),
+			totalBots: prevState.maxBots
+		}));
 	}
 
 
 	setNumHardBots(event) {
-		let scrubbedValue = event.target.value >= 0 && event.target.value <= this.state.maxHardBots ? event.target.value : this.state.numHardBots;
-		this.setState({ numHardBots: Number(scrubbedValue) });
+		let scrubbedValue = (event.target.value >= 0 && Number(event.target.value) + this.state.totalBots - this.state.numHardBots <= this.state.maxBots) ? 
+		event.target.value : this.state.maxBots - this.state.totalBots + this.state.numHardBots;
+		this.setState((prevState, props) => ({ 
+			numHardBots: Number(scrubbedValue), 
+			totalBots: Number(scrubbedValue) + prevState.numEasyBots + prevState.numMedBots 
+		}));
 	}
 
 	decreaseNumHardBots() {
-		this.setState({ numHardBots: (this.state.numHardBots - 1) < 0 ? 0 : (this.state.numHardBots - 1) });
+		this.setState((prevState, props) => ({ 
+			numHardBots: (prevState.numHardBots - 1) < 0 ? 0 : (prevState.numHardBots - 1),
+			totalBots: prevState.totalBots - 1
+		}));
 	}
 
 	increaseNumHardBots() {
-		this.setState({ numHardBots: (this.state.numHardBots + 1) > this.state.maxHardBots ? this.state.maxHardBots : (this.state.numHardBots + 1) });
+		this.setState((prevState, props) => ({ 
+			numHardBots: (prevState.numHardBots + 1) > prevState.maxBots ? prevState.numHardBots : (prevState.numHardBots + 1),
+			totalBots: prevState.totalBots + 1
+		}));
 	}
 
 	setMinHardBots() {
-		this.setState({ numHardBots: 0 });
+		this.setState((prevState, props) => ({ 
+			numHardBots: 0,
+			totalBots: prevState.totalBots - prevState.numHardBots
+		}));
 	}
 
 	setMaxHardBots() {
-		this.setState({ numHardBots: this.state.maxHardBots });
+		this.setState((prevState, props) => ({ 
+			numHardBots: prevState.numHardBots + (prevState.maxBots - prevState.totalBots),
+			totalBots: prevState.maxBots
+		}));
 	}
 
 
@@ -426,6 +478,11 @@ class SingleplayerLobby extends React.Component {
 													</ButtonGroup>
 												</Col>
 											</Row>
+											<Row>
+												<Col>
+													{<span>Max Bots: {this.state.maxBots}</span>}
+												</Col>
+											</Row>
 										</ListGroup.Item>
 
 										<ListGroup.Item>
@@ -468,7 +525,7 @@ class SingleplayerLobby extends React.Component {
 													<Button
 														variant="dark"
 														className="bots-button"
-														disabled={this.state.numEasyBots === this.state.maxEasyBots}
+														disabled={this.state.totalBots === this.state.maxBots}
 														onClick={() => {
 															this.increaseNumEasyBots();
 														}}
@@ -480,7 +537,7 @@ class SingleplayerLobby extends React.Component {
 													<Button
 														variant="dark"
 														className="bots-button"
-														disabled={this.state.numEasyBots === this.state.maxEasyBots}
+														disabled={this.state.totalBots === this.state.maxBots}
 														onClick={() => {
 															this.setMaxEasyBots();
 														}}
@@ -531,7 +588,7 @@ class SingleplayerLobby extends React.Component {
 													<Button
 														variant="dark"
 														className="bots-button"
-														disabled={this.state.numMedBots === this.state.maxMedBots}
+														disabled={this.state.totalBots === this.state.maxBots}
 														onClick={() => {
 															this.increaseNumMedBots();
 														}}
@@ -543,7 +600,7 @@ class SingleplayerLobby extends React.Component {
 													<Button
 														variant="dark"
 														className="bots-button"
-														disabled={this.state.numMedBots === this.state.maxMedBots}
+														disabled={this.state.totalBots === this.state.maxBots}
 														onClick={() => {
 															this.setMaxMedBots();
 														}}
@@ -594,7 +651,7 @@ class SingleplayerLobby extends React.Component {
 													<Button
 														variant="dark"
 														className="bots-button"
-														disabled={this.state.numHardBots === this.state.maxHardBots}
+														disabled={this.state.totalBots === this.state.maxBots}
 														onClick={() => {
 															this.increaseNumHardBots();
 														}}
@@ -606,7 +663,7 @@ class SingleplayerLobby extends React.Component {
 													<Button
 														variant="dark"
 														className="bots-button"
-														disabled={this.state.numHardBots === this.state.maxHardBots}
+														disabled={this.state.totalBots === this.state.maxBots}
 														onClick={() => {
 															this.setMaxHardBots();
 														}}
