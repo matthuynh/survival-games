@@ -4,6 +4,8 @@ const Pair = require("./environment/Pair.js");
 const GunPistolBot = require("./environment/GunPistolBot.js");
 const GunRifleBot = require("./environment/GunRifleBot.js");
 
+const EngineProperties = require("./EngineProperties.js");
+
 // Return a random integer between 0 and n, inclusive
 function randInt(n) { return Math.round(Math.random() * n); }
 
@@ -22,19 +24,6 @@ function distanceBetweenTwoPairs(startingPair, endingPair) {
 
 let maxMoveDelay = 25000;
 const humanPlayerRadius = 30;
-
-// TODO: Define properties and abilities for each type of bot
-// detectionRange is how close a bot would have to be to a player before the bot starts following the player
-let botAbilities = {};
-botAbilities["EasyBot"] = {
-	detectionRange: 600,
-};
-botAbilities["MediumBot"] = {
-	detectionRange: 700,
-};
-botAbilities["HardBot"] = {
-	detectionRange: 800,
-};
 
 // A Player class that represents human players
 module.exports = class PlayerBot extends Player {
@@ -119,7 +108,7 @@ module.exports = class PlayerBot extends Player {
                 }
                 // If Player isn't hidden and within detection range, bot will try facing them and chasing after them while shooting them
                 // If Player is hidden, but bot is still close enough, the bot will "see" the player and shoot them (eg. when bots wander into bushes)
-                else if ((!humanPlayer.isHidden && distanceFromPlayer < botAbilities[this.difficulty].detectionRange) || distanceFromPlayer < humanPlayerRadius * 2) {
+                else if ((!humanPlayer.isHidden && distanceFromPlayer < EngineProperties.BotAbilities[this.difficulty].detectionRange) || distanceFromPlayer < humanPlayerRadius * 2) {
                     this.facePlayer(humanPlayer);
                     this.dx = 0;
                     this.dy = 0;

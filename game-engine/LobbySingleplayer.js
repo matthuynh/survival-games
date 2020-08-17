@@ -1,6 +1,7 @@
 // Import the SingleplayerGame (this allows the server access to the game)
 const SingleplayerGame = require("./GameSingleplayer.js");
 const LobbyBase = require("./LobbyBase.js");
+const EngineProperties = require("./EngineProperties.js");
 
 // A singleplayer lobby contains a single human player and can intiialize a singleplayer game
 module.exports = class LobbySingleplayer extends LobbyBase {
@@ -10,18 +11,7 @@ module.exports = class LobbySingleplayer extends LobbyBase {
         this.ws = ws;
 
         // Default generation settings for a singleplayer game
-        this.generationSettings = {
-			numBushes: 10,
-			numCrates: 8,
-			numHPPots: 5,
-			numAmmo: 15,
-			numSpeedBoost: 1,
-			numRDS: 0,
-			numSmallGun: 1,
-			numBigGun: 1,
-			stageWidth: 2000,
-			stageHeight: 2000
-		};
+        this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Normal;
 
 		this.singleplayerGame = null;
 		this.singleplayerGameInterval = null;
@@ -115,31 +105,15 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 			player.type = "Human";
 		})
 
-		// TODO: Refactor/change logic here
 		// Change generation settings according to stage size
 		if (stageGenerationSettings.stageSize === "Small") {
-			this.generationSettings.numBushes = 5;
-			this.generationSettings.numCrates = 4;
-			this.generationSettings.numHPPots = 5;
-			this.generationSettings.numAmmo = 15;
-			this.generationSettings.stageWidth = 1250;
-			this.generationSettings.stageHeight = 1250;
+			this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Small;
 		}
 		else if (stageGenerationSettings.stageSize === "Normal") {
-			this.generationSettings.numBushes = 10;
-			this.generationSettings.numCrates = 8;
-			this.generationSettings.numHPPots = 10;
-			this.generationSettings.numAmmo = 20;
-			this.generationSettings.stageWidth = 2000;
-			this.generationSettings.stageHeight = 2000;
+			this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Normal;
 		}
 		else if (stageGenerationSettings.stageSize === "Large") {
-			this.generationSettings.numBushes = 14;
-			this.generationSettings.numCrates = 10;
-			this.generationSettings.numHPPots = 20;
-			this.generationSettings.numAmmo = 30;
-			this.generationSettings.stageWidth = 3000;
-			this.generationSettings.stageHeight = 3000;
+			this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Large;
 		}
 
 		this.generationSettings.numberEasyBots = stageGenerationSettings.numEasyBots;

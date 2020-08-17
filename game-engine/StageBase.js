@@ -14,7 +14,8 @@ const Line = require("./environment/Line.js");
 
 const PlayerHuman = require('./PlayerHuman.js');
 const PlayerBot = require('./PlayerBot.js');
-// const CollisionEngine = require("./CollisionEngine.js");
+
+const EngineProperties = require("./EngineProperties.js");
 
 // Return a random integer between 0 and n, inclusive
 function randInt(n) { return Math.round(Math.random() * n); }
@@ -40,31 +41,6 @@ function getRandomColor() {
 	let color = "rgb(" + red + ", " + green + ", " + blue + ")";
 	return color;
 }
-
-let playerGenerationTemplate = {};
-playerGenerationTemplate["Human"] = {
-	movementSpeed: 7,
-	healthPoints: 10000,
-	radius: 30
-};
-playerGenerationTemplate["EasyBot"] = {
-	movementSpeed: 3,
-	healthPoints: 30,
-	radius: 38,
-	colour: "rgb(255,255,255)"
-};
-playerGenerationTemplate["MediumBot"] = {
-	movementSpeed: 5,
-	healthPoints: 80,
-	radius: 30,
-	colour: "rgb(255,255,0)"
-};
-playerGenerationTemplate["HardBot"] = {
-	movementSpeed: 6,
-	healthPoints: 80,
-	radius: 20,
-	colour: "rgb(0,0,0)"
-};
 
 // A Stage stores all actors (all environment objects). It is also responsible for calculating game logic (eg. collisions)
 module.exports = class StageBase {
@@ -166,6 +142,7 @@ module.exports = class StageBase {
         return state;
 	}
 	
+	// TODO: Make use of this "clustered" pattern for bots?
 	generatePlayerXLocation(pattern) {
 		if (pattern === "clustered") {
 			return randInt(this.stageWidth) - randInt(this.stageWidth / 4);
@@ -191,7 +168,7 @@ module.exports = class StageBase {
 			let ySpawn = this.generatePlayerYLocation("random");
 
 			// Check to see if the would collide with another player
-			const playerRadius = playerGenerationTemplate[player.type].radius;
+			const playerRadius = EngineProperties.PlayerGenerationTemplate[player.type].radius;
 			let collides = this.checkForGenerationCollisions(xSpawn, ySpawn, playerRadius * 2);
 			let attemptsToMake = 5;
 			while (collides || attemptsToMake > 0) {
@@ -206,10 +183,10 @@ module.exports = class StageBase {
 			const playerColour = (player.type === "Human" ?
 				getRandomColor()
 				:
-				playerGenerationTemplate[player.type].colour
+				EngineProperties.PlayerGenerationTemplate[player.type].colour
 			);
-			const playerHP = playerGenerationTemplate[player.type].healthPoints;
-			const playerMovementSpeed = playerGenerationTemplate[player.type].movementSpeed
+			const playerHP = EngineProperties.PlayerGenerationTemplate[player.type].healthPoints;
+			const playerMovementSpeed = EngineProperties.PlayerGenerationTemplate[player.type].movementSpeed
 			const generatedPlayer = (player.type === "Human" ? 
 				new PlayerHuman(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, player.pid, player.type)
 				:
@@ -225,7 +202,8 @@ module.exports = class StageBase {
 			// console.log("Generating bush");
 			let validGeneration = false;
 			let attemptsToMake = 5;
-			const colour = "rgba(0,61,17,0.95)", radius = 80;
+			const colour = EngineProperties.EnvironmentObjects.Bush.colour;
+			const radius = EngineProperties.EnvironmentObjects.Bush.radius;
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
@@ -250,8 +228,9 @@ module.exports = class StageBase {
 		for (let i = 0; i < numCrates; i++) {
 			let validGeneration = false;
 			let attemptsToMake = 5; // after n attempts, stops trying to generate this crate
-			const colour = "rgb(128,128,128,1)";
-			let width = 200, height = 200;
+			const colour = EngineProperties.EnvironmentObjects.Crate.colour;
+			const width = EngineProperties.EnvironmentObjects.Crate.width;
+			const height = EngineProperties.EnvironmentObjects.Crate.height;
 			const playerRadius = 30; // used so that crates don't spawn with small gaps that players can't access
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - width);
@@ -273,7 +252,7 @@ module.exports = class StageBase {
 
 	// Generate buffs in random locations throughout the map
 	generateBuffs(generationSettings) {
-        // Generate RDS buffs
+        // Generate RDS buffs TODO: remove this
         for (let i = 0; i < generationSettings.numRDS; i++) {
             let validGeneration = false;
             let attemptsToMake = 5;
@@ -299,8 +278,9 @@ module.exports = class StageBase {
         // Generate speed buffs
         for (let i = 0; i < generationSettings.numSpeedBoost; i++) {
             let validGeneration = false;
-            let attemptsToMake = 5;
-            let colour = "rgba(0,0,255,1)", radius = 20;
+			let attemptsToMake = 5;
+			const colour = EngineProperties.EnvironmentObjects.SpeedPot.colour;
+			const radius = EngineProperties.EnvironmentObjects.SpeedPot.radius;
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
@@ -318,11 +298,12 @@ module.exports = class StageBase {
             }
         }
 
-        // Generate small guns
+        // Generate small guns (pistols)
         for (let i = 0; i < generationSettings.numSmallGun; i++) {
             let validGeneration = false;
             let attemptsToMake = 5;
-            let colour = "rgba(255,255,0,1)", radius = 20;
+            const colour = EngineProperties.EnvironmentObjects.Pistol.colour;
+			const radius = EngineProperties.EnvironmentObjects.Pistol.radius;
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
@@ -340,11 +321,12 @@ module.exports = class StageBase {
             }
         }
 
-        // Generate big guns
+        // Generate big guns (rifles)
         for (let i = 0; i< generationSettings.numBigGun; i++) {
             let validGeneration = false;
             let attemptsToMake = 5;
-            let colour = "rgba(255,255,0,1)", radius = 20;
+            const colour = EngineProperties.EnvironmentObjects.Rifle.colour;
+			const radius = EngineProperties.EnvironmentObjects.Rifle.radius;
             while (!validGeneration && attemptsToMake > 0) {
                 let startingX = randInt(this.stageWidth - 250);
                 let startingY = randInt(this.stageHeight - 250);
@@ -366,7 +348,8 @@ module.exports = class StageBase {
 		for (let i = 0; i < generationSettings.numAmmo; i++) {
 			let validGeneration = false;
 			let attemptsToMake = 5;
-			const colour = "rgba(0,0,0,1)", radius = 20;
+			const colour = EngineProperties.EnvironmentObjects.AmmoPistol.colour;
+			const radius = EngineProperties.EnvironmentObjects.AmmoPistol.radius;
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);
@@ -388,7 +371,8 @@ module.exports = class StageBase {
 		for (let i = 0; i < generationSettings.numHPPots; i++) {
 			let validGeneration = false;
 			let attemptsToMake = 5;
-			const colour = "rgba(255,0,0,1)", radius = 20;
+			const colour = EngineProperties.EnvironmentObjects.HealthPot.colour;
+			const radius = EngineProperties.EnvironmentObjects.HealthPot.radius;
 			while (!validGeneration && attemptsToMake > 0) {
 				let startingX = randInt(this.stageWidth - 250);
 				let startingY = randInt(this.stageHeight - 250);

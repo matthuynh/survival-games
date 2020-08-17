@@ -1,3 +1,20 @@
+const hpGraphic = new Image();
+hpGraphic.src = "./health-pot.png";
+const speedPotGraphic = new Image();
+speedPotGraphic.src = "./speed-pot.png";
+const pistolGraphic = new Image();
+pistolGraphic.src = "./pistol.png";
+const pistolAmmoGraphic = new Image();
+pistolAmmoGraphic.src = "./pistol-ammo.png";
+const rifleGraphic = new Image();
+rifleGraphic.src = "./rifle.png";
+const rifleAmmoGraphic = new Image();
+rifleAmmoGraphic.src = "./rifle-ammo.png";
+const shotgunGraphic = new Image();
+shotgunGraphic.src = "./shotgun.png";
+const shotgunAmmoGraphic = new Image();
+shotgunAmmoGraphic.src = "./shotgun-ammo.png";
+
 // A Stage stores a canvas, actors, and the player
 class Stage {
 	constructor(
@@ -468,27 +485,32 @@ class Stage {
 
 	// Given an environment object, determine its specific object, then draw it
 	drawEnvironmentObject(context, e) {
-		let textX, textY;
+		let textX, textY, graphicX, graphicY;
 		switch (e.type) {
 			case "LineEnv":
 				this.drawLine(context, e);
 				break;
 			case "AmmoEnv":
-				textX = e.x - e.radius / 2 - 3;
-				textY = e.y + 1;
-				this.drawObject(
+				graphicX = e.x - 16;
+				graphicY = e.y - 17.5;
+				this.drawObjectWithGraphic(
 					context,
 					e,
-					"12px Courier",
-					"AMMO",
-					textX,
-					textY
+					pistolAmmoGraphic,
+					graphicX,
+					graphicY
 				);
 				break;
 			case "HealthPotEnv":
-				textX = e.x - e.radius / 2 + 2;
-				textY = e.y + 2;
-				this.drawObject(context, e, "14px Courier", "HP", textX, textY);
+				graphicX = e.x - 16;
+				graphicY = e.y - 21;
+				this.drawObjectWithGraphic(
+					context,
+					e,
+					hpGraphic,
+					graphicX,
+					graphicY
+				);
 				break;
 			case "BushEnv":
 				this.drawBush(context, e);
@@ -496,7 +518,7 @@ class Stage {
 			case "ScopeEnv":
 				textX = e.x - e.radius / 2 - 3;
 				textY = e.y + 1;
-				this.drawObject(
+				this.drawObjectWithText(
 					context,
 					e,
 					"12px Courier",
@@ -506,39 +528,36 @@ class Stage {
 				);
 				break;
 			case "SpeedBoostEnv":
-				textX = e.x - e.radius / 2 - 9;
-				textY = e.y + 2;
-				this.drawObject(
+				graphicX = e.x - 16;
+				graphicY = e.y - 21;
+				this.drawObjectWithGraphic(
 					context,
 					e,
-					"12px Courier",
-					"SPEED",
-					textX,
-					textY
+					speedPotGraphic,
+					graphicX,
+					graphicY
 				);
 				break;
 			case "PistolEnv":
-				textX = e.x - e.radius / 2 - 8;
-				textY = e.y + 1;
-				this.drawObject(
+				graphicX = e.x - 32;
+				graphicY = e.y - 24;
+				this.drawObjectWithGraphic(
 					context,
 					e,
-					"12px Courier",
-					"PISTOL",
-					textX,
-					textY
+					pistolGraphic,
+					graphicX,
+					graphicY
 				);
 				break;
 			case "BurstRifleEnv":
-				textX = e.x - e.radius / 2 - 7;
-				textY = e.y + 2;
-				this.drawObject(
+				graphicX = e.x - 55;
+				graphicY = e.y - 24;
+				this.drawObjectWithGraphic(
 					context,
 					e,
-					"12px Courier",
-					"RIFLE",
-					textX,
-					textY
+					rifleGraphic,
+					graphicX,
+					graphicY
 				);
 				break;
 			default:
@@ -548,13 +567,27 @@ class Stage {
 
 	// Given a reference o to an environmental object, draw it
 	// These include: RDS, Speed Boosts, Small Guns, Big Guns, Ammo, Health Pots
-	drawObject(context, o, font, fontText, fontX, fontY) {
+	// TODO: Deprecated. Remove this soon.
+	drawObjectWithText(context, o, font, fontText, fontX, fontY) {
 		context.fillStyle = o.colour;
+		context.strokeStyle = o.colour;
+		context.lineWidth = 2;
 		context.beginPath();
 		context.arc(o.x, o.y, o.radius, 0, 2 * Math.PI, false);
 		context.stroke();
 		context.font = font;
 		context.fillText(fontText, fontX, fontY);
+	}
+
+	// Given a reference o to an environmental object, draw it
+	// These include: RDS, Speed Boosts, Small Guns, Big Guns, Ammo, Health Pots
+	drawObjectWithGraphic(context, o, graphic, x, y) {
+		context.strokeStyle = o.colour;
+		context.lineWidth = 2;
+		context.beginPath();
+		context.arc(o.x, o.y, o.radius, 0, 2 * Math.PI, false);
+		context.stroke();
+		context.drawImage(graphic, x, y);
 	}
 
 	// Alternate approach: make a separate canvas, and draw all crates and bushes on it, and ONLY
