@@ -1,10 +1,12 @@
 const Pair = require("./environment/Pair.js");
-const Circle = require("./environment/Circle.js");
 const Crate = require("./environment/Crate.js");
 const BushEnv = require("./environment/BushEnv.js");
-const AmmoEnv = require("./environment/AmmoEnv.js");
+const AmmoPistolEnv = require("./environment/AmmoPistolEnv.js");
+const AmmoRifleEnv = require("./environment/AmmoRifleEnv.js");
+const AmmoShotgunEnv = require("./environment/AmmoShotgunEnv.js");
 const PistolEnv = require("./environment/PistolEnv.js");
 const BurstRifleEnv = require("./environment/BurstRifleEnv.js");
+const ShotgunEnv = require("./environment/ShotgunEnv.js");
 const SpeedBoostEnv = require("./environment/SpeedBoostEnv.js");
 const HealthPotEnv = require("./environment/HealthPotEnv.js");
 const ScopeEnv = require("./environment/ScopeEnv.js");
@@ -298,10 +300,10 @@ module.exports = class StageBase {
             }
         }
 
-        // Generate small guns (pistols)
-        for (let i = 0; i < generationSettings.numSmallGun; i++) {
+        // Generate pistols
+        for (let i = 0; i < generationSettings.numPistols; i++) {
             let validGeneration = false;
-            let attemptsToMake = 5;
+            let attemptsToMake = 10;
             const colour = EngineProperties.EnvironmentObjects.Pistol.colour;
 			const radius = EngineProperties.EnvironmentObjects.Pistol.radius;
             while (!validGeneration && attemptsToMake > 0) {
@@ -321,10 +323,10 @@ module.exports = class StageBase {
             }
         }
 
-        // Generate big guns (rifles)
-        for (let i = 0; i< generationSettings.numBigGun; i++) {
+        // Generate rifles
+        for (let i = 0; i< generationSettings.numRifles; i++) {
             let validGeneration = false;
-            let attemptsToMake = 5;
+            let attemptsToMake = 10;
             const colour = EngineProperties.EnvironmentObjects.Rifle.colour;
 			const radius = EngineProperties.EnvironmentObjects.Rifle.radius;
             while (!validGeneration && attemptsToMake > 0) {
@@ -344,8 +346,31 @@ module.exports = class StageBase {
             }
         }
 
-		// Generate numBuffs number of ammo
-		for (let i = 0; i < generationSettings.numAmmo; i++) {
+		// Generate shotguns
+        for (let i = 0; i< generationSettings.numShotguns; i++) {
+            let validGeneration = false;
+            let attemptsToMake = 10;
+            const colour = EngineProperties.EnvironmentObjects.Shotgun.colour;
+			const radius = EngineProperties.EnvironmentObjects.Shotgun.radius;
+            while (!validGeneration && attemptsToMake > 0) {
+                let startingX = randInt(this.stageWidth - 250);
+                let startingY = randInt(this.stageHeight - 250);
+                if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
+    
+                // Check if this big gun would collide any other actors
+                let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
+                if (!collides) {
+                    let bigGun = new ShotgunEnv(new Pair(startingX, startingY), colour, radius)
+                    this.addActor(bigGun);
+                    validGeneration = true;
+                    // console.log(`Big gun generated at (${startingX}, ${startingY})`);
+                }
+                attemptsToMake -= 1;
+            }
+		}
+		
+		// Generate ammo for pistols
+		for (let i = 0; i < generationSettings.numPistolAmmo; i++) {
 			let validGeneration = false;
 			let attemptsToMake = 5;
 			const colour = EngineProperties.EnvironmentObjects.AmmoPistol.colour;
@@ -358,10 +383,56 @@ module.exports = class StageBase {
 				// Check if this ammo would collide any other actors
 				let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
 				if (!collides) {
-					let ammo = new AmmoEnv(new Pair(startingX, startingY), colour, radius)
+					let ammo = new AmmoPistolEnv(new Pair(startingX, startingY), colour, radius)
 					this.addActor(ammo);
 					validGeneration = true;
-					// console.log(`Ammo generated at (${startingX}, ${startingY})`);
+					// console.log(`Pistol ammo generated at (${startingX}, ${startingY})`);
+				}
+				attemptsToMake -= 1;
+			}
+		}
+
+		// Generate ammo for rifles
+		for (let i = 0; i < generationSettings.numRifleAmmo; i++) {
+			let validGeneration = false;
+			let attemptsToMake = 5;
+			const colour = EngineProperties.EnvironmentObjects.AmmoRifle.colour;
+			const radius = EngineProperties.EnvironmentObjects.AmmoRifle.radius;
+			while (!validGeneration && attemptsToMake > 0) {
+				let startingX = randInt(this.stageWidth - 250);
+				let startingY = randInt(this.stageHeight - 250);
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
+
+				// Check if this ammo would collide any other actors
+				let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
+				if (!collides) {
+					let ammo = new AmmoRifleEnv(new Pair(startingX, startingY), colour, radius)
+					this.addActor(ammo);
+					validGeneration = true;
+					// console.log(`Rifle ammo generated at (${startingX}, ${startingY})`);
+				}
+				attemptsToMake -= 1;
+			}
+		}
+
+		// Generate ammo for shotguns
+		for (let i = 0; i < generationSettings.numShotgunAmmo; i++) {
+			let validGeneration = false;
+			let attemptsToMake = 5;
+			const colour = EngineProperties.EnvironmentObjects.AmmoShotgun.colour;
+			const radius = EngineProperties.EnvironmentObjects.AmmoShotgun.radius;
+			while (!validGeneration && attemptsToMake > 0) {
+				let startingX = randInt(this.stageWidth - 250);
+				let startingY = randInt(this.stageHeight - 250);
+				if (CollisionEngine.checkObjectToBorderCollision(startingX, startingY, radius, this.stageWidth, this.stageHeight)) { continue; }
+
+				// Check if this ammo would collide any other actors
+				let collides = this.checkForGenerationCollisions(startingX, startingY, radius);
+				if (!collides) {
+					let ammo = new AmmoShotgunEnv(new Pair(startingX, startingY), colour, radius)
+					this.addActor(ammo);
+					validGeneration = true;
+					// console.log(`Shotgun ammo generated at (${startingX}, ${startingY})`);
 				}
 				attemptsToMake -= 1;
 			}

@@ -318,7 +318,7 @@ class Stage {
 		);
 
 		// Draw the weapons bar (the "highlighted" bar represents the user's current weapon)
-		const numWeapons = 3; // this value needs to be hardcoded depending on how many possible weapons there are 
+		const numWeapons = 4; // this value needs to be hardcoded depending on how many possible weapons there are 
 		context.fillStyle = "rgba(160,160,160,0.5)";
 		let offsetY = 10;
 		for (let i = 0; i < numWeapons; i++) {
@@ -336,12 +336,12 @@ class Stage {
 		}
 		
 		// Draw the weapon border, weapon name, and weapon number
-		const weaponNames = ["Rifle", "Revolver", "Fists"];
-		const weaponNumbers = ["3", "2", "1"];
+		const weaponNames = ["Shotgun", "Rifle", "Revolver", "Fists"];
+		const weaponNumbers = ["4", "3", "2", "1"];
 		context.fillStyle = "rgba(0,0,0,1)";
 		context.font = "20px Impact";
 		offsetY = 10;
-		for (let i = 0; i < 3; i++) {
+		for (let i = 0; i < 4; i++) {
 			context.fillText(
 				weaponNames[i],
 				bottomRightX - this.canvas.width / 6,
@@ -417,15 +417,22 @@ class Stage {
 		);
 		context.fill();
 
-		// Draw a Player's hands
+		// Draw a Player's hands. Hands are coloured differently depending on current weapon
 		context.beginPath();
-		context.fillStyle = "rgba(0,0,0,1)";
-		let playerHandX =
-			p.playerPositionX + p.cursorDirectionX * p.playerRadius;
-		let playerHandY =
-			p.playerPositionY + p.cursorDirectionY * p.playerRadius;
+		if (p.currentWeapon === 0) {
+			context.fillStyle = "rgba(0,0,0,1)";
+		} else if (p.currentWeapon === 1) {
+			context.fillStyle = "rgba(255,255,0,1)";
+		} else if (p.currentWeapon === 2) {
+			context.fillStyle = "rgba(255,140,0,1)";
+		} else if (p.currentWeapon === 3) {
+			context.fillStyle = "rgba(255,0,255,1)";
+		}
+		let playerHandX = p.playerPositionX + p.cursorDirectionX * p.playerRadius;
+		let playerHandY = p.playerPositionY + p.cursorDirectionY * p.playerRadius;
 		context.arc(playerHandX, playerHandY, 10, 0, 2 * Math.PI, false);
 		context.fill();
+		context.fillStyle = "rgba(0,0,0,1)";
 
 		// Draw the player's name
 		if (this.displayGUI) {
@@ -490,13 +497,35 @@ class Stage {
 			case "LineEnv":
 				this.drawLine(context, e);
 				break;
-			case "AmmoEnv":
+			case "AmmoPistolEnv":
 				graphicX = e.x - 16;
 				graphicY = e.y - 17.5;
 				this.drawObjectWithGraphic(
 					context,
 					e,
 					pistolAmmoGraphic,
+					graphicX,
+					graphicY
+				);
+				break;
+			case "AmmoRifleEnv":
+				graphicX = e.x - 16;
+				graphicY = e.y - 19.5;
+				this.drawObjectWithGraphic(
+					context,
+					e,
+					rifleAmmoGraphic,
+					graphicX,
+					graphicY
+				);
+				break;
+			case "AmmoShotgunEnv":
+				graphicX = e.x - 16;
+				graphicY = e.y - 19.5;
+				this.drawObjectWithGraphic(
+					context,
+					e,
+					shotgunAmmoGraphic,
 					graphicX,
 					graphicY
 				);
@@ -556,6 +585,17 @@ class Stage {
 					context,
 					e,
 					rifleGraphic,
+					graphicX,
+					graphicY
+				);
+				break;
+			case "ShotgunEnv":
+				graphicX = e.x - 55;
+				graphicY = e.y - 18;
+				this.drawObjectWithGraphic(
+					context,
+					e,
+					shotgunGraphic,
 					graphicX,
 					graphicY
 				);

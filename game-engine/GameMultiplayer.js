@@ -18,11 +18,14 @@ module.exports = class GameMultiplayer {
 			numBushes: 10,
 			numCrates: 5,
 			numHPPots: 7,
-			numAmmo: 15,
+			numPistolAmmo: 10,
+			numRifleAmmo: 20,
+			numShotgunAmmo: 5,
 			numSpeedBoost: Math.floor(numPlayers / 2) + 1,
 			numRDS: 0,
-			numSmallGun: numPlayers,
-			numBigGun: Math.floor(numPlayers / 2) + 1,
+			numPistols: numPlayers,
+			numRifles: Math.floor(numPlayers / 2) + 1,
+			numShotguns: Math.floor(numPlayers / 2),
 			stageWidth: 2000,
 			stageHeight: 2000
 		};

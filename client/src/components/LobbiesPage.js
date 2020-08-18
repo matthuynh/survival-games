@@ -14,8 +14,10 @@ import Auth from "../Routing/auth";
 import UIFx from 'uifx';
 import revolverSoundImport from "../assets/audio/revolver.mp3";
 import burstSoundImport from "../assets/audio/3-burst.mp3";
+import shotgunSoundImport from "../assets/audio/shotgun.mp3";
 import emptyGunImport from "../assets/audio/empty-gun.wav";
 
+// TODO: Make these volume values configurable
 const revolverSound = new UIFx(revolverSoundImport, {
 	volume: 0.5
 });
@@ -23,6 +25,10 @@ const revolverSound = new UIFx(revolverSoundImport, {
 const burstSound = new UIFx(burstSoundImport, {
 	volume: 0.5
 });
+
+const shotgunSound = new UIFx(shotgunSoundImport, {
+	volume: 0.5
+})
 
 const emptyGunSound = new UIFx(emptyGunImport, {
 	volume: 0.5
@@ -570,7 +576,7 @@ class LobbiesPage extends React.Component {
 				);
 			}
 			// Used for switching between weapons
-			if ("123".includes(key)) {
+			if ("1234".includes(key)) {
 				this.sendWeaponSwitch(key);
 			}
 			// Used for toggling GUI display
@@ -663,6 +669,9 @@ class LobbiesPage extends React.Component {
 					break;
 				case 2:
 					burstSound.play();
+					break;
+				case 3:
+					shotgunSound.play();
 					break;
 				case -1:
 					emptyGunSound.play();

@@ -1,5 +1,6 @@
 const Bullet = require("./Bullet.js");
 const Gun = require("./Gun.js");
+const Pair = require("./Pair.js");
 
 // A Gun object of type Rifle, that inherits from Gun
 module.exports = class GunRifle extends Gun {
@@ -8,9 +9,9 @@ module.exports = class GunRifle extends Gun {
 			startingBullets: 100,
 			bulletCapacity: 200,
 			bulletSpeed: 45,
-			bulletDamage: 5,
+			bulletDamage: 6,
 			bulletRadius: 3,
-			range: 1600,
+			range: 2000,
 			cooldown: 0
 		}
 		
@@ -18,10 +19,13 @@ module.exports = class GunRifle extends Gun {
 	}
 
 	// Return True if the gun is able to create and shoot a Bullet, else False
-	shoot(position, cursorDirection, firingVector, colour) {
+	shoot(position, cursorDirection, firingProps, colour) {
 		if (this.numberBullets < 1) {
 			return false;
 		} else {
+			const firingVector = new Pair(firingProps.x, firingProps.y);
+			firingVector.normalize();
+
 			// 3-burst fire behaviour
 			// TODO: Cooldown code currently not used for human players
 			if (this.numberBullets > 0 && (new Date().getTime() - this.previousFireTime >= this.cooldown)) {

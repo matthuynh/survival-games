@@ -28,8 +28,8 @@ module.exports = class Player extends Circle {
 		this.cursorDirection = new Pair(0, 1); // represents the cursor direction, aka. where the player is facing
 
 		// Design: weapons array is used to refer to all potential weapons the user can have
-		// Index 0 is for fists, Index 1 is for GunPistol, Index 2 is for GunRifle
-		this.weapons = [null, null, null];
+		// Index 0 is for fists, Index 1 is for GunPistol, Index 2 is for GunRifle, index 3 is for GunShotgun
+		this.weapons = [null, null, null, null];
 		this.currentWeapon = 0; // index of the weapon is currently equipped with
 		this.hidden = false; // set to true when the player is under a bush
 		

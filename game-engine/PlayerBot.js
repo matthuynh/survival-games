@@ -34,8 +34,10 @@ module.exports = class PlayerBot extends Player {
         this.difficulty = playerType;
         if (this.difficulty === "HardBot") {
             this.weapon = new GunRifleBot(this.stage, this);
+            this.currentWeapon = 2;
         } else {
             this.weapon = new GunPistolBot(this.stage, this);
+            this.currentWeapon = 1;
         }
 
         this.previousMoveTime = new Date().getTime(); // used to store when the bot last changed movement direction

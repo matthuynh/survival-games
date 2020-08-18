@@ -11,15 +11,4 @@ module.exports = class AmmoEnv extends Circle {
 	// Included this empty method here, as all actors need a Step method
 	step() {
     }
-    
-    // Return a JSON representation of this ammo
-    getJSONRepresentation() {
-        return {
-            type: "AmmoEnv",
-            x: this.x,
-            y: this.y,
-            radius: this.radius,
-            colour: this.colour
-        }
-    }
 }
