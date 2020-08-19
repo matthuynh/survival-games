@@ -348,6 +348,10 @@ class LobbiesPage extends React.Component {
 							});
 							break;
 	
+						case "ping":
+							console.log("Received 'keep-alive' ping from server");
+							break;
+
 						default:
 							console.log("Received unknown update from socket server");
 					}

@@ -58,7 +58,7 @@ wss.on("close", function () {
 });
 
 // Send an update to all connected clients
-wss.broadcast = function (serverUpdate) {
+wss.broadcast = function(serverUpdate) {
 	this.clients.forEach((clientSocket) => {
 		clientSocket.send(serverUpdate);
 	});
@@ -66,7 +66,7 @@ wss.broadcast = function (serverUpdate) {
 
 // Send an update to all clients in a specific lobby
 // Typically used to ensure client's stage are synced to the server stage for that lobby (eg. stage-update, stage-initialization, or stage-termination)
-wss.broadcastToLobby = function (serverUpdate, lobbyId) {
+wss.broadcastToLobby = function(serverUpdate, lobbyId) {
 	let lobbySockets = serverInstance.getLobby(lobbyId).getPlayersSockets();
 	lobbySockets.forEach((socket) => {
 		socket.send(serverUpdate);
@@ -74,7 +74,7 @@ wss.broadcastToLobby = function (serverUpdate, lobbyId) {
 };
 
 // Send an update to all clients in a specific multiplayer lobby, except for the lobby owner
-wss.broadcastToLobbyNonOwner = function (serverUpdate, lobbyId, lobbyOwnerId) {
+wss.broadcastToLobbyNonOwner = function(serverUpdate, lobbyId, lobbyOwnerId) {
 	let lobbyMembers = serverInstance.getLobby(lobbyId).getPlayers();
 	lobbyMembers.forEach((member) => {
 		if (member.pid !== lobbyOwnerId) {
@@ -594,10 +594,12 @@ class ServerInstance {
 }
 
 let globalInterval = null;
+let keepAliveInterval = null;
 let serverInstance = new ServerInstance();
 
 // Global server interval
 const startGlobalInterval = (server) => {
+	// TODO: Restructure the way game ends... shouldn't need this interval to check
 	// This does not need to run that frequently, as it only checks for lobbies where games have finished
 	globalInterval = setInterval(() => {
 		if (process.env.PORT) {
@@ -607,11 +609,25 @@ const startGlobalInterval = (server) => {
 		// console.log(serverInstance.getLobbiesJSON());
 		server.checkLobbies();
 	}, 5000);
-
 	// TODO: Add a maintenance interval that runs once every 10 minutes, clearing AFK lobbies
 };
 
 startGlobalInterval(serverInstance);
+
+// Used in prod environment to send an occasional ping packet to connected users to prevent them from disconnecting 
+// https://devcenter.heroku.com/articles/websockets#timeouts
+// TODO: Make this better.... kick AFK people after a while
+const startKeepAliveInterval = (server) => {
+	globalInterval = setInterval(() => {
+		wss.broadcast(JSON.stringify({
+			type: "ping"
+		}));
+	}, 30000);
+}
+
+if (process.env.PORT) {
+	startKeepAliveInterval(serverInstance);
+}
 
 
 // Creates a listener on the specified port
