@@ -224,7 +224,7 @@ class MultiplayerLobby extends React.Component {
 									</Button>
 								</Col>
 							</Row>
-							<Row>
+							{/* <Row>
 								<Col>
 									<Button
 										variant="warning"
@@ -239,7 +239,7 @@ class MultiplayerLobby extends React.Component {
 										Debug Mode - BUGGY!
 									</Button>
 								</Col>
-							</Row>
+							</Row> */}
 						</Container>
 					) : (
 						// Lobby view for all other lobby members

@@ -60,7 +60,7 @@ module.exports = class StageBase {
 		this.crateActors = []; // Crates and Bushes
 		this.environmentActors = []; // these actors cannot collide. Includes Lines, buffs (HP, ammo, speed boost, RDS)
         
-        // The logical width and height of the stage
+		// The logical width and height of the stage
 		this.stageWidth = generationSettings.stageWidth;
         this.stageHeight = generationSettings.stageHeight;
 		

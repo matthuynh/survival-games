@@ -430,8 +430,13 @@ class LobbiesPage extends React.Component {
 
 	// A lobby owner attempts to starts a game on a lobby on the server
 	handleStartGameMultiplayer(ownerId, lobbyId) {
+		// console.log("Inside handleStartGameMultiplayer()");
+		this.setState({
+			userWon: false,
+			userLost: false,
+		})
 		this.resetMovementInput();
-		console.log("Inside handleStartGameMultiplayer()");
+		
 		// console.log(ownerId);
 		// console.log(lobbyId);
 
@@ -446,8 +451,7 @@ class LobbiesPage extends React.Component {
 	}
 
 	handleStartGameSingleplayer(ownerId, lobbyId, stageSize, numEasyBots, numMedBots, numHardBots) {
-		console.log("Inside handleStartGameSingleplayer()");
-		
+		// console.log("Inside handleStartGameSingleplayer()");
 		this.setState({
 			userWon: false,
 			userLost: false,
@@ -467,7 +471,7 @@ class LobbiesPage extends React.Component {
 			lobbyId: lobbyId,
 			stageGenerationSettings
 		});
-		console.log(clientUpdate);
+		// console.log(clientUpdate);
 		this.clientSocket.send(clientUpdate);
 	}
 

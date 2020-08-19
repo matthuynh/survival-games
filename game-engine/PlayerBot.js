@@ -88,14 +88,19 @@ module.exports = class PlayerBot extends Player {
             if (humanPlayer.playerHP > 0) {
                 let distanceFromPlayer = distanceBetweenTwoPoints(this.position.x, this.position.y, humanPlayer.playerPositionX, humanPlayer.playerPositionY);
     
-                // The bot has run out of bullets, it will run from the player if player is close enough
+                // The bot has low HP or has run out of bullets, it will run from the player if player is close enough
                 if (this.weapon.getRemainingBullets() <= 0) {
                     // If close enough, run directly away from player
                     if (distanceFromPlayer < humanPlayerRadius * 20) {
+                        // Distance between bot and player
                         let xDistance = (this.position.x - humanPlayer.playerPositionX) * 4;
                         let yDistance = (this.position.y - humanPlayer.playerPositionY) * 4;
+
+                        // Used as "tolerance" to prevent indefinite alternating between positions due to precision
                         if (xDistance < this.movementSpeed && xDistance > 0 - this.movementSpeed) { xDistance = 0; }
                         if (yDistance < this.movementSpeed && yDistance > 0 - this.movementSpeed) { yDistance = 0; }
+
+                        // Determines direction to move in
                         if (xDistance > 0) { this.dx = 1; }
                         if (xDistance < 0) { this.dx = -1; }
                         if (yDistance > 0) { this.dy = 1; }
@@ -118,13 +123,13 @@ module.exports = class PlayerBot extends Player {
                     this.facePlayer(humanPlayer);
                     this.dx = 0;
                     this.dy = 0;
+
+                    // Distance between bot and player
+                    let xDistance = this.position.x - humanPlayer.playerPositionX;
+                    let yDistance = this.position.y - humanPlayer.playerPositionY;
                     
                     // Move towards the player. There is a minimum distance bots will keep from players
-                    if (distanceFromPlayer > humanPlayerRadius * 5) {
-                        // Distance between bot and player
-                        let xDistance = this.position.x - humanPlayer.playerPositionX;
-                        let yDistance = this.position.y - humanPlayer.playerPositionY;
-    
+                    if (distanceFromPlayer > humanPlayerRadius * 5 && this.HP > this.maxHP / 3) {
                         // Used as "tolerance" to prevent indefinite alternating between positions due to precision
                         if (xDistance < this.movementSpeed && xDistance > 0 - this.movementSpeed) { xDistance = 0; }
                         if (yDistance < this.movementSpeed && yDistance > 0 - this.movementSpeed) { yDistance = 0; }
@@ -135,6 +140,26 @@ module.exports = class PlayerBot extends Player {
                         if (yDistance < 0) { this.dy = 1; }
                         if (yDistance > 0) { this.dy = -1; }
                     } 
+                    // If bot is running low on HP, run away from player
+                    else if (this.HP <= this.maxHP / 3) {
+                        // Used as "tolerance" to prevent indefinite alternating between positions due to precision
+                        if (xDistance < this.movementSpeed && xDistance > 0 - this.movementSpeed) { xDistance = 0; }
+                        if (yDistance < this.movementSpeed && yDistance > 0 - this.movementSpeed) { yDistance = 0; }
+                        
+                        // Determines direction to move in
+                        if (xDistance > 0) { this.dx = 1; }
+                        if (xDistance < 0) { this.dx = -1; }
+                        if (yDistance > 0) { this.dy = 1; }
+                        if (yDistance < 0) { this.dy = -1; }
+                    } 
+                    // Move away from player if they are too close
+                    // else {
+                    //     // Determines direction to move in
+                    //     if (xDistance > 0) { this.dx = 1; }
+                    //     if (xDistance < 0) { this.dx = -1; }
+                    //     if (yDistance > 0) { this.dy = 1; }
+                    //     if (yDistance < 0) { this.dy = -1; }
+                    // }
     
                     this.setVelocity();
                     if (distanceFromPlayer <= this.weapon.range) {

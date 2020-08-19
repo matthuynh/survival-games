@@ -11,7 +11,7 @@ module.exports = class LobbySingleplayer extends LobbyBase {
         this.ws = ws;
 
         // Default generation settings for a singleplayer game
-        this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Normal;
+        this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Medium;
 
 		this.singleplayerGame = null;
 		this.singleplayerGameInterval = null;
@@ -98,7 +98,8 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 	// Initialize a new singleplayer game. The game will run on an interval until the game finishes (user wins/loses or quits)
 	// Takes in user-configured stage generation settings from the front-end
 	initializeGame(stageGenerationSettings) {
-		console.log(stageGenerationSettings);
+		console.log(`[WSS INFO] Singleplayer stage generated with settings: ${JSON.stringify(stageGenerationSettings)}`);
+		
         this.gameInProgress = true;
 		this.lobbyPlayers.forEach((player) => {
 			player.status = "In Game";
@@ -109,8 +110,8 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 		if (stageGenerationSettings.stageSize === "Small") {
 			this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Small;
 		}
-		else if (stageGenerationSettings.stageSize === "Normal") {
-			this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Normal;
+		else if (stageGenerationSettings.stageSize === "Medium") {
+			this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Medium;
 		}
 		else if (stageGenerationSettings.stageSize === "Large") {
 			this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Large;

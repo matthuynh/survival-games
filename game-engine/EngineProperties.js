@@ -6,12 +6,12 @@ exports.PlayerGenerationTemplate = {
     // default movementSpeed = 7, healthPoints = 100
     "Human": {
         movementSpeed: 7,
-        healthPoints: 1000,
+        healthPoints: 10000,
         radius: 30
     },
     "EasyBot": {
         movementSpeed: 3,
-        healthPoints: 30,
+        healthPoints: 50,
         radius: 38,
         colour: "rgb(255,255,255)"
     },
@@ -23,7 +23,7 @@ exports.PlayerGenerationTemplate = {
     },
     "HardBot": {
         movementSpeed: 5,
-        healthPoints: 80,
+        healthPoints: 100,
         radius: 20,
         colour: "rgb(0,0,0)"
     },
@@ -63,7 +63,7 @@ exports.SingleplayerStageGenerationSettings = {
         stageWidth: 1250,
         stageHeight: 1250
     },
-    "Normal": {
+    "Medium": {
         numBushes: 10,
         numCrates: 8,
         numHPPots: 10,
