@@ -28,17 +28,17 @@ const stageSizes = [
 const stageSettings = {
 	Small: {
 		name : "Small",
-		numEasyBots: 3,
-		numMedBots: 2,
-		numHardBots: 1,
+		numEasyBots: 4,
+		numMedBots: 1,
+		numHardBots: 0,
 		totalBots: 6,
 		maxBots: 20
 	},
 	Medium: {
 		name : "Medium",
 		numEasyBots: 5,
-		numMedBots: 3,
-		numHardBots: 2,
+		numMedBots: 2,
+		numHardBots: 1,
 		totalBots: 10,
 		maxBots: 40
 	},
@@ -46,7 +46,7 @@ const stageSettings = {
 		name : "Large",
 		numEasyBots: 10,
 		numMedBots: 4,
-		numHardBots: 4,
+		numHardBots: 2,
 		totalBots: 18,
 		maxBots: 60
 	}

@@ -2,7 +2,6 @@ const Player = require("./Player.js");
 // const Line = require("./environment/Line.js");
 const Pair = require("./environment/Pair.js");
 const BushEnv = require("./environment/BushEnv.js");
-const AmmoEnv = require("./environment/AmmoEnv.js");
 const AmmoPistolEnv = require("./environment/AmmoPistolEnv.js");
 const AmmoRifleEnv = require("./environment/AmmoRifleEnv.js");
 const AmmoShotgunEnv = require("./environment/AmmoShotgunEnv.js");
@@ -81,11 +80,25 @@ module.exports = class PlayerHuman extends Player {
 	// Change the user's current weapon
 	setWeapon(weaponNumber) {
 		// console.log(`User wants to switch to weapon number ${weaponNumber}`);
-		if (weaponNumber === 1 || weaponNumber - 1 === this.currentWeapon) {
+		if (weaponNumber == 1 || weaponNumber - 1 == this.currentWeapon) {
 			this.currentWeapon = 0;
 		}
-		else if (this.weapons[weaponNumber - 1] !== null) {
+		else if (this.weapons[weaponNumber - 1] != null) {
 			this.currentWeapon = weaponNumber - 1;
+		}
+		else if (weaponNumber == "t") {
+			// TODO: Pretty janky right now. Can improve by using modulo (to wrap around indices) if actually implementing Fists (punching)
+			// If the user only has Fists
+			if (this.weapons[1] === null && this.weapons[2] === null && this.weapons[3] === null) {
+				console.log("User only has fists");
+			} else if (this.currentWeapon == 3) {
+				this.currentWeapon = 0;	
+			} else {
+				this.currentWeapon += 1;
+				while(this.weapons[this.currentWeapon] === null) {
+					this.currentWeapon += 1;
+				}
+			}
 		}
 	}
 
@@ -122,16 +135,49 @@ module.exports = class PlayerHuman extends Player {
 				if (collidedObj.type instanceof BushEnv && collidedObj.overlap === "full")  {
 					this.hidden = true;
 				}
-				// TODO: change AmmoEnv to Shotgun, Rifle, Pistol etc
-				else if (collidedObj.type instanceof AmmoEnv) {
-					console.log("Colliding with ammo of type " + JSON.stringify(collidedObj));
-					// TODO: Make diff types of ammo
+				else if (collidedObj.type instanceof AmmoPistolEnv) {
+					// console.log("Colliding with ammo of type " + JSON.stringify(collidedObj.type.getJSONRepresentation()));
+
 					const userWeapon = this.weapons[this.currentWeapon];
-					if (userWeapon && userWeapon.getRemainingBullets() < userWeapon.getAmmoCapacity()) {
+					if (userWeapon instanceof GunPistol && userWeapon.getRemainingBullets() < userWeapon.getAmmoCapacity()) {
 						// console.log("player collision detected -- Player with Ammo");
 						this.stage.removeActor(collidedObj.type);
 
 						const bulletsToRefill = 10;
+						const bulletDifference = userWeapon.getAmmoCapacity() - userWeapon.getRemainingBullets();
+						if (bulletDifference < bulletsToRefill) {
+							userWeapon.reloadGun(bulletDifference);
+						} else {
+							userWeapon.reloadGun(bulletsToRefill);
+						}
+					}
+				}
+				else if (collidedObj.type instanceof AmmoRifleEnv) {
+					// console.log("Colliding with ammo of type " + JSON.stringify(collidedObj.type.getJSONRepresentation()));
+
+					const userWeapon = this.weapons[this.currentWeapon];
+					if (userWeapon instanceof GunRifle && userWeapon.getRemainingBullets() < userWeapon.getAmmoCapacity()) {
+						// console.log("player collision detected -- Player with Ammo");
+						this.stage.removeActor(collidedObj.type);
+
+						const bulletsToRefill = 20;
+						const bulletDifference = userWeapon.getAmmoCapacity() - userWeapon.getRemainingBullets();
+						if (bulletDifference < bulletsToRefill) {
+							userWeapon.reloadGun(bulletDifference);
+						} else {
+							userWeapon.reloadGun(bulletsToRefill);
+						}
+					}
+				}
+				else if (collidedObj.type instanceof AmmoShotgunEnv) {
+					// console.log("Colliding with ammo of type " + JSON.stringify(collidedObj.type.getJSONRepresentation()));
+
+					const userWeapon = this.weapons[this.currentWeapon];
+					if (userWeapon instanceof GunShotgun && userWeapon.getRemainingBullets() < userWeapon.getAmmoCapacity()) {
+						// console.log("player collision detected -- Player with Ammo");
+						this.stage.removeActor(collidedObj.type);
+
+						const bulletsToRefill = 4;
 						const bulletDifference = userWeapon.getAmmoCapacity() - userWeapon.getRemainingBullets();
 						if (bulletDifference < bulletsToRefill) {
 							userWeapon.reloadGun(bulletDifference);

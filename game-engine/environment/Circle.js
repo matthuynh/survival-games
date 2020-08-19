@@ -8,7 +8,6 @@ module.exports = class Circle extends Shape {
 	}
 
 	getJSONRepresentation() {
-		console.log("Bruh?");
 	}
 
 	step() {

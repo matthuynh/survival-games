@@ -8,8 +8,8 @@ module.exports = class GunPistolBot extends Gun {
 			startingBullets: 20,
 			bulletCapacity: 20,
 			bulletSpeed: 35,
-			bulletDamage: 10,
-			bulletRadius: 5,
+			bulletDamage: 5,
+			bulletRadius: 4,
 			range: 800,
 			cooldown: 1000
 		}

@@ -3,6 +3,7 @@ const Player = require("./Player.js");
 const Pair = require("./environment/Pair.js");
 const GunPistolBot = require("./environment/GunPistolBot.js");
 const GunRifleBot = require("./environment/GunRifleBot.js");
+const GunShotgunBot = require("./environment/GunShotgunBot.js");
 
 const EngineProperties = require("./EngineProperties.js");
 
@@ -33,11 +34,14 @@ module.exports = class PlayerBot extends Player {
         // TODO: Revamp how weapons work for bots
         this.difficulty = playerType;
         if (this.difficulty === "HardBot") {
-            this.weapon = new GunRifleBot(this.stage, this);
+            this.weapon = new GunShotgunBot(this.stage, this);
             this.currentWeapon = 2;
-        } else {
+        } else if (this.difficulty === "EasyBot") {
             this.weapon = new GunPistolBot(this.stage, this);
             this.currentWeapon = 1;
+        } else if (this.difficulty === "MediumBot") {
+            this.weapon = new GunRifleBot(this.stage, this);
+            this.currentWeapon = 3;
         }
 
         this.previousMoveTime = new Date().getTime(); // used to store when the bot last changed movement direction
@@ -133,7 +137,9 @@ module.exports = class PlayerBot extends Player {
                     } 
     
                     this.setVelocity();
-                    this.shootPlayer(humanPlayer);
+                    if (distanceFromPlayer <= this.weapon.range) {
+                        this.shootPlayer(humanPlayer);
+                    }
                     maxMoveDelay = 100000;
                 } 
                 // Player is hidden (in a bush), bot will choose a random direction to move in

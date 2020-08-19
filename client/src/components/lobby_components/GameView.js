@@ -58,9 +58,11 @@ class GameView extends React.Component {
 			this.setState({ joinedLobbyId: this.props.joinedLobbyId });
 		}
 		if (prevProps.userWon !== this.props.userWon) {
+			console.log("set state to user won");
 			this.setState({ userWon: this.props.userWon, showMenuScreen: true });
 		}
 		if (prevProps.userLost !== this.props.userLost) {
+			console.log("set state to user lost");
 			this.setState({ userLost: this.props.userLost, showMenuScreen: true });
 		}
 	}
@@ -144,8 +146,9 @@ class GameView extends React.Component {
 								<Col>
 									<ListGroup variant="flush">
 										<ListGroup.Item><kbd>WASD</kbd> to move around</ListGroup.Item>
+										<ListGroup.Item>Walk into a bush to hide from enemies... but make sure they don't get too close</ListGroup.Item>
 										<ListGroup.Item>Walk over a weapon or power-up to pick it up</ListGroup.Item>
-										<ListGroup.Item><kbd>123</kbd> to switch weapons</ListGroup.Item>
+										<ListGroup.Item><kbd>1234</kbd> or <kbd>t</kbd> to switch weapons</ListGroup.Item>
 										<ListGroup.Item><kbd>Esc</kbd> to open and close game menu</ListGroup.Item>
 										<ListGroup.Item><kbd>H</kbd> to toggle GUI display</ListGroup.Item>
 									</ListGroup>

@@ -3,9 +3,10 @@
 // Defines the logical properties of each type of player
 // Used in: StageBase.js
 exports.PlayerGenerationTemplate = {
+    // default movementSpeed = 7, healthPoints = 100
     "Human": {
         movementSpeed: 7,
-        healthPoints: 10000,
+        healthPoints: 1000,
         radius: 30
     },
     "EasyBot": {
@@ -15,13 +16,13 @@ exports.PlayerGenerationTemplate = {
         colour: "rgb(255,255,255)"
     },
     "MediumBot": {
-        movementSpeed: 5,
+        movementSpeed: 4,
         healthPoints: 80,
         radius: 30,
         colour: "rgb(255,255,0)"
     },
     "HardBot": {
-        movementSpeed: 6,
+        movementSpeed: 5,
         healthPoints: 80,
         radius: 20,
         colour: "rgb(0,0,0)"

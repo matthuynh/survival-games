@@ -6,7 +6,7 @@ const Pair = require("./Pair.js");
 module.exports = class GunRifle extends Gun {
 	constructor(stage, owner) {
 		const rifleProps = {
-			startingBullets: 100,
+			startingBullets: 50,
 			bulletCapacity: 200,
 			bulletSpeed: 45,
 			bulletDamage: 6,

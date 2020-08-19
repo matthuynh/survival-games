@@ -70,10 +70,10 @@ module.exports = class Player extends Circle {
 	// Increase HP for this player
 	increaseHP(hp) {
 		// The mobile feature allows you to overload your health
-		if (this.HP + hp <= 100) {
+		if (this.HP + hp <= this.maxHP) {
 			this.HP += hp;
 		} else {
-			this.HP = 100;
+			this.HP = this.maxHP;
 		}
 	}
 

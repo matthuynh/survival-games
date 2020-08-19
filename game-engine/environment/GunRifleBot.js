@@ -11,7 +11,7 @@ module.exports = class GunRifleBot extends Gun {
 			bulletDamage: 5,
 			bulletRadius: 3,
 			range: 1600,
-			cooldown: 1500
+			cooldown: 2000
 		}
 		
 		super(stage, owner, rifleProps);

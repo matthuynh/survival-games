@@ -7,16 +7,16 @@ function rand(n) { return Math.random() * n; }
 const spreadTolerance = 0.30;
 
 // A Gun object of type Shotgun, that inherits from Gun
-module.exports = class GunShotgun extends Gun {
+module.exports = class GunShotgunBot extends Gun {
 	constructor(stage, owner) {
 		const rifleProps = {
 			startingBullets: 8,
-			bulletCapacity: 20,
-			bulletSpeed: 60,
-			bulletDamage: 20,
+			bulletCapacity: 8,
+			bulletSpeed: 40,
+			bulletDamage: 8,
 			bulletRadius: 2,
 			range: 300,
-			cooldown: 0
+			cooldown: 3000
 		}
 		super(stage, owner, rifleProps);
 	}

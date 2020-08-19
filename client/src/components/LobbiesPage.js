@@ -447,6 +447,11 @@ class LobbiesPage extends React.Component {
 
 	handleStartGameSingleplayer(ownerId, lobbyId, stageSize, numEasyBots, numMedBots, numHardBots) {
 		console.log("Inside handleStartGameSingleplayer()");
+		
+		this.setState({
+			userWon: false,
+			userLost: false,
+		})
 		this.resetMovementInput();
 		const stageGenerationSettings = {
 			stageSize,
@@ -576,7 +581,7 @@ class LobbiesPage extends React.Component {
 				);
 			}
 			// Used for switching between weapons
-			if ("1234".includes(key)) {
+			if ("1234t".includes(key)) {
 				this.sendWeaponSwitch(key);
 			}
 			// Used for toggling GUI display
