@@ -130,6 +130,8 @@ class LobbiesPage extends React.Component {
 		// TODO: Buggy logic. /dashboard gets pushed to history twice (eg. if user uses browser back button)
 		if (reason === "socket-server-closed") {
 			this.props.history.push("/dashboard", { response: "socket-server-closed" });
+		} else if (reason === "socket-server-timeout") {
+			this.props.history.push("/dashboard", { response: "socket-server-timeout" });
 		} else {
 			this.props.history.push("/dashboard");
 		}
@@ -165,10 +167,15 @@ class LobbiesPage extends React.Component {
 				console.log(event);
 				if (event.reason === "Unable to identify client") {
 					console.log("Web socket server unable to identify client. Front-end connection disconnected")
+					this.returnToDashboard("socket-server-closed");
+				} else if (event.code == "1006") {
+					// TODO: This might be unreliable. Implement a better system for handling these CloseEvents
+					console.log("Front-end disconnected from web socket server due to timeout");
+					this.returnToDashboard("socket-server-timeout");
 				} else {
 					console.log("Front-end disconnected from web socket server");
-				}			
-				this.returnToDashboard("socket-server-closed");
+					this.returnToDashboard("socket-server-closed");
+				}
 			};
 	
 			// When the client receives an update from the server, we update our state

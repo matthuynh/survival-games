@@ -77,7 +77,7 @@ VERY IMPORTANT: To keep our git log looking nice, please follow the steps below 
     - Now, your `git status` will still look a bit messy, so just do `git add --all`
     - Do `git status` again. It should be clean and show no changes!
 
-One liner (combines steps 3 - 6): `cd client && npm run build && cd .. && git add --all && git commit -m "Temporary Commit for Heroku" && git push heroku master --force && git reset --soft HEAD~1 && cd client && rm -rf build && cd .. && git add --all`
+One-liner (combines steps 3 - 6): `cd client && npm run build && cd .. && git add --all && git commit -m "Temporary Commit for Heroku" && git push heroku master --force && git reset --soft HEAD~1 && cd client && rm -rf build && cd .. && git add --all`
 
 ### Useful Heroku Commands
 - Check if an instance of the Heroku app is up

@@ -19,10 +19,16 @@ class Dashboard extends React.Component {
 		};
 
 		// Checks to see if user was redirected from LobbiesPage
-        if (props.location && props.location.state && props.location.state.response === "socket-server-closed") {
-            this.state.alertMessage = "Sorry! The game server is currently undergoing maintenance";
-            this.state.alert = "danger";
-            props.history.replace({ state: "" });
+		if (props.location && props.location.state) {
+			if (props.location.state.response === "socket-server-closed") {
+				this.state.alertMessage = "Sorry! The game server is currently undergoing maintenance";
+				this.state.alert = "danger";
+				props.history.replace({ state: "" });
+			} else if (props.location.state.response === "socket-server-timeout") {
+				this.state.alertMessage = "Timed out. Your connection has been disconnected due to inactivity";
+				this.state.alert = "danger";
+				props.history.replace({ state: "" });
+			}
         }
 	}
 
