@@ -35,9 +35,8 @@ const emptyGunSound = new UIFx(emptyGunImport, {
 });
 
 
-// const wssServerURL = "ws://localhost:10000";
-
-// TODO: Add env check for dev vs prod. Dev should use port 10000. Prod (code below) defaults to 3000 because of CRA
+// TODO: Add env check for dev vs prod
+// const wssServerURL = "ws://localhost:10000"; // UNCOMMENT THIS FOR LOCAL
 const wssServerURL = window.location.origin.replace(/^http/, 'ws'); // UNCOMMENT THIS FOR PROD
 console.log(wssServerURL);
 

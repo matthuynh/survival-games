@@ -31,7 +31,7 @@ const stageSettings = {
 		numEasyBots: 4,
 		numMedBots: 1,
 		numHardBots: 0,
-		totalBots: 6,
+		totalBots: 5,
 		maxBots: 20
 	},
 	Medium: {
@@ -39,7 +39,7 @@ const stageSettings = {
 		numEasyBots: 5,
 		numMedBots: 2,
 		numHardBots: 1,
-		totalBots: 10,
+		totalBots: 8,
 		maxBots: 40
 	},
 	Large: {
@@ -47,7 +47,7 @@ const stageSettings = {
 		numEasyBots: 10,
 		numMedBots: 4,
 		numHardBots: 2,
-		totalBots: 18,
+		totalBots: 16,
 		maxBots: 60
 	}
 }
