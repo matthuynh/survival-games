@@ -52,7 +52,7 @@ VERY IMPORTANT: To keep our git log looking nice, please follow the steps below 
 0. Test your changes. If you have the `client/build` folder, be sure to delete it `rm -rf build` before the next step
 1. Add and commit your changes to Git `git add --all`, `git commit -m <message>`
 2. Push these changes to GitHub
-3. Build the front-end: `cd client && npm run build`
+3. Build the front-end: `cd client && npm run build && cd ..`
     - This uses CRA's webpack to build our front-end files
 4. Notice that you will now have a `client/build` folder. Don't push this to `remote` (GitHub!)!!11!
     - Create a temp commit: `git add --all && git commit -m "Temporary Commit for Heroku"`
@@ -72,7 +72,12 @@ VERY IMPORTANT: To keep our git log looking nice, please follow the steps below 
         - Careful! This removes your most RECENT commit! Your most recent commit should be the temp commit
 5. Do `git log` to see if you have successfully deleted your most recent commit
     - The reason why we want to delete our most recent commit is because we don't want to push `client/build` to GitHub
-6. Do `git status` -- you may see that `build` is staged for commit. What you can do now is delete the `build` folder, `rm -rf build`. Your `git status` will still look a bit messy, so just do `git add --all`. Now your `git status` should be clean and show no changes!
+6. Do `git status` -- you may see that `build` is staged for commit
+    - What you can do now is delete the `build` folder, `cd client && rm -rf build && cd ..`
+    - Now, your `git status` will still look a bit messy, so just do `git add --all`
+    - Do `git status` again. It should be clean and show no changes!
+
+One liner (combines steps 3 - 6): `cd client && npm run build && cd .. && git add --all && git commit -m "Temporary Commit for Heroku" && git push heroku master --force && git reset --soft HEAD~1 && cd client && rm -rf build && cd .. && git add --all`
 
 ### Useful Heroku Commands
 - Check if an instance of the Heroku app is up

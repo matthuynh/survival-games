@@ -35,11 +35,10 @@ const emptyGunSound = new UIFx(emptyGunImport, {
 });
 
 
-const wssServerURL = "ws://localhost:10000";
+// const wssServerURL = "ws://localhost:10000";
 
 // TODO: Add env check for dev vs prod. Dev should use port 10000. Prod (code below) defaults to 3000 because of CRA
-// const wssServerURL = window.location.origin.replace(/^http/, 'ws');
-
+const wssServerURL = window.location.origin.replace(/^http/, 'ws'); // UNCOMMENT THIS FOR PROD
 console.log(wssServerURL);
 
 
@@ -163,6 +162,7 @@ class LobbiesPage extends React.Component {
 			};
 	
 			this.clientSocket.onclose = (event) => {
+				console.log(event);
 				if (event.reason === "Unable to identify client") {
 					console.log("Web socket server unable to identify client. Front-end connection disconnected")
 				} else {
