@@ -72,7 +72,7 @@ exports.SingleplayerStageGenerationSettings = {
         numShotgunAmmo: 5,
         numSpeedBoost: 1,
         numRDS: 0,
-        numPistols: 1,
+        numPistols: 2,
         numRifles: 1,
         numShotguns: 1,
         stageWidth: 2000,
@@ -87,8 +87,8 @@ exports.SingleplayerStageGenerationSettings = {
         numShotgunAmmo: 10,
         numSpeedBoost: 1,
         numRDS: 0,
-        numPistols: 1,
-        numRifles: 1,
+        numPistols: 3,
+        numRifles: 2,
         numShotguns: 1,
         stageWidth: 3000,
         stageHeight: 3000
@@ -101,7 +101,11 @@ exports.SingleplayerStageGenerationSettings = {
 exports.EnvironmentObjects = {
     "Bush": {
         colour: "rgba(0,61,17,0.95)",
-        radius: 80,
+        radius: 70,
+    },
+    "PlayerSpawnBush": {
+        colour: "rgba(0,61,17,0.80)",
+        radius: 90
     },
     "Crate": {
         colour: "rgb(128,128,128,1)",

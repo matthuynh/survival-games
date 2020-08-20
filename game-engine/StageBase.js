@@ -53,6 +53,7 @@ module.exports = class StageBase {
         this.numAlive = numPlayers;
         this.gameHasEnded = false;
 		this.winningPID = null;
+		this.stageType;
 
 		// Each actor is stored in different arrays to handle collisions differently
 		this.playerActors = []; // includes all Players
@@ -63,7 +64,6 @@ module.exports = class StageBase {
 		// The logical width and height of the stage
 		this.stageWidth = generationSettings.stageWidth;
         this.stageHeight = generationSettings.stageHeight;
-		
 		
 		// Generate environment (bushes, crates)
 		this.generateCrates(generationSettings.numCrates);
@@ -76,7 +76,11 @@ module.exports = class StageBase {
 		this.generateBuffs(generationSettings);
 
 		this.startTime = Math.round(new Date().getTime() / 1000);
-    }
+	}
+	
+	setStageType(type) {
+		this.stageType = type;
+	}
     
     // Given a player ID, return that player
     getPlayer(pid) {
@@ -162,7 +166,7 @@ module.exports = class StageBase {
 	}
 
 	// Generate human players and bot players (if in singleplayer) in the stage
-	generatePlayers() {
+	generatePlayers(generationSettings) {
 		this.players.forEach((player) => {
 			// console.log("Adding player with id " + this.players[i].pid);
 			// Player spawns in a random spot (they spawn away from the border)
@@ -195,7 +199,14 @@ module.exports = class StageBase {
 				new PlayerBot(this, playerStartingPosition, playerColour, playerRadius, playerHP, playerMovementSpeed, player.pid, player.type)
 			);
 			this.addActor(generatedPlayer);
-		})	
+
+			// Generate a bush for the human player to spawn in
+			if (player.type === "Human" && generationSettings.stageType === "singleplayer") {
+				const bushColour = EngineProperties.EnvironmentObjects.PlayerSpawnBush.colour;
+				const bushRadius = EngineProperties.EnvironmentObjects.PlayerSpawnBush.radius;
+				this.addActor(new BushEnv(new Pair(xSpawn, ySpawn), bushColour, bushRadius));
+			}
+		});
 	}
 
 	// Generate bushes in random locations throughout the map

@@ -26,6 +26,9 @@ function distanceBetweenTwoPairs(startingPair, endingPair) {
 let maxMoveDelay = 25000;
 const humanPlayerRadius = 30;
 
+const playerSightTimeMin = 500; // the minimum amount of time a bot must be in direct contact with a player before they can shoot
+const playerSightTimeWait = 1000; // after spotting the player, forces the bot to wait for this duration before shooting
+
 // A Player class that represents human players
 module.exports = class PlayerBot extends Player {
     constructor(stage, position, colour, radius, hp, movementSpeed, playerID, playerType) {
@@ -45,6 +48,8 @@ module.exports = class PlayerBot extends Player {
         }
 
         this.previousMoveTime = new Date().getTime(); // used to store when the bot last changed movement direction
+        this.playerSightTime = new Date().getTime(); // used to store when the bot last spotted the player 
+        this.playerSightTime2 = new Date().getTime();
     }
 
     // Make the bot face the human player
@@ -162,10 +167,22 @@ module.exports = class PlayerBot extends Player {
                     // }
     
                     this.setVelocity();
-                    if (distanceFromPlayer <= this.weapon.range) {
-                        this.shootPlayer(humanPlayer);
-                    }
                     maxMoveDelay = 100000;
+                    
+                    // The bot is "warming up" and cannot shoot the player yet
+                    if (new Date().getTime() - this.playerSightTime2 < playerSightTimeWait) {
+                        this.playerSightTime = new Date().getTime();
+                    }
+                    // The bot has finished "warming up" -- shoot player if they are close enough to the weapon range, AND the bot has locked sights with them for enough time
+                    else if (distanceFromPlayer <= this.weapon.range && new Date().getTime() - this.playerSightTime < playerSightTimeMin) {
+                        this.shootPlayer(humanPlayer);
+                        this.playerSightTime = new Date().getTime();
+                    }
+                    // The bot has just "refound" the player -- start "warming up"
+                    else if (new Date().getTime() - this.playerSightTime > playerSightTimeMin) {
+                        this.playerSightTime = new Date().getTime();
+                        this.playerSightTime2 = new Date().getTime();
+                    }
                 } 
                 // Player is hidden (in a bush), bot will choose a random direction to move in
                 else if (new Date().getTime() - this.previousMoveTime >= randInt(maxMoveDelay)) {

@@ -12,6 +12,8 @@ module.exports = class StageSingleplayer extends StageBase {
 		// Used for pausing/unpausing the game
 		this.startPauseTime = 0; // when we pause the game, need to keep track of how long the game is paused for
 		this.totalPauseDuration = 0;
+
+		this.setStageType("singleplayer");
 	}
 
 	// Pause timer, keeping track of when the timer was paused

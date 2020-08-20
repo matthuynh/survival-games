@@ -83,14 +83,14 @@ function toggleGUI() {
 	}
 }
 
-// Temporarily pause the looping setInterval() function called in startStageModel()
+// Temporarily pause the looping setInterval() function called in startStageModel() -- game will not redraw
 function pauseStageGame() {
 	clearInterval(interval);
 	interval = null;
 	gamePaused = true;
 }
 
-// Unpause the game
+// Unpause the game -- game will resume redrawing updates from the server
 function unpauseStageGame() {
 	if (gamePaused) {
 		interval = setInterval(function () {

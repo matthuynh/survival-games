@@ -5,6 +5,8 @@ module.exports = class StageMultiplayer extends StageBase {
 	constructor(gameId, players, numPlayers, setPlayerStatus, generationSettings) {
 		super(gameId, players, numPlayers, generationSettings);
 		this.setPlayerStatus = setPlayerStatus;
+
+		this.setStageType("multiplayer");
 	}
 
 	// Given a player ID, remove that player from the game

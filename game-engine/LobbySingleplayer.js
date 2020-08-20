@@ -99,7 +99,7 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 	// Takes in user-configured stage generation settings from the front-end
 	initializeGame(stageGenerationSettings) {
 		console.log(`[WSS INFO] Singleplayer stage generated with settings: ${JSON.stringify(stageGenerationSettings)}`);
-		
+	
         this.gameInProgress = true;
 		this.lobbyPlayers.forEach((player) => {
 			player.status = "In Game";
@@ -116,7 +116,7 @@ module.exports = class LobbySingleplayer extends LobbyBase {
 		else if (stageGenerationSettings.stageSize === "Large") {
 			this.generationSettings = EngineProperties.SingleplayerStageGenerationSettings.Large;
 		}
-
+		this.generationSettings.stageType = "singleplayer";
 		this.generationSettings.numberEasyBots = stageGenerationSettings.numEasyBots;
 		this.generationSettings.numberMediumBots = stageGenerationSettings.numMedBots;
 		this.generationSettings.numberHardBots = stageGenerationSettings.numHardBots;
