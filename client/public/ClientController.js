@@ -1,5 +1,6 @@
 let stage = null;
 let interval = null;
+let gamePaused = null;
 
 // Receive updates from the server's model, update the client's model accordingly
 function updateStageModel(playerActors, bulletActors, environmentActors, numAlive, hasEnded) {
@@ -79,5 +80,22 @@ function getCurrentPlayerWeapon() {
 function toggleGUI() {
 	if (stage.player) {
 		stage.toggleGUI();
+	}
+}
+
+// Temporarily pause the looping setInterval() function called in startStageModel()
+function pauseStageGame() {
+	clearInterval(interval);
+	interval = null;
+	gamePaused = true;
+}
+
+// Unpause the game
+function unpauseStageGame() {
+	if (gamePaused) {
+		interval = setInterval(function () {
+			stage.draw();
+		}, 20);
+		gamePaused = false;
 	}
 }

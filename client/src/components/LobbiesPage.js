@@ -36,8 +36,8 @@ const emptyGunSound = new UIFx(emptyGunImport, {
 
 
 // TODO: Add env check for dev vs prod
-// const wssServerURL = "ws://localhost:10000"; // UNCOMMENT THIS FOR LOCAL
-const wssServerURL = window.location.origin.replace(/^http/, 'ws'); // UNCOMMENT THIS FOR PROD
+const wssServerURL = "ws://localhost:10000"; // UNCOMMENT THIS FOR LOCAL
+// const wssServerURL = window.location.origin.replace(/^http/, 'ws'); // UNCOMMENT THIS FOR PROD
 console.log(wssServerURL);
 
 
@@ -91,6 +91,9 @@ class LobbiesPage extends React.Component {
 		this.handleLeaveGame = this.handleLeaveGame.bind(this);
 		this.handleCloseLobbyDialog = this.handleCloseLobbyDialog.bind(this);
 
+		this.pauseSingleplayerStage = this.pauseSingleplayerStage.bind(this);
+		this.unpauseSingleplayerStage = this.unpauseSingleplayerStage.bind(this);
+
 		// Keyboard/mouse listener functions
 		this.handleKeyPress = this.handleKeyPress.bind(this);
 		this.handleKeyRelease = this.handleKeyRelease.bind(this);
@@ -99,6 +102,24 @@ class LobbiesPage extends React.Component {
 		this.resetMovementInput = this.resetMovementInput.bind(this);
 
 		this.updateDimensions = this.updateDimensions.bind(this);
+	}
+
+	pauseSingleplayerStage(lobbyId, pid) {
+		let clientUpdate = JSON.stringify({
+			type: "pause-singleplayer-stage",
+			lobbyId: lobbyId,
+			pid: pid
+		});
+		this.clientSocket.send(clientUpdate);
+	}
+
+	unpauseSingleplayerStage(lobbyId, pid) {
+		let clientUpdate = JSON.stringify({
+			type: "unpause-singleplayer-stage",
+			lobbyId: lobbyId,
+			pid: pid
+		});
+		this.clientSocket.send(clientUpdate);
 	}
 
 	// Called whenever the user resizes their browser screen
@@ -757,6 +778,8 @@ class LobbiesPage extends React.Component {
 					handleGameMouseMove={this.handleMouseMove}
 					handleGameMouseDown={this.handleMouseDown}
 					resetMovementInput={this.resetMovementInput}
+					pauseSingleplayerStage={this.pauseSingleplayerStage}
+					unpauseSingleplayerStage={this.unpauseSingleplayerStage}
 				/>
 			)
 		}

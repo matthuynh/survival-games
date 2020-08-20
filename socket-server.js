@@ -508,6 +508,22 @@ wss.on("connection", function connection(ws, req) {
 				}
 				break;
 
+			case "pause-singleplayer-stage":
+				// console.log(`[WSS INFO] Player with pid ${clientUpdate.pid} attempting to pause singeplayer lobby ${clientUpdate.lobbyId}`);
+				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
+				if (lobby instanceof LobbySingleplayer && lobby.lobbyOwnerId == clientUpdate.pid) {
+					lobby.pauseGame();
+				}
+				break;
+			
+			case "unpause-singleplayer-stage":
+				// console.log(`[WSS INFO] Player with pid ${clientUpdate.pid} attempting to unpause singeplayer lobby ${clientUpdate.lobbyId}`);
+				lobby = serverInstance.getLobby(clientUpdate.lobbyId);
+				if (lobby instanceof LobbySingleplayer && lobby.lobbyOwnerId == clientUpdate.pid) {
+					lobby.unpauseGame();
+				}
+				break;
+
 			default:
 				console.log("[WSS WARNING] Server received unrecognized command from client");
 		}

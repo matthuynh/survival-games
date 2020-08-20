@@ -8,6 +8,26 @@ module.exports = class StageSingleplayer extends StageBase {
 		this.endSingleplayerGame = endSingleplayerGame;
 		this.calledEndSingleplayerGame = false; // eh.. we need this because of the timeout I set in LobbySingleplayer#endGame... the step() for loop would repeatedly call endSingleplayerGame during this timeout period
 		this.humanPlayerAlive = true;
+
+		// Used for pausing/unpausing the game
+		this.startPauseTime = 0; // when we pause the game, need to keep track of how long the game is paused for
+		this.totalPauseDuration = 0;
+	}
+
+	// Pause timer, keeping track of when the timer was paused
+	pauseTimer() {
+		this.startPauseTime = Math.round((new Date().getTime() / 1000));
+		// console.log("Paused timer at " + this.startPauseTime);
+	}
+
+	// Unpause timer, and subtract the time paused from the actual game time
+	unpauseTimer() {
+		let unpauseTime = Math.round(new Date().getTime() / 1000);
+		// console.log("Unpaused timer at " + unpauseTime);
+		let thisPauseDuration = unpauseTime - this.startPauseTime;
+		this.totalPauseDuration += thisPauseDuration;
+		// console.log("Adding pause duration of " + thisPauseDuration);
+		// console.log("Total pause duration is " + this.totalPauseDuration);
 	}
 
 	// Keeps the human player's canvas width and canvas height for bots to make appropriate calculations
@@ -88,6 +108,6 @@ module.exports = class StageSingleplayer extends StageBase {
 
 		// Update elapsed time (in seconds)
 		let currentTime = Math.round(new Date().getTime() / 1000);
-		this.elapsedTime = Math.round(currentTime) - this.startTime;
+		this.elapsedTime = Math.round(currentTime) - this.startTime - this.totalPauseDuration;
 	}
 }

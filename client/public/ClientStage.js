@@ -172,7 +172,8 @@ class Stage {
 		}
 
 		// Draw the game GUI (health bar, ammo, etc.)
-		this.displayGUI && this.drawGUI(context);
+		this.displayGUI && this.drawToggleableGUI(context);
+		this.drawUntoggleableGUI(context);
 
 		context.restore();
 	}
@@ -207,7 +208,7 @@ class Stage {
 	 * this.centerY - (this.canvas.height / 2)
 	 *
 	 */
-	drawGUI(context) {
+	drawToggleableGUI(context) {
 		let topLeftX = this.centerX - this.canvas.width / 2,
 			topLeftY = this.centerY - this.canvas.height / 2,
 			topRightX = this.centerX + this.canvas.width / 2,
@@ -219,16 +220,6 @@ class Stage {
 			bottomRightY = this.centerY + this.canvas.height / 2;
 
 		// console.log(`Canvas dimensions -- width: ${this.canvas.width}, height: ${this.canvas.height}`);
-
-		// Draw a death message if the player died
-		// TODO: Move this out of drawGUI, since user can toggle this to turn off. Could be confusing
-		if (this.isSpectating) {
-			context.font = "40px verdana";
-			context.fillStyle = "rgba(255,0,0,1)";
-			context.fillText("YOU DIED", this.centerX - 100, this.centerY - 10);
-			context.font = "20px verdana";
-			context.fillText("Press Esc", this.centerX - 100, this.centerY + 10);
-		}
 
 		// Draw the logged in user's username
 		context.fillStyle = "rgba(0,0,0,1)";
@@ -365,7 +356,7 @@ class Stage {
 
 		// Draw the ammo count
 		if (this.player.currentWeapon >= 1) {
-			context.textAlign = "center"
+			context.textAlign = "center";
 			context.fillStyle = "rgba(0,0,0,1)";
 			context.font = "50px Impact";
 			context.fillText(
@@ -380,9 +371,22 @@ class Stage {
 				this.centerY + this.canvas.height / 2 - 50
 			)
 		}
-		context.textAlign = "start"
+		context.textAlign = "start";
 
 		// this.drawMinimap(context, bottomLeftX, bottomLeftY); // this is here so that it can be toggled to display with toggle GUI
+	}
+
+	drawUntoggleableGUI(context) {
+		// Draw a death message if the player died
+		if (this.isSpectating) {
+			context.font = "40px verdana";
+			context.textAlign = "center";
+			context.fillStyle = "rgba(255,0,0,1)";
+			context.fillText("YOU DIED", this.centerX, this.centerY - 10);
+			context.font = "30px verdana";
+			context.fillText("Press Esc", this.centerX, this.centerY + 30);
+			context.textAlign = "start";
+		}
 	}
 
 	// Given a context for a canvas, draw gridlines on the canvas

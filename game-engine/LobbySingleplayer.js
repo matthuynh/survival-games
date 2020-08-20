@@ -193,5 +193,28 @@ module.exports = class LobbySingleplayer extends LobbyBase {
     
     getLobbyType() {
         return "singleplayer";
-    }
+	}
+	
+	// Pause game by clearing the current interval
+	pauseGame() {
+		if (this.singleplayerGame) {
+			this.singleplayerGame.pauseTimer();
+			clearInterval(this.singleplayerGameInterval);
+			this.singleplayerGameInterval = null;
+		}
+	}
+
+	// Unpause game by restoring the game interval
+	unpauseGame() {
+		if (this.singleplayerGame) {
+			this.singleplayerGame.unpauseTimer();
+			this.singleplayerGameInterval = setInterval(async () => {
+				// console.log("[GAME STATUS] SENDING UPDATES TO PLAYERS");
+				if (this.singleplayerGame && !this.singleplayerGame.gameHasEnded) {
+					(this.singleplayerGame && this.singleplayerGame.calculateUpdates());
+					(this.singleplayerGame && this.singleplayerGame.sendPlayerUpdates(this.wss));
+				}
+			}, 20);
+		}
+	}
 }

@@ -19,6 +19,7 @@ class GameView extends React.Component {
 			joinedLobbyId: null,
 			userWon: false,
 			userLost: false,
+			// TODO: Add a state variable for "ongoing game"
 			innerWidth: 0,
 			innerHeight: 0,
 
@@ -86,6 +87,13 @@ class GameView extends React.Component {
 		document.removeEventListener("keyup", this.props.handleGameKeyRelease);
 		document.removeEventListener("mousemove", this.props.handleGameMouseMove);
 		document.removeEventListener("mousedown", this.props.handleGameMouseDown);
+
+		// If singleplayer game, send command to pause game
+		if (this.props.joinedLobbyType === "singleplayer") {
+			// console.log("front-end triggering pause");
+			this.props.pauseSingleplayerStage(this.state.joinedLobbyId, this.state.playerId);
+			window.pauseStageGame();
+		}
 	}
 
 	closeMenuScreen() {
@@ -99,11 +107,21 @@ class GameView extends React.Component {
 			document.addEventListener("mousemove", this.props.handleGameMouseMove);
 			document.addEventListener("mousedown", this.props.handleGameMouseDown);
 		}
+
+		// If singleplayer game, send command to pause game
+		if (this.state.userWon === false && this.state.userLost === false && this.props.joinedLobbyType === "singleplayer") {
+			// console.log("front-end triggering unpause");
+			this.props.unpauseSingleplayerStage(this.state.joinedLobbyId, this.state.playerId);
+			window.unpauseStageGame();
+		}
 	}
 
 	handleKeyPress(e) {
 		if (e.keyCode === 27) {
-			this.openMenuScreen();
+			// The modal captures the "Esc" event already
+			if (this.state.showMenuScreen === false) {
+				this.openMenuScreen();
+			}
 		}
 	}
 
@@ -133,7 +151,8 @@ class GameView extends React.Component {
 									<Image src={AudioImg} alt={"Volume-Toggle"} style={{maxHeight: "25px", maxWidth: "25px"}} />
 								</span>
 								<Col>
-									{!this.state.userWon && !this.state.userLost && <h3> {this.props.joinedLobbyType} in Progress!</h3>}
+									{!this.state.userWon && !this.state.userLost && this.props.joinedLobbyType === "singleplayer" && <h3> Singleplayer Game Paused </h3>}
+									{!this.state.userWon && !this.state.userLost && this.props.joinedLobbyType === "multiplayerplayer" && <h3> Multiplayer game in progress! </h3>}
 									{this.state.userWon && <h3> You won! </h3>}
 									{this.state.userLost && <h3> You lost! </h3>}
 								</Col>

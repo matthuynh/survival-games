@@ -80,4 +80,12 @@ module.exports = class GameSingleplayer {
 	getGameWinner() {
 		return this.stage.getWinner();
 	}
+
+	pauseTimer() {
+		this.stage.pauseTimer();
+	}
+
+	unpauseTimer() {
+		this.stage.unpauseTimer();
+	}
 }
