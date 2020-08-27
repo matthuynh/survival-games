@@ -78,28 +78,41 @@ module.exports = class PlayerHuman extends Player {
 	}
 
 	// Change the user's current weapon
-	setWeapon(weaponNumber) {
-		// console.log(`User wants to switch to weapon number ${weaponNumber}`);
-		if (weaponNumber == 1 || weaponNumber - 1 == this.currentWeapon) {
+	setWeapon(weaponChange) {
+		// console.log(`User wants to switch to weapon number ${weaponChange}`);
+		if (weaponChange == 1 || weaponChange - 1 == this.currentWeapon) {
 			this.currentWeapon = 0;
 		}
-		else if (this.weapons[weaponNumber - 1] != null) {
-			this.currentWeapon = weaponNumber - 1;
+		else if (this.weapons[weaponChange - 1] != null) {
+			this.currentWeapon = weaponChange - 1;
 		}
-		else if (weaponNumber == "t") {
-			// TODO: Pretty janky right now. Can improve by using modulo (to wrap around indices) if actually implementing Fists (punching)
+		else if (weaponChange == "t" || weaponChange == "scrolldown") {
+			// TODO: Pretty janky right now. Can improve by using modulo (to wrap around indices) if actually implementing Fists (punching) as it's currently null
 			// If the user only has Fists
-			if (this.weapons[1] === null && this.weapons[2] === null && this.weapons[3] === null) {
-				console.log("User only has fists");
-			} else if (this.currentWeapon == 3) {
+			if (this.weapons[1] === null && this.weapons[2] === null && this.weapons[3] === null) { } 
+			else if (this.currentWeapon == 3) {
 				this.currentWeapon = 0;	
 			} else {
 				this.currentWeapon += 1;
 				while(this.weapons[this.currentWeapon] === null) {
 					this.currentWeapon += 1;
 				}
+				if (this.currentWeapon == 4) {
+					this.currentWeapon = 0;
+				}
+			}
+		} else if (weaponChange == "scrollup") {
+			if (this.weapons[1] === null && this.weapons[2] === null && this.weapons[3] === null) { }
+			else if (this.currentWeapon == 0) {
+				this.currentWeapon = 3;
+			} else {
+				this.currentWeapon -= 1;
+				while(this.weapons[this.currentWeapon] === null && this.currentWeapon > 0) {
+					this.currentWeapon -= 1;
+				}
 			}
 		}
+		// console.log(`User ended up with weapon number ${this.currentWeapon}`);
 	}
 
 	// When the player moves around, or the mouse moves, generate a new direction line from player to cursor

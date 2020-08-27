@@ -79,8 +79,11 @@ class Dashboard extends React.Component {
 					</Row>
 					<Row className="align-items-center">
 						<Col>
-							<Link to="/settings" style={{ textDecoration: "none" }}>
-								<Button variant="dark" className="dashboard-button" disabled>
+							<Link to="/help" style={{ textDecoration: "none" }}>
+								<Button 
+									variant="dark" 
+									className="dashboard-button"
+								>
 									How to Play
 								</Button>
 							</Link>
@@ -89,7 +92,11 @@ class Dashboard extends React.Component {
 					<Row className="align-items-center">
 						<Col>
 							<Link to="/settings" style={{ textDecoration: "none" }}>
-								<Button variant="dark" className="dashboard-button">
+								<Button 
+									variant="dark" 
+									className="dashboard-button"
+									disabled={localStorage.isGuest === "true" ? true : false}
+								>
 									User Settings
 								</Button>
 							</Link>

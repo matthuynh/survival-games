@@ -17,7 +17,6 @@ import burstSoundImport from "../assets/audio/3-burst.mp3";
 import shotgunSoundImport from "../assets/audio/shotgun.mp3";
 import emptyGunImport from "../assets/audio/empty-gun.wav";
 
-// TODO: Make these volume values configurable
 const revolverSound = new UIFx(revolverSoundImport, {
 	volume: 0.5
 });
@@ -34,12 +33,10 @@ const emptyGunSound = new UIFx(emptyGunImport, {
 	volume: 0.5
 });
 
-
 // TODO: Add env check for dev vs prod
-const wssServerURL = "ws://localhost:10000"; // UNCOMMENT THIS FOR LOCAL
-// const wssServerURL = window.location.origin.replace(/^http/, 'ws'); // UNCOMMENT THIS FOR PROD
+// const wssServerURL = "ws://localhost:10000"; // UNCOMMENT THIS FOR LOCAL
+const wssServerURL = window.location.origin.replace(/^http/, 'ws'); // UNCOMMENT THIS FOR PROD
 console.log(wssServerURL);
-
 
 // Note: disabled React Strict Mode in index.js, as it would cause the constructor to load twice
 class LobbiesPage extends React.Component {
@@ -55,6 +52,8 @@ class LobbiesPage extends React.Component {
 			joinedLobbyType: "",
 			lobbies: [],
 			lobbyClosed: false,
+
+			volumeOn: true,
 
 			// Player movement code
 			movingUp: false,
@@ -94,12 +93,15 @@ class LobbiesPage extends React.Component {
 		this.pauseSingleplayerStage = this.pauseSingleplayerStage.bind(this);
 		this.unpauseSingleplayerStage = this.unpauseSingleplayerStage.bind(this);
 
+		this.toggleVolume = this.toggleVolume.bind(this);
+
 		// Keyboard/mouse listener functions
 		this.handleKeyPress = this.handleKeyPress.bind(this);
 		this.handleKeyRelease = this.handleKeyRelease.bind(this);
 		this.handleMouseMove = this.handleMouseMove.bind(this);
 		this.handleMouseDown = this.handleMouseDown.bind(this);
 		this.resetMovementInput = this.resetMovementInput.bind(this);
+		this.handleScroll = this.handleScroll.bind(this);
 
 		this.updateDimensions = this.updateDimensions.bind(this);
 	}
@@ -141,6 +143,8 @@ class LobbiesPage extends React.Component {
 		document.removeEventListener("keyup", this.handleKeyRelease);
 		document.removeEventListener("mousemove", this.handleMouseMove);
 		document.removeEventListener("mousedown", this.handleMouseDown);
+		document.removeEventListener("visibilitychange", this.resetMovementInput);
+		document.removeEventListener("wheel", this.handleScroll);
 
 		// This "reason" means that returnToDashboard was triggered by the socket closing, thus we don't need to call .close() on the socket
 		if (reason !== "socket-server-closed") {
@@ -245,6 +249,7 @@ class LobbiesPage extends React.Component {
 							document.addEventListener("mousemove", this.handleMouseMove);
 							document.addEventListener("mousedown", this.handleMouseDown);
 							document.addEventListener("visibilitychange", this.resetMovementInput);
+							document.addEventListener("wheel", this.handleScroll);
 							break;
 	
 						// Receive list of updated lobbies state from socket server
@@ -322,6 +327,7 @@ class LobbiesPage extends React.Component {
 							document.removeEventListener("mousemove", this.handleMouseMove);
 							document.removeEventListener("mousedown", this.handleMouseDown);
 							document.removeEventListener("visibilitychange", this.resetMovementInput);
+							document.removeEventListener("wheel", this.handleScroll);
 							window.stopStageGame();
 	
 							// Forceful stage termination during a multiplayer game by lobby owner disconnected
@@ -524,6 +530,8 @@ class LobbiesPage extends React.Component {
 		document.removeEventListener("keyup", this.handleKeyRelease);
 		document.removeEventListener("mousemove", this.handleMouseMove);
 		document.removeEventListener("mousedown", this.handleMouseDown);
+		document.removeEventListener("visibilitychange", this.resetMovementInput);
+		document.removeEventListener("wheel", this.handleScroll);
 
 		// Resets user's game state
 		this.setState({ showGameView: false, userLost: false, userWon: false });
@@ -690,6 +698,13 @@ class LobbiesPage extends React.Component {
 		);
 	}
 
+	// User can scroll to switch weapons
+	handleScroll(e) {
+		// console.log(e.deltaY);
+		if (e.deltaY < 0){ this.sendWeaponSwitch("scrolldown"); } 
+		else { this.sendWeaponSwitch("scrollup"); }
+	}
+
 	// Handle when the mouses buttons are pressed
 	handleMouseDown(event) {
 		let canvas = this.canvasRef.current.getBoundingClientRect();
@@ -736,6 +751,24 @@ class LobbiesPage extends React.Component {
 		}
 	}
 
+	toggleVolume() {
+		this.setState(prevState => ({
+			volumeOn: !prevState.volumeOn
+		}), () => {
+			if (this.state.volumeOn) {
+				revolverSound.setVolume(0.5);
+				burstSound.setVolume(0.5);
+				shotgunSound.setVolume(0.5);
+				emptyGunSound.setVolume(0.5);
+			} else {
+				revolverSound.setVolume(0);
+				burstSound.setVolume(0);
+				shotgunSound.setVolume(0);
+				emptyGunSound.setVolume(0);
+			}
+		});
+	}
+
 	render() {
 		// TODO: Refactor logic for determining view (put it into a function)
 		// console.log("State of joined lobby id is " + this.state.joinedLobbyId);
@@ -771,6 +804,7 @@ class LobbiesPage extends React.Component {
 					joinedLobbyType={this.state.joinedLobbyType}
 					userWon={this.state.userWon}
 					userLost={this.state.userLost}
+					volumeOn={this.state.volumeOn}
 					handleLeaveGame={this.handleLeaveGame}
 					updateDimensions={this.updateDimensions}
 					handleGameKeyPress={this.handleKeyPress}
@@ -780,6 +814,7 @@ class LobbiesPage extends React.Component {
 					resetMovementInput={this.resetMovementInput}
 					pauseSingleplayerStage={this.pauseSingleplayerStage}
 					unpauseSingleplayerStage={this.unpauseSingleplayerStage}
+					toggleVolume={this.toggleVolume}
 				/>
 			)
 		}

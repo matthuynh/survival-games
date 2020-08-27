@@ -1,13 +1,13 @@
 import React from "react";
 import Button from "react-bootstrap/Button";
+import ToggleButton from "react-bootstrap/ToggleButton";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/row";
 import Col from "react-bootstrap/col";
 import ListGroup from "react-bootstrap/ListGroup";
 import Modal from "react-bootstrap/Modal";
 import Image from "react-bootstrap/Image";
-import AudioImg from "../../assets/audio-icon.png";
-import MuteAudioImg from "../../assets/mute-icon.png";
+import { GrVolumeMute, GrVolume } from 'react-icons/gr';
 import "../../css/GameView.css";
 
 // Display a detailed view about a specific lobby on the server
@@ -22,6 +22,7 @@ class GameView extends React.Component {
 			// TODO: Add a state variable for "ongoing game"
 			innerWidth: 0,
 			innerHeight: 0,
+			volumeOn: props.volumeOn,
 
 			showMenuScreen: false,
 		};
@@ -65,6 +66,9 @@ class GameView extends React.Component {
 		if (prevProps.userLost !== this.props.userLost) {
 			console.log("set state to user lost");
 			this.setState({ userLost: this.props.userLost, showMenuScreen: true });
+		}
+		if (prevProps.volumeOn !== this.props.volumeOn) {
+			this.setState({ volumeOn: this.props.volumeOn });
 		}
 	}
 
@@ -146,13 +150,17 @@ class GameView extends React.Component {
 					<Modal.Header>
 						<Container>
 							<Row>
-								{/* TODO: Implement volume controls. Will probably need state in LobbiesPage.js */}
-								<span id="lobby-help-icon" style={{marginRight: "-25px"}}>
-									<Image src={AudioImg} alt={"Volume-Toggle"} style={{maxHeight: "25px", maxWidth: "25px"}} />
+								<span id="lobby-help-icon">
+									<Button
+										onClick={() => this.props.toggleVolume()}
+										variant="link"
+									>
+										{ this.state.volumeOn == true ? <GrVolume /> : <GrVolumeMute /> }
+									</Button>
 								</span>
 								<Col>
 									{!this.state.userWon && !this.state.userLost && this.props.joinedLobbyType === "singleplayer" && <h3> Singleplayer Game Paused </h3>}
-									{!this.state.userWon && !this.state.userLost && this.props.joinedLobbyType === "multiplayerplayer" && <h3> Multiplayer game in progress! </h3>}
+									{!this.state.userWon && !this.state.userLost && this.props.joinedLobbyType === "multiplayer" && <h3> Multiplayer game in progress! </h3>}
 									{this.state.userWon && <h3> You won! </h3>}
 									{this.state.userLost && <h3> You lost! </h3>}
 								</Col>
@@ -167,7 +175,7 @@ class GameView extends React.Component {
 										<ListGroup.Item><kbd>WASD</kbd> to move around</ListGroup.Item>
 										<ListGroup.Item>Walk into a bush to hide from enemies... but make sure they don't get too close</ListGroup.Item>
 										<ListGroup.Item>Walk over a weapon or power-up to pick it up</ListGroup.Item>
-										<ListGroup.Item><kbd>1234</kbd> or <kbd>t</kbd> to switch weapons</ListGroup.Item>
+										<ListGroup.Item>Use the scroll wheel or <kbd>1234</kbd> or <kbd>t</kbd> to switch weapons</ListGroup.Item>
 										<ListGroup.Item><kbd>Esc</kbd> to open and close game menu</ListGroup.Item>
 										<ListGroup.Item><kbd>H</kbd> to toggle GUI display</ListGroup.Item>
 									</ListGroup>

@@ -15,10 +15,11 @@ let jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
-// http://www.sqlitetutorial.net/sqlite-nodejs/connect/
-const sqlite3 = require("sqlite3").verbose();
+// Guest variable
+let guestNumber = 1;
 
 // Create connection to SQLite database
+const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database("db/database.db", err => {
 	if (err) {
 		console.error(err.message);
@@ -150,6 +151,33 @@ app.post("/ftd/api/login", async (req, res) => {
 				return;
 			}
 		});
+	} catch (err) {
+		// Internal Server Error
+		console.log(err);
+		res.status(500).send("500: Internal server error");
+	}
+});
+
+// Login a user with the given credentials
+app.post("/ftd/api/loginGuest", async (req, res) => {
+	try {
+		let result = {};
+		const guestUsername = "Guest" + guestNumber;
+		guestNumber++;
+		// Generate a JWT token
+		let payload = {
+			humanUser: {
+				username: guestUsername
+			}
+		};
+		let token = jwt.sign(payload, jwtSecretKey, {
+			expiresIn: 14400
+		});
+		result.jwt = token;
+
+		// Send the JWT back to the user
+		console.log(`[EXPRESS SERVER INFO] ${guestUsername} logged in as a guest`);
+		res.status(200).json(result);
 	} catch (err) {
 		// Internal Server Error
 		console.log(err);

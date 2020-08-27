@@ -12,8 +12,8 @@ import Image from "react-bootstrap/Image";
 import Logo from "../assets/warcry-logo-small.png";
 import HelpImg from "../assets/question-mark.png";
 import axios from "axios";
+import ListGroup from "react-bootstrap/ListGroup";
 import "../css/SettingsPage.css";
-
 
 class SettingsPage extends React.Component {
 	constructor(props) {
@@ -165,7 +165,11 @@ class SettingsPage extends React.Component {
 			<Popover id="popover-basic">
                 <Popover.Title as="h3" style={{ textAlign: "center" }}>Info</Popover.Title>
                 <Popover.Content>
-                    More settings coming Soon™
+                    <ListGroup variant="flush">
+						<ListGroup.Item>Passwords are hashed and stored into our database as hashes. We cannot access your password as the hashing process is "one-way" meaning that it cannot be reversed</ListGroup.Item>
+                        <ListGroup.Item>Deleting your account will also delete all your play stats (feature coming Soon™)</ListGroup.Item>
+						<ListGroup.Item>Before you can delete your account, you will be prompted to re-enter your current password</ListGroup.Item>
+					</ListGroup>
                 </Popover.Content>
 			</Popover>
 		);

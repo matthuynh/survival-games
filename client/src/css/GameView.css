@@ -10,3 +10,8 @@
     overflow: hidden;
     cursor: crosshair;
 }
+
+/* Note this applies to all pages */
+body {
+    overflow: hidden;
+}

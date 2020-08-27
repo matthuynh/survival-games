@@ -166,7 +166,7 @@ class RegistrationForm extends React.Component {
 					<OverlayTrigger
                         placement="right"
                         delay={{ show: 250, hide: 100 }}
-                        overlay={this.renderTooltip("Must be between 6 and 50 characters long")}
+                        overlay={this.renderTooltip("Must be between 6 and 50 characters long. Passwords are stored in our database as hashes")}
                     >
 						<input
 							type="password"

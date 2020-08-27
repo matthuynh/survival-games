@@ -16,11 +16,13 @@ class LoginForm extends React.Component {
 			username: "",
 			password: "",
 			alertMessage: "",
-			alert: ""
+            alert: "",
+            error: ""
 		};
 		this.handleLogInUser = this.handleLogInUser.bind(this);
 		this.handleUsername = this.handleUsername.bind(this);
         this.handlePassword = this.handlePassword.bind(this);
+        this.handleGuestLogIn = this.handleGuestLogIn.bind(this);
         this.renderTooltip = this.renderTooltip.bind(this);
         this.renderAlert = this.renderAlert.bind(this);
 
@@ -133,6 +135,34 @@ class LoginForm extends React.Component {
                 }
             }
         }
+    }
+    
+    // Handles login API call
+	async handleGuestLogIn(e) {
+        this.setState({ alert: "", error: "" }); // Clear alerts
+        try {
+            console.log("Clicked on guest login");
+            let response = await axios.post("/ftd/api/loginGuest");
+
+            // Successful login; redirect to dashboard
+            if (response) {
+                Auth.loginAsGuest(response.data.jwt, () => {
+                    this.props.history.push("/dashboard");
+                });
+            } else {
+                this.setState({
+                    alertMessage: "Oops! Internal server error. Please try again. If this problem persists, contact the developers",
+                    alert: "danger"
+                });
+            }
+        } 
+        // Unsuccessful login
+        catch (err) {
+            this.setState({
+                alertMessage: "Oops! Internal server error. Please try again. If this problem persists, contact the developers",
+                alert: "danger"
+            });
+        }
 	}
 
 	render() {
@@ -188,12 +218,12 @@ class LoginForm extends React.Component {
                 <OverlayTrigger
                     placement="right"
                     delay={{ show: 250, hide: 100 }}
-                    overlay={this.renderTooltip("If you choose to play as a Guest, you will not be able to customize any settings or save play statistics (features coming Soon™)")}
+                    overlay={this.renderTooltip("If you choose to play as a Guest, you will not be able to customize any settings or save play statistics (feature coming Soon™)")}
                 >
                     <Button
                         variant="dark"
                         className="form-button guest-button"
-                        disabled
+                        onClick={this.handleGuestLogIn}
                     >
                         Play as Guest
                     </Button>

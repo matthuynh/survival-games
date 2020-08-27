@@ -5,6 +5,7 @@ class Auth {
 		// Deletes the JWT cookie and removes the isAuth local storage on the client
 		document.cookie = 'jwt=; expires=Thu, 01-Jan-1970 00:00:01 GMT;';
 		localStorage.removeItem('isAuth');
+		localStorage.removeItem("isGuest");
 	}
 
 	// Called when the user successfully logs into the server
@@ -12,6 +13,13 @@ class Auth {
 		// console.log("Successfully authenticated user");
 		document.cookie = "jwt=" + token;
 		localStorage.setItem("isAuth", true);
+		cb();
+	}
+
+	loginAsGuest(token, cb) {
+		document.cookie = "jwt=" + token;
+		localStorage.setItem("isAuth", true);
+		localStorage.setItem("isGuest", true);
 		cb();
 	}
 
