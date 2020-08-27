@@ -60,11 +60,9 @@ class GameView extends React.Component {
 			this.setState({ joinedLobbyId: this.props.joinedLobbyId });
 		}
 		if (prevProps.userWon !== this.props.userWon) {
-			console.log("set state to user won");
 			this.setState({ userWon: this.props.userWon, showMenuScreen: true });
 		}
 		if (prevProps.userLost !== this.props.userLost) {
-			console.log("set state to user lost");
 			this.setState({ userLost: this.props.userLost, showMenuScreen: true });
 		}
 		if (prevProps.volumeOn !== this.props.volumeOn) {

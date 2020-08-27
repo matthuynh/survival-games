@@ -36,7 +36,7 @@ const emptyGunSound = new UIFx(emptyGunImport, {
 // TODO: Add env check for dev vs prod
 // const wssServerURL = "ws://localhost:10000"; // UNCOMMENT THIS FOR LOCAL
 const wssServerURL = window.location.origin.replace(/^http/, 'ws'); // UNCOMMENT THIS FOR PROD
-console.log(wssServerURL);
+// console.log(wssServerURL);
 
 // Note: disabled React Strict Mode in index.js, as it would cause the constructor to load twice
 class LobbiesPage extends React.Component {
@@ -184,20 +184,20 @@ class LobbiesPage extends React.Component {
 			}
 			
 			this.clientSocket.onopen = () => {
-				console.log("Front-end connected to the web server");
+				console.log("[CLIENT INFO] Front-end connected to the web server");
 			};
 	
 			this.clientSocket.onclose = (event) => {
 				console.log(event);
 				if (event.reason === "Unable to identify client") {
-					console.log("Web socket server unable to identify client. Front-end connection disconnected")
+					console.log("[CLIENT INFO] Web socket server unable to identify client. Front-end connection disconnected")
 					this.returnToDashboard("socket-server-closed");
 				} else if (event.code == "1006") {
 					// TODO: This might be unreliable. Implement a better system for handling these CloseEvents
-					console.log("Front-end disconnected from web socket server due to timeout");
+					console.log("[CLIENT INFO] Front-end disconnected from web socket server due to timeout");
 					this.returnToDashboard("socket-server-timeout");
 				} else {
-					console.log("Front-end disconnected from web socket server");
+					console.log("[CLIENT INFO] Front-end disconnected from web socket server");
 					this.returnToDashboard("socket-server-closed");
 				}
 			};
@@ -224,7 +224,7 @@ class LobbiesPage extends React.Component {
 							this.setState({ 
 								showGameView: true,
 							});
-							console.log("Starting client stage model");
+							// console.log("[CLIENT INFO] Starting client stage model");
 	
 							// Initialize state of the client model
 							window.setupStageModel(
@@ -254,7 +254,7 @@ class LobbiesPage extends React.Component {
 	
 						// Receive list of updated lobbies state from socket server
 						case "view-lobbies":
-							console.log("Updating lobby view");
+							// console.log("[CLIENT INFO] Updating lobby view");
 							// console.log(serverUpdate.lobbies);
 							this.setState({
 								lobbies: serverUpdate.lobbies
@@ -321,7 +321,7 @@ class LobbiesPage extends React.Component {
 	
 						// Re-initialize the stage (user loss or won)
 						case "stage-termination":
-							console.log("[WSS INO] Trying to terminate stage");
+							console.log("[CLIENT INFO] Trying to terminate stage");
 							document.removeEventListener("keydown", this.handleKeyPress);
 							document.removeEventListener("keyup", this.handleKeyRelease);
 							document.removeEventListener("mousemove", this.handleMouseMove);
@@ -333,7 +333,7 @@ class LobbiesPage extends React.Component {
 							// Forceful stage termination during a multiplayer game by lobby owner disconnected
 							// Sends all other players back to lobby paeg
 							if (serverUpdate.isForced) {
-								console.log("[WSS INO] Stage termination is forceful, sending all players back to lobby page");
+								console.log("[CLIENT INFO] Stage termination is forceful, sending all players back to lobby page");
 								this.setState({
 									showGameView: false,
 									userWon: false,
@@ -345,14 +345,14 @@ class LobbiesPage extends React.Component {
 							} 
 							// Stage terminated because user won game
 							else if (serverUpdate.winningPID === this.state.playerId) {
-								console.log("[WSS INO] User won");
+								console.log("[CLIENT INFO] User won");
 								this.setState({
 									userWon: true,
 								});
 							} 
 							// Stage terminated because user lost game by quitting the game
 							else {
-								console.log("[WSS INO] User lost");
+								console.log("[CLIENT INFO] User lost");
 								this.setState({
 									userLost: true,
 								});
@@ -382,11 +382,11 @@ class LobbiesPage extends React.Component {
 							break;
 	
 						case "ping":
-							console.log("Received 'keep-alive' ping from server");
+							console.log("[CLIENT INFO] Received 'keep-alive' ping from server");
 							break;
 
 						default:
-							console.log("Received unknown update from socket server");
+							console.log("[CLIENT INFO] Received unknown update from socket server");
 					}
 				}
 			};
@@ -414,7 +414,6 @@ class LobbiesPage extends React.Component {
 
 	// A player can leave the multiplayer lobby they are in
 	handleLeaveLobbyMultiplayer(playerId, lobbyNumber) {
-		console.log("Inside handleLeaveLobbyMultiplayer()");
 		// console.log("Client tries to leave lobby with id " + lobbyNumber);
 
 		let clientUpdate = JSON.stringify({
@@ -445,7 +444,6 @@ class LobbiesPage extends React.Component {
 
 	// A lobby owner deletes the multiplayer lobby he is in 
 	handleDeleteLobbyMultiplayer(playerId, lobbyId) {
-		console.log("Inside handleDeleteLobbyMultiplayer()");
 		let clientUpdate = JSON.stringify({
 			type: "delete-lobby-multiplayer",
 			pid: playerId,
@@ -456,7 +454,6 @@ class LobbiesPage extends React.Component {
 
 	// A lobby owner deletes the singleplayer lobby he is in 
 	handleDeleteLobbySingleplayer(playerId, lobbyId) {
-		console.log("Inside handleDeleteLobbySingleplayer()");
 		let clientUpdate = JSON.stringify({
 			type: "delete-lobby-singleplayer",
 			pid: playerId,
@@ -467,23 +464,18 @@ class LobbiesPage extends React.Component {
 
 	// A lobby owner attempts to starts a game on a lobby on the server
 	handleStartGameMultiplayer(ownerId, lobbyId) {
-		// console.log("Inside handleStartGameMultiplayer()");
 		this.setState({
 			userWon: false,
 			userLost: false,
 		})
 		this.resetMovementInput();
 		
-		// console.log(ownerId);
-		// console.log(lobbyId);
-
 		// Note that only the owner of a valid lobby may start a game
 		let clientUpdate = JSON.stringify({
 			pid: ownerId,
 			type: "start-game-multiplayer",
 			lobbyId: lobbyId
 		});
-		console.log(clientUpdate);
 		this.clientSocket.send(clientUpdate);
 	}
 
@@ -514,7 +506,6 @@ class LobbiesPage extends React.Component {
 
 	// User chooses to leave game via the game menu
 	handleLeaveGame(playerId, lobbyId) {
-		console.log("Inside handleLeaveGame()");
 		// Note that leaving a game also causes you to leave the lobby
 		let clientUpdate = JSON.stringify({
 			type: "leave-game",

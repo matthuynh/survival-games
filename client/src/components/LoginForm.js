@@ -141,7 +141,6 @@ class LoginForm extends React.Component {
 	async handleGuestLogIn(e) {
         this.setState({ alert: "", error: "" }); // Clear alerts
         try {
-            console.log("Clicked on guest login");
             let response = await axios.post("/ftd/api/loginGuest");
 
             // Successful login; redirect to dashboard

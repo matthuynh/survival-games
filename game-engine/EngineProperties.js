@@ -5,8 +5,8 @@
 exports.PlayerGenerationTemplate = {
     // default movementSpeed = 7, healthPoints = 120
     "Human": {
-        movementSpeed: 15,
-        healthPoints: 12000,
+        movementSpeed: 7,
+        healthPoints: 130,
         radius: 30
     },
     "EasyBot": {

@@ -7,7 +7,7 @@ function updateStageModel(playerActors, bulletActors, environmentActors, numAliv
 	if (stage) {
 		stage.applyServerUpdates(playerActors, bulletActors, environmentActors, numAlive, hasEnded);
 	} else {
-		console.log("Could not update Stage on client side -- it doesn't exist");
+		console.log("[CLIENT CONTROLLER WARNING] Could not update Stage on client side -- it doesn't exist");
 	}
 }
 
@@ -26,7 +26,6 @@ function setupStageModel(
 	playerId,
 	gameType
 ) {
-	console.log("Called setupStageModel()");
 	// Instantiate a new Stage with the canvas element from index.html
 	stage = new Stage(
 		canvas,
@@ -42,14 +41,13 @@ function setupStageModel(
 		playerId,
 		gameType
 	);
-	console.log("Instantiated a new Stage on client side");
 }
 
 // Starts looping the setInterval() function
 function startStageModel() {
 	clearInterval(interval);
 	interval = null;
-	console.log("Starting interval for Stage on client side")
+	// console.log("[CLIENT CONTROLLER] Starting interval for Stage on client side")
 	if (!(stage == null)) {
 		// Every 20 milliseconds, takes a "step" for animation and also redraws the canvas
 		interval = setInterval(function () {
@@ -60,7 +58,7 @@ function startStageModel() {
 
 // Quit a stage game
 function stopStageGame() {
-	console.log("Stopping Stage on client side");
+	// console.log("[CLIENT CONTROLLER] Stopping Stage on client side");
 	clearInterval(interval); // clearInterval is a library function
 	interval = null;
 	stage = null;
