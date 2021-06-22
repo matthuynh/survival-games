@@ -7,6 +7,12 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import { Link } from "react-router-dom";
 import Auth from "../Routing/auth";
 import Logo from "../assets/login.png";
+import Popover from "react-bootstrap/Popover";
+import ListGroup from "react-bootstrap/ListGroup";
+import Image from "react-bootstrap/Image";
+import HelpImg from "../assets/question-mark.png";
+import Row from "react-bootstrap/row";
+import Col from "react-bootstrap/col";
 import "../css/LoginForm.css";
 
 class LoginForm extends React.Component {
@@ -83,6 +89,23 @@ class LoginForm extends React.Component {
 		} 
         return null;
     }
+
+    // Displays when user hovers over help button
+	renderHelpPopover() {
+		return(
+			<Popover id="popover-basic">
+                <Popover.Title as="h3" style={{ textAlign: "center" }}>What's WarCry?</Popover.Title>
+                <Popover.Content>
+                    <ListGroup variant="flush">
+						<ListGroup.Item>WarCry is a top-down battle royale shooter</ListGroup.Item>
+                        <ListGroup.Item>WarCry is completely free-to-play, and has both multiplayer and singleplayer modes!</ListGroup.Item>
+                        <ListGroup.Item>You can play with or without an account. Registered users can customize settings</ListGroup.Item>
+						<ListGroup.Item>Created by Matthew and Rahul</ListGroup.Item>
+					</ListGroup>
+                </Popover.Content>
+			</Popover>
+		);
+	};
 
 	// Handles login API call
 	async handleLogInUser(e) {
@@ -227,6 +250,16 @@ class LoginForm extends React.Component {
                         Play as Guest
                     </Button>
                 </OverlayTrigger>
+
+                <Row className="settings-footer align-items-center">
+                    <Col xs={{ span: 3, offset: 10 }}>
+                        <OverlayTrigger trigger="click" placement="top" overlay={this.renderHelpPopover()}>
+                            <span id="settings-help-icon">
+                                <Image src={HelpImg} alt={"Help-Button-Image"} style={{maxHeight: "25px", maxWidth: "25px"}} />
+                            </span>
+                        </OverlayTrigger>
+                    </Col>
+                </Row>
             </div>
 		);
 	}

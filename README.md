@@ -89,3 +89,5 @@ One-liner (combines steps 3 - 6): `cd client && npm run build && cd .. && git ad
     - `heroku run bash`
     - You can check out the deployed files here `ls`
     - `exit` to exit
+- Restart dyno
+    - `heroku restart`
